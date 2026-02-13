@@ -1,0 +1,48 @@
+specVersion: "4.0"
+metadata:
+  name: customerindent
+type: application
+server:
+  customMiddleware:
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertErrors: false
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
+    - name: fiori-tools-appreload
+      afterMiddleware: compression
+      configuration:
+        port: 35729
+        path: webapp
+        delay: 300
+    - name: fiori-tools-preview
+      afterMiddleware: fiori-tools-appreload
+      configuration:
+        component: customerindent
+        ui5Theme: sap_fiori_3
+    - name: sap-fe-mockserver
+      beforeMiddleware: csp
+      configuration:
+        mountPath: /
+        services:
+          - urlPath: /sap/opu/odata/sap/ZSDI_ODATA_CUST_PORTAL_01_SRV
+            metadataPath: ./webapp/localService/mainService/metadata.xml
+            mockdataPath: ./webapp/localService/mainService/data
+            generateMockData: true
+          - urlPath: /sap/opu/odata/sap/ZSD_CUST_INDENT_REPT_SRV
+            metadataPath: ./webapp/localService/reportService/metadata.xml
+            mockdataPath: ./webapp/localService/reportService/data
+            generateMockData: true
+          - urlPath: /sap/opu/odata/sap/ZSD_CUST_PORTAL_DEEPENTITY_SRV
+            metadataPath: ./webapp/localService/mainService/metadata.xml
+            mockdataPath: ./webapp/localService/deepEntityService/data
+            generateMockData: true
+          - urlPath: /sap/opu/odata/sap/ZSD_CUST_IND_WITOUTVEH_SRV
+            metadataPath: ./webapp/localService/mainService/metadata.xml
+            mockdataPath: ./webapp/localService/withoutvehService/data
+            generateMockData: true
+        annotations: []

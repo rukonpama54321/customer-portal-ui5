@@ -1,0 +1,8 @@
+---
+applications:
+  - name: customerindent-ui
+    path: dist
+    memory: 256M
+    disk_quota: 256M
+    buildpack: staticfile_buildpack
+    random-route: true

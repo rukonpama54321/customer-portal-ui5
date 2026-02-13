@@ -1,0 +1,2545 @@
+﻿/* SAP UI5 Customer Portal - Custom Styles */
+
+/* Order success dialog styling */
+.order-success-dialog .sapMDialogTitle {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: #1a3a52;
+}
+
+.order-success-dialog .sapMDialogSection {
+    padding: 1rem 1.25rem 1.5rem;
+}
+
+.order-success-title {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1a3a52;
+    margin-bottom: 0.5rem;
+}
+
+.order-success-meta {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #2d3748;
+    line-height: 1.5;
+}
+
+.order-success-hint {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #0854a0;
+    font-weight: 600;
+    margin-top: 0.75rem;
+}
+
+/* ========================================
+   General Page Styling
+   ======================================== */
+.sapUiBody {
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f7f7f7;
+    color: #1a3a52;
+}
+
+/* Dark blue for all text elements */
+.sapMText,
+.sapMLabel,
+.sapMObjectNumber,
+.sapMObjectAttribute,
+.sapMObjectStatus,
+.sapMObjLItemTitle,
+.sapMObjLItemIntro,
+.sapMListTblCell,
+.sapMColumnHeader,
+.sapUiFormTitle {
+    color: #1a3a52 !important;
+}
+
+/* Page header title stays white for contrast */
+.sapMPageHeader .sapMTitle {
+    color: #ffffff !important;
+}
+
+/* ========================================
+   Page Headers
+   ======================================== */
+.sapMPageHeader {
+    background-color: #354a5f;
+}
+
+.sapMTitle {
+    color: #1a3a52;
+    font-weight: 600;
+}
+
+/* ========================================
+   Form Styling
+   ======================================== */
+.sapUiForm {
+    padding: 1rem;
+    background-color: #ffffff;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.sapUiFormTitle {
+    color: #1a3a52;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* ========================================
+   Input Fields
+   ======================================== */
+.sapMInputBaseContentWrapper {
+    border: 1px solid #d9d9d9;
+    border-radius: 0.25rem;
+}
+
+.sapMInputBaseContentWrapper:hover {
+    border-color: #0854a0;
+}
+
+.sapMInputBaseContentWrapper:focus-within {
+    border-color: #0854a0;
+    box-shadow: 0 0 0 0.0625rem #0854a0;
+}
+
+/* ========================================
+   Buttons - Removed custom styling
+   ======================================== */
+
+/* Slide down animation for manage button */
+.sapMHBox {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Items section animation - sideways slide */
+.items-section-animated {
+    animation: slideInFromRight 0.5s ease-out;
+    transform-origin: left center;
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Order card item styling */
+.order-card-item {
+    background: linear-gradient(135deg, rgba(14, 165, 163, 0.05) 0%, rgba(118, 152, 197, 0.08) 100%);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(14, 165, 163, 0.15);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.order-card-item:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 163, 0.08) 0%, rgba(118, 152, 197, 0.12) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+}
+
+.order-card-item:active {
+    transform: translateY(-1px);
+}
+
+/* Order header section styling */
+.order-header-section {
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+/* Typography for order card */
+.order-card-item .sapMTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a3a52;
+    letter-spacing: -0.02em;
+}
+
+.order-card-item .sapMText {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.order-card-item .sapMObjectNumber {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0854a0;
+}
+
+.order-card-item .order-net-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0854a0;
+}
+
+.order-card-item .order-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.order-card-item .sapMObjectStatus {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+}
+
+/* Items section title */
+.items-section-animated .sapMTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2d3748;
+    border-bottom: 2px solid rgba(14, 165, 163, 0.2);
+    padding-bottom: 0.5rem;
+}
+
+/* Order header item styling */
+.order-header-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-left: 4px solid #1a3a52;
+    transition: all 0.2s ease-in-out;
+}
+
+.order-header-item:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-left-color: #0854a0;
+    transform: translateX(2px);
+}
+
+/* ========================================
+   Carousel List Cards - Clean Modern Design
+   ======================================== */
+
+/* Carousel Container */
+.card-content-carousel {
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.items-carousel {
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 100%;
+}
+
+.items-carousel .sapMCrslControls {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    margin: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.items-carousel .sapMCrslPrev,
+.items-carousel .sapMCrslNext {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.items-carousel .sapMCrslPrev:hover,
+.items-carousel .sapMCrslNext:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    transform: scale(1.05);
+}
+
+/* Carousel Item Card */
+.carousel-item-card {
+    padding: 1rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    gap: 0.75rem;
+    margin: 0.5rem;
+    transition: all 0.3s ease;
+    min-height: 420px;
+    height: 100%;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Item Header Section */
+.item-list-header {
+    padding: 0.875rem 1rem;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 10px;
+    color: white;
+    gap: 0.5rem;
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.2);
+    flex-shrink: 0;
+}
+
+.item-number-badge {
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.material-code-header {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #f1f5f9 !important;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+}
+
+.item-description-header {
+    font-size: 0.9375rem !important;
+    font-weight: 500 !important;
+    color: #e2e8f0 !important;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+}
+
+/* Item Details List */
+.item-details-list {
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    flex: 1;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-field {
+    padding: 0.75rem 0.875rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 8px;
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    transition: all 0.3s ease;
+    min-height: 65px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+}
+
+.list-field:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.15);
+}
+
+/* Quantity Field with Depletion Bar */
+.quantity-field {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid rgba(14, 165, 234, 0.3);
+    gap: 0.5rem;
+    min-height: 75px;
+    flex-shrink: 0;
+}
+
+.field-header {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.field-label {
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.field-value-primary .sapMObjNumber {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #059669 !important;
+}
+
+.field-value-price .sapMObjNumber {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #dc2626 !important;
+}
+
+.field-value-plant {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: #7c3aed !important;
+    background: rgba(124, 58, 237, 0.1);
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+}
+
+.field-value {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+}
+
+/* Quantity Depletion Bar */
+.quantity-depletion-bar {
+    width: 100%;
+    height: 1rem;
+    margin-top: 0.5rem;
+}
+
+.quantity-depletion-bar .sapMPIBar {
+    background: linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.quantity-depletion-bar .sapMPIBarRemaining {
+    background: rgba(226, 232, 240, 0.6);
+    border-radius: 8px;
+}
+
+.quantity-depletion-bar .sapMPIDisplayValue {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+}
+
+/* Page Indicators */
+.items-carousel .sapMCrslBulleted .sapMCrslIndicator {
+    background: rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.items-carousel .sapMCrslBulleted .sapMCrslActive {
+    background: #6366f1;
+    transform: scale(1.3);
+}
+
+/* Remove old card styles that are no longer needed */
+
+/* Responsive adjustments for carousel */
+@media (max-width: 768px) {
+    .field-value-primary .sapMObjNumber,
+    .field-value-price .sapMObjNumber {
+        font-size: 1.125rem !important;
+    }
+    
+    .item-number-badge {
+        font-size: 1rem !important;
+    }
+
+    .list-field {
+        padding: 0.875rem;
+        min-height: 70px;
+        border-width: 1.5px;
+    }
+
+    .quantity-field {
+        min-height: 80px;
+    }
+}
+
+.price-display .sapMObjNumber {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #dc2626 !important;
+}
+
+.price-display .sapMObjNumberUnit {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: #b91c1c !important;
+    margin-left: 0.5rem;
+}
+
+.price-label {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+.plant-section {
+    gap: 0.75rem;
+}
+
+.plant-code {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: #7c3aed !important;
+}
+
+.plant-label {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+.sapMListTbl {
+    background-color: #ffffff;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.sapMListTblHeader {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d9d9d9;
+    font-weight: 600;
+}
+
+.sapMListTblRow:hover {
+    background-color: #f7f7f7;
+}
+
+.sapMListTblCell {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eeeeee;
+}
+
+/* Enhanced table styling within order cards */
+.order-card-item .sapMListTbl {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    font-size: 0.9rem;
+}
+
+.order-card-item .sapMListTblHeader {
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid rgba(14, 165, 163, 0.2);
+}
+
+.order-card-item .sapMListTblHeaderCell {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.order-card-item .sapMListTblRow {
+    transition: background-color 0.2s ease;
+}
+
+.order-card-item .sapMListTblRow:hover {
+    background-color: rgba(14, 165, 163, 0.04);
+}
+
+.order-card-item .sapMListTblCell {
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+.order-card-item .sapMText {
+    line-height: 1.5;
+}
+
+/* Enhanced Items Table Typography and Colors */
+.order-card-item .sapMListTblHeaderCell .sapMText {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #1a3a52 !important;
+    letter-spacing: 0.03em;
+}
+
+.order-card-item .sapMListTblCell .sapMText {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #2d3748 !important;
+}
+
+/* Item Number Column - Bold and Blue */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(1) .sapMText {
+    font-weight: 600;
+    color: #0854a0 !important;
+    font-size: 0.95rem;
+}
+
+/* Material Column - Emphasized */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(2) .sapMText {
+    font-weight: 600;
+    color: #0ea5a3 !important;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* Description Column */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(3) .sapMText {
+    color: #4a5568 !important;
+    font-style: italic;
+}
+
+/* Quantity Column - Highlighted */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(4) .sapMText {
+    font-weight: 600;
+    color: #d97706 !important;
+    font-size: 0.95rem;
+}
+
+/* UoM Column */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(5) .sapMText {
+    color: #6b7280 !important;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+/* Net Price Column - Currency accent */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(6) .sapMText {
+    font-weight: 600;
+    color: #059669 !important;
+    font-size: 0.95rem;
+}
+
+/* Currency Column */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(7) .sapMText {
+    color: #6b7280 !important;
+    font-size: 0.85rem;
+}
+
+/* Plant Column */
+.order-card-item .sapMListTblRow .sapMListTblCell:nth-child(8) .sapMText {
+    color: #6366f1 !important;
+    font-weight: 500;
+}
+
+/* Alternating row colors for better readability */
+.order-card-item .sapMListTblRow:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.order-card-item .sapMListTblRow:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Enhanced hover effect */
+.order-card-item .sapMListTblRow:hover {
+    background: linear-gradient(90deg, rgba(14, 165, 163, 0.06) 0%, rgba(14, 165, 163, 0.03) 100%) !important;
+    box-shadow: inset 3px 0 0 #0ea5a3;
+}
+
+/* Table container spacing */
+.order-card-item .items-section-animated .sapMListTbl {
+    margin-top: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+/* Table header shadow for better separation */
+.order-card-item .sapMListTblHeader {
+    background: linear-gradient(180deg, #354a5f 0%, #2d3e50 100%);
+    border-bottom: 3px solid #0ea5a3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.order-card-item .sapMListTblHeaderCell .sapMText {
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+/* Manage button styling within order cards */
+.order-card-item .sapMBtn.sapMBtnEmphasized {
+    background: linear-gradient(135deg, #0854a0 0%, #0a6bc2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(8, 84, 160, 0.25);
+    transition: all 0.3s ease;
+}
+
+.order-card-item .sapMBtn.sapMBtnEmphasized:hover {
+    background: linear-gradient(135deg, #0a6bc2 0%, #0c7dd4 100%);
+    box-shadow: 0 4px 12px rgba(8, 84, 160, 0.35);
+    transform: translateY(-1px);
+}
+
+.order-card-item .sapMBtn.sapMBtnEmphasized:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(8, 84, 160, 0.25);
+}
+
+/* ========================================
+   Dialogs
+   ======================================== */
+.sapMDialog {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.sapMDialogTitle {
+    background-color: #354a5f;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* ========================================
+   Message Strips
+   ======================================== */
+.sapMMessageStrip {
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.sapMMessageStripSuccess {
+    background-color: #e5f5ec;
+    border-left: 0.25rem solid #107e3e;
+}
+
+.sapMMessageStripWarning {
+    background-color: #fef7f1;
+    border-left: 0.25rem solid #e9730c;
+}
+
+.sapMMessageStripError {
+    background-color: #ffebeb;
+    border-left: 0.25rem solid #b00;
+}
+
+/* ========================================
+   Select Controls
+   ======================================== */
+.sapMSlt {
+    border-radius: 0.25rem;
+}
+
+/* ========================================
+   Date Picker
+   ======================================== */
+.sapMDP {
+    border-radius: 0.25rem;
+}
+
+/* ========================================
+   Toolbar
+   ======================================== */
+.sapMTB {
+    background-color: #ffffff;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.sapMTBSeparator {
+    background-color: #d9d9d9;
+}
+
+/* ========================================
+   Panel
+   ======================================== */
+.sapMPanel {
+    background-color: #ffffff;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.sapMPanelHdr {
+    background-color: #f7f7f7;
+    font-weight: 600;
+    color: #354a5f;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+/* ========================================
+   Responsive Padding
+   ======================================== */
+.sapUiResponsivePadding--header {
+    padding: 1rem 2rem;
+}
+
+.sapUiResponsivePadding--content {
+    padding: 2rem;
+}
+
+.sapUiResponsivePadding--subHeader {
+    padding: 0.5rem 2rem;
+}
+
+/* ========================================
+   Icon Tab Bar Styling
+   ======================================== */
+.sapMITBHead .sapMITBFilter {
+    min-width: 200px;
+    padding: 0 20px;
+    height: auto !important;
+    min-height: 80px;
+}
+
+.sapMITBText {
+    white-space: normal !important;
+    text-align: center;
+    word-wrap: break-word;
+    overflow: visible !important;
+    line-height: 1.3;
+    padding-top: 0.5rem;
+}
+
+.sapMITBFilter {
+    height: auto !important;
+}
+
+.sapMITBFilterIcon {
+    padding: 0.5rem;
+}
+
+/* ========================================
+   PETROLEUM LOGISTICS THEME - AGENT TAB
+   ======================================== */
+
+/* Animations */
+@keyframes popUpAnimation {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    60% {
+        transform: scale(1.05) translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Main Container Background */
+.petroleum-theme {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Order Details Section */
+.petroleum-order-section {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+    margin-bottom: 1.5rem;
+    border: 3px solid #ffb300;
+    overflow: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.petroleum-order-section .sapMLabel {
+    color: #1a1a1a;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    text-shadow: none;
+}
+
+.petroleum-order-section .sapMInput,
+.petroleum-order-section .sapMDatePicker,
+.petroleum-order-section .sapMTextArea {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* ========================================
+   Sales Order Lookup - Modern View
+   ======================================== */
+
+:root {
+    --so-ink: #0b1f3a;
+    --so-ink-soft: #143255;
+    --so-teal: #0ea5a3;
+    --so-teal-deep: #0b7f7c;
+    --so-coral: #f97316;
+    --so-gold: #f5c84c;
+    --so-cream: #fff7e6;
+    --so-slate: #475569;
+    --so-cloud: #eef2f6;
+    --so-ice: #f9fbff;
+}
+
+@keyframes soFadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes soFadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.so-lookup-page {
+    background: radial-gradient(circle at top left, rgba(14, 165, 163, 0.16), transparent 50%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.14), transparent 45%),
+        linear-gradient(160deg, #f9fbff 0%, #eef2f6 60%, #f5f7fb 100%);
+    font-family: "Poppins", "Segoe UI", "Verdana", sans-serif;
+}
+
+.so-lookup-page .sapMText,
+.so-lookup-page .sapMLabel,
+.so-lookup-page .sapMObjLTitle,
+.so-lookup-page .sapMObjLIntro,
+.so-lookup-page .sapMObjLNumber,
+.so-lookup-page .sapMTitle {
+    font-family: "Poppins", "Segoe UI", "Verdana", sans-serif;
+}
+
+.so-lookup-content {
+    gap: 1rem;
+}
+
+.so-hero {
+    padding: 1.5rem 1.75rem;
+    border-radius: 18px;
+    background: linear-gradient(120deg, rgba(11, 31, 58, 0.95), rgba(14, 165, 163, 0.85));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+    color: #f8fafc;
+    animation: soFadeInUp 0.5s ease-out;
+}
+
+.so-hero-row {
+    gap: 1.5rem;
+}
+
+.so-hero-brand {
+    gap: 1rem;
+}
+
+.so-hero-logo {
+    width: 128px;
+    height: 128px;
+    border-radius: 10px;
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: 0 8px 18px rgba(11, 31, 58, 0.25);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    object-fit: contain;
+}
+
+.so-hero-text {
+    gap: 0.25rem;
+}
+
+.so-hero-title {
+    color: #f8fafc;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.so-hero-subtitle {
+    color: rgba(248, 250, 252, 0.85);
+    font-size: 0.95rem;
+}
+
+.so-hero-tags {
+    gap: 0.5rem;
+}
+
+.so-hero-chip {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #0b1f3a;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.so-hero-chip--teal {
+    background: rgba(14, 165, 163, 0.25);
+    color: #d8fffd;
+    border: 1px solid rgba(14, 165, 163, 0.6);
+}
+
+.so-hero-chip--gold {
+    background: rgba(245, 200, 76, 0.28);
+    color: #fff7dc;
+    border: 1px solid rgba(245, 200, 76, 0.6);
+}
+
+.so-hero-chip--coral {
+    background: rgba(249, 115, 22, 0.25);
+    color: #ffe9dc;
+    border: 1px solid rgba(249, 115, 22, 0.6);
+}
+
+.so-date-range {
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.so-lookup-filter,
+.so-lookup-results,
+.so-lookup-card,
+.so-lookup-items {
+    border-radius: 16px;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+}
+
+.so-lookup-label {
+    color: var(--so-ink);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.so-lookup-search {
+    margin-top: 1.25rem;
+}
+
+.so-lookup-message {
+    border-radius: 12px;
+    animation: soFadeIn 0.35s ease-out;
+}
+
+.so-lookup-list .sapMLIB {
+    border-radius: 16px;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.so-lookup-list .sapMListUl {
+    padding: 0;
+}
+
+.so-lookup-list .sapMLIB:first-child {
+    margin-top: 0;
+}
+
+.so-lookup-list .sapMLIB:last-child {
+    margin-bottom: 0;
+}
+
+.so-lookup-list .sapMLIB + .sapMLIB {
+    margin-top: 0.75rem;
+}
+
+.so-lookup-list .sapMLIB:focus {
+    outline: none;
+}
+
+.so-lookup-list .sapMLIB:hover,
+.so-lookup-list .sapMLIB:active {
+    background: transparent;
+}
+
+.so-lookup-list .sapMLIB:focus-visible,
+.so-order-header.sapMObjLItem:focus-visible {
+    outline: none;
+}
+
+/* ========================================
+   GRADIENT LIST - Modern Colored Design
+   ======================================== */
+
+/* Gradient list container styling */
+.gradient-list .sapMListUl {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Individual gradient list items */
+.gradient-list-item.sapMObjLItem {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.08) 0%, 
+        rgba(139, 92, 246, 0.12) 50%, 
+        rgba(236, 72, 153, 0.08) 100%);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin: 0 !important;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Shimmer effect overlay */
+.gradient-list-item.sapMObjLItem::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+    transition: left 0.6s ease;
+}
+
+.gradient-list-item.sapMObjLItem:hover::before {
+    left: 100%;
+}
+
+/* Hover effect */
+.gradient-list-item.sapMObjLItem:hover {
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.15) 0%, 
+        rgba(139, 92, 246, 0.20) 50%, 
+        rgba(236, 72, 153, 0.15) 100%);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Active/Selected state */
+.gradient-list-item.sapMObjLItemActive,
+.gradient-list-item.sapMObjLItemSel {
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.2) 0%, 
+        rgba(139, 92, 246, 0.25) 50%, 
+        rgba(236, 72, 153, 0.2) 100%);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+/* Title - Sales Order Number */
+.gradient-list-item .sapMObjLTitle {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #4338ca !important;
+    text-shadow: 0 1px 2px rgba(67, 56, 202, 0.1);
+    margin-bottom: 0.25rem !important;
+}
+
+/* Intro - Customer Reference */
+.gradient-list-item .sapMObjLIntro {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #7c3aed !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Number - Net Value */
+.gradient-list-item .sapMObjLNumber {
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none !important;
+    filter: drop-shadow(0 2px 4px rgba(5, 150, 105, 0.2));
+}
+
+/* Number unit - Currency */
+.gradient-list-item .sapMObjLNumberUnit {
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: #059669 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Attributes styling */
+.gradient-list-item .sapMObjLAttr {
+    margin-top: 0.75rem !important;
+}
+
+.gradient-list-item .sapMObjLAttrRow {
+    gap: 1rem;
+}
+
+/* Customer Reference Date */
+.list-item-date .sapMObjLAttrText {
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: #ea580c !important;
+    background: rgba(234, 88, 12, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(234, 88, 12, 0.2);
+}
+
+/* Customer Code */
+.list-item-customer .sapMObjLAttrText {
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: #0891b2 !important;
+    background: rgba(8, 145, 178, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(8, 145, 178, 0.2);
+}
+
+/* Status badge */
+.list-item-status .sapMObjStatusText {
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    padding: 0.5rem 1rem !important;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Focus styles */
+.gradient-list-item.sapMObjLItem:focus,
+.gradient-list-item.sapMObjLItem:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 2px;
+}
+
+/* Remove default list styling */
+.gradient-list .sapMLIB {
+    background: transparent !important;
+    border: none !important;
+}
+
+.so-order-row {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.so-order-wrapper {
+    border-radius: 18px;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, rgba(14, 165, 163, 0.12), rgba(118, 152, 197, 0.18));
+    border: 1px solid rgba(14, 165, 163, 0.25);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+}
+
+.so-results-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--so-ink);
+    margin-bottom: 1rem;
+    padding-left: 0.25rem;
+}
+
+.so-order-row .sapMLIBContent {
+    padding: 0;
+    background: transparent;
+}
+
+.so-order-header,
+.so-order-header.sapMObjLItem {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 150px;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(120deg, rgba(118, 152, 197, 0.95), rgba(13, 212, 209, 0.8));
+    color: #f8fafc;
+}
+
+.so-order-header .sapMObjLItemDiv {
+    background: linear-gradient(120deg, rgba(118, 152, 197, 0.95), rgba(13, 212, 209, 0.8));
+    min-height: 150px;
+    border-radius: 14px;
+}
+
+.so-order-header .sapMObjLTitle,
+.so-order-header .sapMObjLIntro,
+.so-order-header .sapMObjLAttrText,
+.so-order-header .sapMObjLNumber,
+.so-order-header .sapMObjLNumberUnit,
+.so-order-header .sapMObjLStatusText {
+    color: #f8fafc;
+}
+
+.so-order-header .sapMObjLAttrText {
+    color: #eaf6ff !important;
+}
+
+.so-order-header .sapMObjLNumber {
+    font-size: 1.2rem;
+}
+
+.so-order-header.sapMObjLItem:hover,
+.so-order-header.sapMObjLItemActive,
+.so-order-header.sapMObjLItemActive .sapMObjLItemDiv {
+    background: linear-gradient(120deg, rgba(118, 152, 197, 0.95), rgba(13, 212, 209, 0.8));
+}
+
+.so-order-header .sapMObjLNumberDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.so-lookup-item .sapMPanel {
+    margin-top: 0.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(11, 31, 58, 0.1);
+    background: var(--so-ice);
+}
+
+.so-lookup-item .sapMPanelContent {
+    padding: 0;
+}
+
+.so-lookup-item .sapMPanelHdr {
+    background: linear-gradient(120deg, rgba(14, 165, 163, 0.14), rgba(245, 200, 76, 0.2));
+    color: var(--so-ink);
+    font-weight: 700;
+    border-bottom: 1px solid rgba(11, 31, 58, 0.08);
+}
+
+.so-lookup-item .sapMListTbl {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.so-placard {
+    padding: 1.25rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.so-placard-grid {
+    gap: 1rem 2rem;
+    margin-top: 0.75rem;
+}
+
+.so-placard-field {
+    min-width: 160px;
+}
+
+.so-animate-in {
+    animation: soFadeInUp 0.6s ease-out;
+}
+
+.so-items-table {
+    border-radius: 14px;
+    overflow: hidden;
+    animation: soFadeInUp 0.6s ease-out;
+}
+
+.petroleum-order-section .sapMInput:hover,
+.petroleum-order-section .sapMDatePicker:hover,
+.petroleum-order-section .sapMTextArea:hover {
+    background: #ffffff !important;
+    border-color: #ff6b35 !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Material Cards - Industrial Look */
+.petroleum-material-card {
+    width: 100%;
+    box-sizing: border-box;
+    animation: slideInRight 0.6s ease-out;
+}
+
+.petroleum-material-card .sapFCard {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 48, 135, 0.2);
+    border: 3px solid #003087;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-sizing: border-box;
+    max-width: 100%;
+    animation: popUpAnimation 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    animation-fill-mode: both;
+}
+
+.petroleum-material-card .sapFCard:first-child {
+    animation-delay: 0.1s;
+}
+
+.petroleum-material-card .sapFCard:nth-child(2) {
+    animation-delay: 0.25s;
+}
+
+.petroleum-material-card .sapFCard:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 48px rgba(0, 48, 135, 0.3);
+}
+
+.petroleum-material-card .sapFCardHeader {
+    background: linear-gradient(135deg, #003087 0%, #002060 100%);
+    border-bottom: 3px solid #003087;
+    border-radius: 12px 12px 0 0;
+}
+
+.petroleum-material-card .sapFCardHeaderText {
+    color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.petroleum-material-card .sapMTitle {
+    color: #2d3561 !important;
+    font-weight: 700;
+}
+
+.petroleum-material-card .sapMLabel {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+.petroleum-material-card .sapMObjectNumber {
+    color: #0288d1 !important;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.petroleum-material-card .sapMPI {
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.petroleum-material-card .sapMPIBar {
+    background: linear-gradient(90deg, #003087 0%, #002060 100%);
+    box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+}
+
+/* Agent Table Card */
+.petroleum-table-card .sapFCard {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border: 2px solid #e8ecf1;
+    overflow: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
+    animation: slideInFromRight 0.6s ease-out 0.4s both;
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Agent Assignment Animation */
+@keyframes slideInRightFade {
+    0% {
+        opacity: 0;
+        transform: translateX(60px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.agent-assignment-animate {
+    animation: slideInRightFade 0.6s cubic-bezier(.4,2,.6,1) 0.4s both !important;
+}
+
+.petroleum-table-card .sapFCardHeader {
+    background: linear-gradient(135deg, #003087 0%, #002060 100%);
+    border-bottom: 4px solid #003087;
+    border-radius: 12px 12px 0 0;
+}
+
+.petroleum-table-card .sapFCardHeaderText {
+    color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.petroleum-table-card .sapFCardContent {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 350px);
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.petroleum-table-card .sapFCardContent .sapMVBox {
+    min-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    max-height: calc(100vh - 400px);
+}
+
+.petroleum-table-card .sapMListTblScroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
+}
+
+.petroleum-table-card .sapMListTbl {
+    background: transparent;
+    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
+    table-layout: auto;
+    box-sizing: border-box;
+}
+
+.petroleum-table-card .sapMListTblHeader {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    border-bottom: 2px solid #003087;
+}
+
+.petroleum-table-card .sapMListTblHeaderCell {
+    color: #2d3561;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+}
+
+.petroleum-table-card .sapMListTblRow:nth-child(even) {
+    background: #f9fafb;
+}
+
+.petroleum-table-card .sapMListTblRow:hover {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.15);
+}
+
+.petroleum-table-card .sapMObjectStatus {
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 0.25rem 0.75rem;
+}
+
+/* Table Delete Button Styling - Removed */
+
+
+.petroleum-table-card .sapMLIBIconDel:hover {
+    color: #d32f2f;
+    transform: scale(1.3);
+}
+
+.petroleum-table-card .sapMLIBSelectD {
+    background-color: rgba(244, 67, 54, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.petroleum-table-card .sapMLIBSelectD:hover {
+    background-color: rgba(244, 67, 54, 0.2);
+}
+
+/* Action Buttons - Removed */
+
+/* Orange accent for progress bars and highlights */
+.petroleum-material-card .sapMPI .sapMPIBarSuccess {
+    background: #003087 !important;
+}
+
+.petroleum-material-card .sapMPI .sapMPIBarInformation {
+    background: #ff6b35 !important;
+}
+
+.petroleum-material-card .sapMPI .sapMPIBarWarning {
+    background: #fbbf24 !important;
+}
+
+/* Toolbar Styling */
+.petroleum-toolbar .sapMTB {
+    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    border-bottom: 2px solid #e8ecf1;
+    padding: 0.75rem 1rem;
+}
+
+.petroleum-toolbar .sapMSF {
+    border: 2px solid #e8ecf1;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+.petroleum-toolbar .sapMSF:focus-within {
+    border-color: #ff6b35;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+/* Toolbar buttons - removed styling */
+
+/* Header Panel */
+.petroleum-header .sapMPanelHdr {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+    border: none;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.petroleum-header .sapMTitle {
+    color: #1a1a1a !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+    text-shadow: #000000;
+}
+
+/* Header buttons - removed styling */
+
+/* Warehouse/Logistics Icons */
+.petroleum-icon {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Custom Spacing */
+.petroleum-spacing-top {
+    margin-top: 2rem;
+}
+
+.petroleum-spacing-bottom {
+    margin-bottom: 1.5rem;
+}
+
+/* Dialog Box Styling */
+.petroleum-dialog.sapMDialog {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.petroleum-dialog .sapMDialogSection {
+    padding: 1.5rem !important;
+}
+
+.petroleum-dialog .sapMDialogTitle {
+    background: linear-gradient(135deg, #003087 0%, #002060 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    padding: 1rem 1.5rem !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2) !important;
+}
+
+.petroleum-dialog .sapMLabel {
+    font-weight: 600 !important;
+    color: #2d3561 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.petroleum-dialog .sapMInputBaseInner {
+    border: 2px solid #e8ecf1 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+.petroleum-dialog .sapMInputBaseInner:focus {
+    border-color: #003087 !important;
+    box-shadow: 0 0 8px rgba(6, 174, 213, 0.3) !important;
+}
+
+.petroleum-dialog .sapMTextAreaInner {
+    border: 2px solid #e8ecf1 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+.petroleum-dialog .sapMTextAreaInner:focus {
+    border-color: #003087 !important;
+    box-shadow: 0 0 8px rgba(6, 174, 213, 0.3) !important;
+}
+
+.petroleum-dialog .sapMDialogFooter {
+    padding: 1rem 1.5rem !important;
+    background: #f5f7fa !important;
+}
+
+.petroleum-dialog .sapMBtn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1.5rem !important;
+}
+
+.petroleum-dialog .sapMDialogScroll {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.petroleum-dialog .sapUiContentPadding {
+    width: 100% !important;
+    max-width: 26rem !important;
+    margin: 0 auto !important;
+}
+
+.petroleum-dialog .petroleum-dialog-field {
+    margin-bottom: 1rem !important;
+    width: 100% !important;
+}
+
+.petroleum-dialog .petroleum-dialog-field:last-child {
+    margin-bottom: 0 !important;
+}
+
+.petroleum-dialog .petroleum-dialog-field .sapMLabel {
+    display: block !important;
+    margin-bottom: 0.375rem !important;
+}
+
+.petroleum-dialog .petroleum-dialog-field .sapMInput,
+.petroleum-dialog .petroleum-dialog-field .sapMTextArea {
+    width: 100% !important;
+}
+
+
+/* Force white text on dark backgrounds - removed for buttons */
+
+.petroleum-material-card .sapFCardHeader .sapMText,
+.petroleum-material-card .sapFCardHeaderText .sapMText,
+.petroleum-table-card .sapFCardHeader .sapMText,
+.petroleum-table-card .sapFCardHeaderText .sapMText {
+    color: #ffffff !important;
+}
+
+.petroleum-dialog .sapMDialogTitle .sapMText,
+.petroleum-dialog .sapMDialogTitle {
+    color: #ffffff !important;
+}
+
+
+/* Header Buttons Styling */
+.petroleum-header .sapMBtn,
+.petroleum-header .sapMBtn .sapMBtnInner,
+.petroleum-header .sapMBtn .sapMBtnHoverable {
+    background: linear-gradient(135deg, #003087 0%, #0047ab 100%) !important;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0, 48, 135, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.petroleum-header .sapMBtn:hover,
+.petroleum-header .sapMBtn:hover .sapMBtnInner,
+.petroleum-header .sapMBtn:hover .sapMBtnHoverable {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%) !important;
+    box-shadow: 0 6px 16px rgba(141, 5, 1, 0.5);
+    transform: translateY(-3px);
+}
+
+.petroleum-header .sapMBtn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 48, 135, 0.3);
+}
+
+.petroleum-header .sapMBtn .sapMBtnIcon {
+    color: #ffd700 !important;
+    transition: transform 0.3s ease;
+}
+
+.petroleum-header .sapMBtn:hover .sapMBtnIcon {
+    color: #ffffff !important;
+    transform: scale(1.15);
+}
+
+.petroleum-header .sapMBtn .sapMBtnContent {
+    color: #ffffff !important;
+    letter-spacing: 0.3px;
+}
+
+/* Colored icons throughout the tab */
+.petroleum-material-card .sapUiIcon,
+.petroleum-table-card .sapUiIcon {
+    color: #ff6b35 !important;
+}
+
+.petroleum-toolbar .sapUiIcon {
+    color: #003087 !important;
+}
+
+
+/* Reduce font sizes in material allocation cards */
+.petroleum-material-card .sapMLabel {
+    font-size: 0.85rem !important;
+}
+
+.petroleum-material-card .sapMObjectNumber {
+    font-size: 0.9rem !important;
+}
+
+.petroleum-material-card .sapMTitle {
+    font-size: 0.95rem !important;
+}
+
+.petroleum-material-card .sapFCardHeaderText {
+    font-size: 0.9rem !important;
+}
+
+
+/* Action Button Styling (Save/Cancel) - Same as Header Buttons */
+.petroleum-action-button {
+    background: linear-gradient(135deg, #003087 0%, #0047ab 100%) !important;
+    border: 2px solid #003087 !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1.5rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 48, 135, 0.2) !important;
+    height: 2.75rem !important;
+}
+
+.petroleum-action-button:hover {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%) !important;
+    border-color: #ff6b35 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4) !important;
+}
+
+.petroleum-action-button .sapMBtnInner,
+.petroleum-action-button .sapMBtnHoverable {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.petroleum-action-button .sapUiIcon {
+    color: #ffd700 !important;
+}
+
+.petroleum-action-button:hover .sapUiIcon {
+    color: #ffffff !important;
+}
+/* ========================================
+   Manage Order View Styling
+   ======================================== */
+
+/* ========================================
+   Manage Order View - Overview Page Style
+   ======================================== */
+
+/* Header Section */
+.manage-header-section {
+    padding: 1.5rem 1rem 1rem 1rem;
+    background: linear-gradient(135deg, #1a3a52 0%, #0854a0 100%);
+    border-bottom: 3px solid rgba(14, 165, 163, 0.3);
+}
+
+.manage-page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    font-family: '72', 'Segoe UI', Arial, sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.manage-page-subtitle {
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 0.375rem;
+    font-family: '72', 'Segoe UI', Arial, sans-serif;
+}
+
+/* Cards Container */
+.manage-cards-container {
+    gap: 1.5rem;
+    padding: 1.5rem 1rem;
+    flex-direction: column;
+}
+
+/* Card Base Styling */
+.manage-detail-card,
+.manage-items-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+    border: 1px solid rgba(10, 87, 160, 0.12);
+    width: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.manage-detail-card:hover,
+.manage-items-card:hover {
+    box-shadow: 0 14px 36px rgba(16, 24, 40, 0.12);
+    transform: translateY(-3px);
+}
+
+.manage-detail-card {
+    margin-bottom: 0;
+}
+
+.manage-items-card {
+    margin-top: 0;
+}
+
+/* Card Header */
+.card-header {
+    padding: 1.35rem 1.6rem 1.1rem 1.6rem;
+    border-bottom: 1px solid rgba(10, 87, 160, 0.12);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 247, 255, 0.7) 100%);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a3a52;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+/* Card Content */
+.card-content {
+    padding: 1.6rem 1.6rem 1.5rem 1.6rem;
+}
+
+.card-content-table {
+    padding: 0;
+}
+
+/* Detail Groups */
+.detail-group {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.1rem;
+    background: rgba(248, 251, 253, 0.9);
+    border: 1px solid rgba(10, 87, 160, 0.08);
+    border-radius: 12px;
+}
+.order-action-row {
+    gap: 0.75rem;
+    align-items: center;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f8fb 100%);
+    border: 1px solid rgba(10, 87, 160, 0.12);
+}
+
+.order-action-row .order-action-btn {
+    margin: 0;
+}
+
+.order-action-row .order-action-btn .sapMBtnInner {
+    height: 1.6rem;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(16, 24, 40, 0.12);
+}
+
+.order-action-row .order-action-btn.sapMBtnReject .sapMBtnInner {
+    box-shadow: 0 6px 16px rgba(198, 40, 40, 0.2);
+}
+
+.detail-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Labels */
+.detail-label {
+    font-size: 0.8125rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.required-label::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: 700;
+}
+
+/* Values */
+.detail-value-large {
+    font-size: 1.75rem;
+    color: #1a3a52;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.detail-value-emphasis {
+    font-size: 1.5rem;
+    color: #0854a0;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.detail-number-emphasis .sapMObjectNumberText {
+    font-size: 1.75rem !important;
+    color: #0854a0 !important;
+    font-weight: 700 !important;
+}
+
+.detail-value {
+    font-size: 0.9375rem;
+    color: #1a3a52;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.detail-hint {
+    font-size: 0.75rem;
+    color: #718096;
+    font-style: italic;
+    margin-top: 0.375rem;
+}
+
+/* Metrics Row */
+.metrics-row {
+    padding: 1.25rem 1.4rem;
+    background: linear-gradient(135deg, rgba(8, 84, 160, 0.12) 0%, rgba(14, 165, 163, 0.12) 100%);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border-left: 5px solid #0854a0;
+}
+
+.metric-item {
+    flex: 1;
+}
+
+/* Detail Rows */
+.detail-row {
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.detail-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Agent Selection */
+.agent-selection {
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #fef7e6 0%, #fffaf0 100%);
+    border-left: 4px solid #e09d00;
+    border-radius: 8px;
+}
+
+.agent-selection .sapMComboBox {
+    margin-top: 0.5rem;
+}
+
+/* Table Styling */
+.overview-items-table {
+    width: 100%;
+}
+
+.overview-items-table .sapMListTbl {
+    border: none;
+    border-radius: 0 0 12px 12px;
+}
+
+.overview-items-table .sapMListTblHeader {
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #dee2e6;
+}
+
+.overview-items-table .sapMListTblHeaderCell {
+    padding: 1rem 0.75rem;
+    font-size: 0.8125rem;
+    color: #2d3748;
+    font-weight: 700;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.overview-table-row {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.15s ease;
+}
+
+.overview-table-row:hover {
+    background: rgba(14, 165, 163, 0.04);
+}
+
+.overview-table-row .sapMListTblCell {
+    padding: 1rem 0.75rem;
+    font-size: 0.9375rem;
+    color: #1a3a52;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.overview-table-row .sapMText {
+    color: #1a3a52 !important;
+    font-size: 0.9375rem;
+    font-weight: 400;
+}
+
+.overview-table-row .sapMObjectNumber {
+    font-size: 0.9375rem;
+}
+
+.overview-table-row .sapMObjectNumberText {
+    color: #0854a0 !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+}
+
+/* Footer Styling */
+.sapMPageFooter .sapMTB {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-top: 2px solid rgba(14, 165, 163, 0.2);
+    padding: 1rem 1.5rem;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sapMPageFooter .sapMBtn {
+    height: 2.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    .manage-cards-container {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .agent-cards-container {
+        flex-direction: column;
+    }
+    
+    .agent-header-card,
+    .agent-items-card {
+        max-width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .manage-cards-container {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .manage-detail-card,
+    .manage-items-card {
+        margin: 0;
+    }
+    
+    .carousel-item-card {
+        padding: 0.75rem;
+        margin: 0.25rem;
+        min-height: 380px;
+        gap: 0.5rem;
+    }
+    
+    .items-carousel {
+        height: 450px;
+    }
+    
+    .item-list-header {
+        padding: 0.625rem 0.75rem;
+    }
+    
+    .list-field {
+        padding: 0.625rem 0.75rem;
+        min-height: 55px;
+        border-width: 1.5px;
+    }
+
+    .quantity-field {
+        min-height: 65px;
+    }
+    
+    .field-value-primary .sapMObjNumber,
+    .field-value-price .sapMObjNumber {
+        font-size: 1.125rem !important;
+    }
+    
+    .item-number-badge {
+        font-size: 1rem !important;
+    }
+}
+
+/* ========================================
+   Agent Order Allocation Section (Hierarchical)
+   ======================================== */
+
+.agent-allocation-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Agent Allocation Header with Add Button */
+.agent-allocation-section .sapUiSmallMargin {
+    margin: 0 !important;
+}
+
+.agent-allocation-section .sapUiSmallMarginBottom {
+    margin-bottom: 1.5rem !important;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(14, 165, 163, 0.15);
+}
+
+/* Agent Allocations List */
+.agent-allocations-list {
+    background-color: transparent;
+    border: none;
+}
+
+.agent-allocations-list .sapMList,
+.agent-allocations-list .sapMListUl {
+    background-color: transparent;
+    border: none;
+}
+
+/* Individual Agent Allocation Item */
+.agent-allocation-item {
+    background-color: transparent;
+    border: none;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.agent-allocation-item .sapMListItemBase {
+    background-color: transparent;
+    border-bottom: none;
+    padding: 0;
+}
+
+.agent-allocation-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Agent Allocation Title and Add Button */
+.agent-allocation-title {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: #1a3a52;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+/* Add Agent Button Styling */
+.agent-allocation-section .sapMBtn.sapMBtnEmphasized {
+    background: linear-gradient(135deg, #0854a0 0%, #0a6ed1 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(8, 84, 160, 0.3);
+    transition: all 0.3s ease;
+}
+
+.agent-allocation-section .sapMBtn.sapMBtnEmphasized:hover {
+    background: linear-gradient(135deg, #0a6ed1 0%, #0854a0 100%);
+    box-shadow: 0 4px 12px rgba(8, 84, 160, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Agent Header Panel (Expandable) */
+.agent-header-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    border: 2px solid rgba(14, 165, 163, 0.2);
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+    overflow: hidden;
+}
+
+.agent-header-panel:hover {
+    border-color: rgba(14, 165, 163, 0.4);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.agent-header-panel .sapMPanelHdr {
+    background: linear-gradient(135deg, rgba(14, 165, 163, 0.08) 0%, rgba(118, 152, 197, 0.12) 100%);
+    border-bottom: 2px solid rgba(14, 165, 163, 0.25);
+    padding: 1.25rem 1.5rem;
+    min-height: 3.5rem;
+}
+
+.agent-header-panel .sapMPanelHdr .sapMTitle {
+    color: #1a3a52;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.agent-header-panel .sapMPanelContent {
+    background-color: #ffffff;
+    padding: 1.75rem 1.5rem;
+    border-radius: 0 0 10px 10px;
+}
+
+/* Panel Toolbar Styling */
+.agent-header-panel .sapMTB {
+    background-color: transparent;
+    border: none;
+}
+
+.agent-header-panel .sapMBtnReject {
+    background-color: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    transition: all 0.2s ease;
+}
+
+.agent-header-panel .sapMBtnReject:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Agent Details Form */
+.agent-details-form {
+    gap: 1.25rem;
+}
+
+.agent-details-form .sapUiSmallMarginBottom {
+    margin-bottom: 1.5rem !important;
+}
+
+.detail-field {
+    padding: 0 0.75rem;
+    min-width: 200px;
+}
+
+.detail-field .detail-label {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.detail-field .detail-value {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: #1a3a52;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* ComboBox and DatePicker in Agent Form */
+.agent-details-form .sapMComboBox,
+.agent-details-form .sapMDatePicker {
+    width: 100%;
+}
+
+.agent-details-form .sapMInputBaseContentWrapper {
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+}
+
+.agent-details-form .sapMInputBaseContentWrapper:hover {
+    border-color: #0854a0;
+}
+
+.agent-details-form .sapMInputBaseContentWrapper:focus-within {
+    border-color: #0854a0;
+    box-shadow: 0 0 0 3px rgba(8, 84, 160, 0.1);
+}
+
+/* Agent Items Allocation Table */
+.agent-items-table {
+    width: 100%;
+    background-color: transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.agent-items-table .sapMListTbl {
+    border: 1px solid rgba(14, 165, 163, 0.2);
+    background-color: #ffffff;
+    border-radius: 8px;
+}
+
+.agent-items-table .sapMListTblHeader {
+    background: linear-gradient(180deg, #0854a0 0%, #065a9e 100%);
+    border-bottom: none;
+}
+
+.agent-items-table .sapMListTblHeaderCell {
+    padding: 1rem 0.875rem;
+    font-size: 0.75rem;
+    color: #ffffff;
+    font-weight: 700;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.agent-items-table .sapMListTblHeaderCell:last-child {
+    border-right: none;
+}
+
+.agent-items-table .sapMListTblRow {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.agent-items-table .sapMListTblRow:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.agent-items-table .sapMListTblRow:hover {
+    background: linear-gradient(90deg, rgba(14, 165, 163, 0.06) 0%, rgba(118, 152, 197, 0.08) 100%);
+    transform: scale(1.01);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.agent-items-table .sapMListTblRow:last-child {
+    border-bottom: none;
+}
+
+.agent-items-table .sapMListTblCell {
+    padding: 1.125rem 0.875rem;
+    font-size: 0.9375rem;
+    color: #1a3a52;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    vertical-align: middle;
+}
+
+/* Input fields in table */
+.agent-items-table .sapMInputBase {
+    width: 100%;
+}
+
+.agent-items-table .sapMInputBaseContentWrapper {
+    background-color: #ffffff;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    height: 2.5rem;
+    transition: all 0.2s ease;
+}
+
+.agent-items-table .sapMInputBaseContentWrapper:hover {
+    border-color: #9ca3af;
+}
+
+.agent-items-table .sapMInputBaseContentWrapper:focus-within {
+    border-color: #0854a0;
+    border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(8, 84, 160, 0.1);
+    transform: scale(1.02);
+}
+
+.agent-items-table .sapMInputBaseInner {
+    padding: 0 0.75rem;
+    font-size: 0.9375rem;
+    color: #1a3a52;
+    font-weight: 500;
+}
+
+/* ObjectNumber in table */
+.agent-items-table .sapMObjectNumber {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.agent-items-table .sapMObjectNumberText {
+    color: #0854a0;
+}
+
+/* Table Section Title */
+.agent-details-form .sapUiSmallMarginTop .sapMTitle {
+    color: #1a3a52;
+    font-weight: 700;
+    font-size: 1.125rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(14, 165, 163, 0.2);
+    margin-bottom: 1rem;
+}
+
+
+/* Required field indicator */
+.manage-order-label.sapMLabelRequired::before {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+/* ========================================
+   Order Assignment Badge
+   ======================================== */
+.assigned-order-badge .sapMObjStatusText {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.assigned-order-badge .sapMObjStatus {
+    background-color: #0854a0 !important;
+    color: white !important;
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    border: none;
+}
+
+.assigned-order-badge .sapMObjStatusIcon {
+    color: white !important;
+}

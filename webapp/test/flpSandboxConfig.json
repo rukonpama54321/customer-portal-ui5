@@ -1,0 +1,65 @@
+{
+  "defaultRenderer": "fiori2",
+  "renderers": {
+    "fiori2": {
+      "componentData": {
+        "config": {
+          "enableSearch": false,
+          "rootIntent": "Shell-home"
+        }
+      }
+    }
+  },
+  "services": {
+    "LaunchPage": {
+      "adapter": {
+        "config": {
+          "groups": [
+            {
+              "tiles": [
+                {
+                  "tileType": "sap.ushell.ui.tile.StaticTile",
+                  "properties": {
+                    "title": "Customer Order",
+                    "subtitle": "Customer Order Portal",
+                    "infoState": "Neutral",
+                    "info": "",
+                    "icon": "sap-icon://sales-order",
+                    "targetURL": "#CustomerOrder-display"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "ClientSideTargetResolution": {
+      "adapter": {
+        "config": {
+          "inbounds": {
+            "CustomerOrder-display": {
+              "semanticObject": "CustomerOrder",
+              "action": "display",
+              "title": "Customer Order",
+              "signature": {
+                "parameters": {},
+                "additionalParameters": "allowed"
+              },
+              "resolutionResult": {
+                "applicationType": "SAPUI5",
+                "additionalInformation": "SAPUI5.Component=customerindent",
+                "url": "../"
+              }
+            }
+          }
+        }
+      }
+    },
+    "NavTargetResolution": {
+      "config": {
+        "enableClientSideTargetResolution": true
+      }
+    }
+  }
+}

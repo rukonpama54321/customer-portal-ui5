@@ -1,0 +1,42 @@
+specVersion: "4.0"
+metadata:
+  name: customerindent
+type: application
+framework:
+  name: SAPUI5
+  version: 1.142.0
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: sap.ui.comp
+    - name: sap.suite.ui.commons
+    - name: sap.f
+    - name: sap.ui.generic.app
+    - name: sap.ui.table
+    - name: sap.ushell
+    - name: themelib_sap_bluecrystal
+    - name: themelib_sap_fiori_3
+server:
+  customMiddleware:
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertErrors: true
+        backend:
+          - path: /sap/opu/odata
+            url: https://eccdev.nrl.com:8001
+            client: '300'
+            authenticationType: BasicAuthentication
+            username: '100620'
+            password: 'Feb567#$'
+    - name: fiori-tools-appreload
+      afterMiddleware: compression
+      configuration:
+        port: 35729
+        path: webapp
+        delay: 300
+    - name: fiori-tools-preview
+      afterMiddleware: fiori-tools-appreload
+      configuration:
+        component: customerindent
+        ui5Theme: sap_fiori_3

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+<edmx:DataServices m:DataServiceVersion="2.0">
+<Schema Namespace="ZSD_CUSTIND_WITHOUTVEHNEW_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+<EntityType Name="SALESORDERHeader" sap:content-version="1">
+<Key>
+  <PropertyRef Name="VBELN" /> 
+  </Key>
+  <Property Name="VBELN" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sales Document" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="AUART" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Document Type" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="VSBED" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Shipping Conditions" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="KUNNR" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sold-To-Party" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="BSTNK" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:label="Customer Reference" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="BSTDK" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer Reference Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="NETWR" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:unit="WAERK" sap:label="Net Value of Sales Order" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Sales Document Currency" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
+  <NavigationProperty Name="ToItem" Relationship="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SalesOrderHeaderToItem" FromRole="FromRole_SalesOrderHeaderToItem" ToRole="ToRole_SalesOrderHeaderToItem" /> 
+  </EntityType>
+<EntityType Name="SALESORDERItem" sap:content-version="1">
+<Key>
+  <PropertyRef Name="VBELN" /> 
+  <PropertyRef Name="POSNR" /> 
+  </Key>
+  <Property Name="VBELN" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sales Document" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="POSNR" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Sales Document Item" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="MATNR" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Material" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="ARKTX" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Material Description" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="KWMENG" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:unit="VRKME" sap:label="Order Quantity" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="VRKME" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="UoM" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
+  <Property Name="NETPR" Type="Edm.String" Nullable="false" MaxLength="11" sap:unicode="false" sap:unit="WAERK" sap:label="Net Price" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Currency" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
+  <Property Name="WERKS" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Plant" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  </EntityType>
+<EntityType Name="AgentDetails" sap:content-version="1">
+<Key>
+  <PropertyRef Name="AGENT_ID" /> 
+  </Key>
+  <Property Name="AGENT_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Agent Id" /> 
+  <Property Name="AGENT_NAME" Type="Edm.String" Nullable="false" MaxLength="35" sap:unicode="false" sap:label="Agent Name" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="AGENT_MAIL" Type="Edm.String" MaxLength="80" sap:unicode="false" sap:label="Agent Mail Id" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="AGENT_PH" Type="Edm.String" MaxLength="10" sap:unicode="false" sap:label="Agent Mobile No." sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="AGENT_ADDR" Type="Edm.String" MaxLength="225" sap:unicode="false" sap:label="Agent Address" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="CREATED_ON" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Date" sap:sortable="false" /> 
+  </EntityType>
+<EntityType Name="AgentOrderAllocationHeader" sap:content-version="1">
+<Key>
+  <PropertyRef Name="ORDER_NO" /> 
+  <PropertyRef Name="ALLOCATION_ID" /> 
+  <PropertyRef Name="AGENT_ID" /> 
+  </Key>
+  <Property Name="ORDER_NO" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Order Number" /> 
+  <Property Name="ALLOCATION_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Allocation ID" /> 
+  <Property Name="AGENT_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Agent ID" /> 
+  <Property Name="AGENT_NAME" Type="Edm.String" Nullable="false" MaxLength="35" sap:unicode="false" sap:label="Agent Name" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="KUNNR" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer" sap:sortable="false" /> 
+  <Property Name="KUNNR_DESC" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="Customer Desc." sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="LOADING_DATE" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Loading Date" sap:sortable="false" /> 
+  <Property Name="TRANSPORTER" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Carrier" sap:sortable="false" /> 
+  <Property Name="TRANS_NAME" Type="Edm.String" Nullable="false" MaxLength="35" sap:unicode="false" sap:label="Carrier Name" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="TRANSPORTGSTN" Type="Edm.String" Nullable="false" MaxLength="18" sap:unicode="false" sap:label="Carrier GSTN" sap:sortable="false" /> 
+  <NavigationProperty Name="AgentOrderHeadertoItem" Relationship="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentHeadertoItem" FromRole="FromRole_AgentHeadertoItem" ToRole="ToRole_AgentHeadertoItem" /> 
+  </EntityType>
+<EntityType Name="AgentOrderAllocationItm" sap:content-version="1">
+<Key>
+  <PropertyRef Name="ORDER_NO" /> 
+  <PropertyRef Name="ALLOCATION_ID" /> 
+  </Key>
+  <Property Name="ORDER_NO" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Order Number" /> 
+  <Property Name="ALLOCATION_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Allocation ID" /> 
+  <Property Name="AGENT_ID" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Agent ID" /> 
+  <Property Name="MATERIAL" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Product" sap:sortable="false" /> 
+  <Property Name="QUANTITY" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Allocated Quantity" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="UOM" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="UoM" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
+  <Property Name="DELIVERY_LOC" Type="Edm.String" Nullable="false" MaxLength="100" sap:unicode="false" sap:label="Delivery Address" sap:sortable="false" sap:filterable="false" /> 
+  </EntityType>
+<EntityType Name="TransporterDetails" sap:content-version="1">
+<Key>
+  <PropertyRef Name="CARRIER" /> 
+  <PropertyRef Name="GSTN" /> 
+  </Key>
+  <Property Name="CARRIER" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="CARRIER" sap:label="Carrier Code" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="GSTN" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="GSTN" sap:label="GST No." sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="NAME" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="NAME" sap:label="Name" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="EMAIL" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="EMAIL" sap:label="Email" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="ADDR" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="ADDR" sap:label="Address" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="PHONE" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="PHONE" sap:label="Phone" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="CRE_DATE" Type="Edm.String" Nullable="false" sap:unicode="false" sap:unit="CRE_DATE" sap:label="Created On" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  </EntityType>
+<EntityType Name="CustomerOrder" sap:content-version="1">
+<Key>
+  <PropertyRef Name="ORDER_NO" /> 
+  </Key>
+  <Property Name="ORDER_NO" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Order Number" /> 
+  <Property Name="KUNNR" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer Code" /> 
+  <Property Name="KUNNR_DESC" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="Customer Name" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="SALESORDER" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sales Document" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="SHIP_COND" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Shipping Conditions" sap:sortable="false" /> 
+  <Property Name="NETWR" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Net Value of Order" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Currency" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
+  <Property Name="BSTNK" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:label="Customer Reference" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="BSTDK" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer Reference Date" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="THIRDPARTY" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:label="Third Party Required" sap:sortable="false" /> 
+  <NavigationProperty Name="CustOrderHeadertoItem" Relationship="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrderHeadertoItem" FromRole="FromRole_CustomerOrderHeadertoItem" ToRole="ToRole_CustomerOrderHeadertoItem" /> 
+  </EntityType>
+<EntityType Name="CustomerOrderItem" sap:content-version="1">
+<Key>
+  <PropertyRef Name="ORDER_NO" /> 
+  <PropertyRef Name="POSNR" /> 
+  </Key>
+  <Property Name="ORDER_NO" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Order No." /> 
+  <Property Name="POSNR" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Order Item No." /> 
+  <Property Name="MATNR" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Product" /> 
+  <Property Name="ARKTX" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Product Description" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="KWMENG" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Quantity" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="VRKME" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="Sales unit" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
+  <Property Name="NETPR" Type="Edm.String" Nullable="false" MaxLength="11" sap:unicode="false" sap:label="Net Value of Product" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Currenct" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
+  <Property Name="WERKS" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Plant" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="USEDQTY" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Used Quantity" sap:sortable="false" sap:filterable="false" /> 
+  </EntityType>
+<Association Name="AgentHeadertoItem" sap:content-version="1">
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentOrderAllocationHeader" Multiplicity="1" Role="FromRole_AgentHeadertoItem" /> 
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentOrderAllocationItm" Multiplicity="*" Role="ToRole_AgentHeadertoItem" /> 
+<ReferentialConstraint>
+<Principal Role="FromRole_AgentHeadertoItem">
+  <PropertyRef Name="ALLOCATION_ID" /> 
+  <PropertyRef Name="AGENT_ID" /> 
+  <PropertyRef Name="ORDER_NO" /> 
+  </Principal>
+<Dependent Role="ToRole_AgentHeadertoItem">
+  <PropertyRef Name="ALLOCATION_ID" /> 
+  <PropertyRef Name="AGENT_ID" /> 
+  <PropertyRef Name="ORDER_NO" /> 
+  </Dependent>
+  </ReferentialConstraint>
+  </Association>
+<Association Name="SalesOrderHeaderToItem" sap:content-version="1">
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SALESORDERHeader" Multiplicity="1" Role="FromRole_SalesOrderHeaderToItem" /> 
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SALESORDERItem" Multiplicity="*" Role="ToRole_SalesOrderHeaderToItem" /> 
+<ReferentialConstraint>
+<Principal Role="FromRole_SalesOrderHeaderToItem">
+  <PropertyRef Name="VBELN" /> 
+  </Principal>
+<Dependent Role="ToRole_SalesOrderHeaderToItem">
+  <PropertyRef Name="VBELN" /> 
+  </Dependent>
+  </ReferentialConstraint>
+  </Association>
+<Association Name="CustomerOrderHeadertoItem" sap:content-version="1">
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrder" Multiplicity="1" Role="FromRole_CustomerOrderHeadertoItem" /> 
+  <End Type="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrderItem" Multiplicity="*" Role="ToRole_CustomerOrderHeadertoItem" /> 
+<ReferentialConstraint>
+<Principal Role="FromRole_CustomerOrderHeadertoItem">
+  <PropertyRef Name="ORDER_NO" /> 
+  </Principal>
+<Dependent Role="ToRole_CustomerOrderHeadertoItem">
+  <PropertyRef Name="ORDER_NO" /> 
+  </Dependent>
+  </ReferentialConstraint>
+  </Association>
+<EntityContainer Name="ZSD_CUSTIND_WITHOUTVEHNEW_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+  <EntitySet Name="SALESORDERHeaderSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SALESORDERHeader" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="SALESORDERItemSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SALESORDERItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentDetailsSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentDetails" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentOrderAllocationSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentOrderAllocationHeader" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentOrderAllocationItmSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentOrderAllocationItm" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="TransporterDetailsSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.TransporterDetails" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="CustomerOrderSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrder" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="CustomerOrderItemSet" EntityType="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrderItem" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+<AssociationSet Name="HeaderToItemSet" Association="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.SalesOrderHeaderToItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+  <End EntitySet="SALESORDERHeaderSet" Role="FromRole_SalesOrderHeaderToItem" /> 
+  <End EntitySet="SALESORDERItemSet" Role="ToRole_SalesOrderHeaderToItem" /> 
+  </AssociationSet>
+<AssociationSet Name="CustomerOrderHeadertoItemSet" Association="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.CustomerOrderHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+  <End EntitySet="CustomerOrderSet" Role="FromRole_CustomerOrderHeadertoItem" /> 
+  <End EntitySet="CustomerOrderItemSet" Role="ToRole_CustomerOrderHeadertoItem" /> 
+  </AssociationSet>
+<AssociationSet Name="AgentHeadertoItemSet" Association="ZSD_CUSTIND_WITHOUTVEHNEW_SRV.AgentHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+  <End EntitySet="AgentOrderAllocationSet" Role="FromRole_AgentHeadertoItem" /> 
+  <End EntitySet="AgentOrderAllocationItmSet" Role="ToRole_AgentHeadertoItem" /> 
+  </AssociationSet>
+  </EntityContainer>
+  <atom:link rel="self" href="http://eccdev.nrl.com:8000/sap/opu/odata/SAP/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
+  <atom:link rel="latest-version" href="http://eccdev.nrl.com:8000/sap/opu/odata/SAP/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
+  </Schema>
+  </edmx:DataServices>
+  </edmx:Edmx>

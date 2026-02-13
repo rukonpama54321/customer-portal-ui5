@@ -1,0 +1,379 @@
+<mvc:View
+    controllerName="customerindent.controller.ManageOrder"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+    <Page
+        title="Manage Bulk Order"
+        showNavButton="true"
+        navButtonPress=".onNavBack"
+        busy="{manageModel>/busy}">
+        <content>
+            <VBox width="100%">
+                <!-- Header Section with Logo -->
+                <VBox class="manage-header-section">
+                    <HBox alignItems="Center" wrap="Wrap">
+                        <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
+                        <VBox>
+                            <Title text="Manage Bulk Order" level="H1" class="manage-page-title" />
+                            <Text text="Create customer order from selected sales order" class="manage-page-subtitle" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Cards Container -->
+                <HBox class="sapUiSmallMargin" wrap="Wrap" alignItems="Stretch">
+                    <!-- Order Details Card -->
+                    <VBox class="manage-detail-card" width="70%" height="100%">
+
+
+                        <VBox class="card-header">
+                            <Title text="Order Details" class="card-title" />
+                        </VBox>
+                        <!-- Order Actions (Delete) -->
+                        <HBox class="detail-group order-action-row" justifyContent="Start" wrap="Wrap" visible="{= ${manageModel>/orderCreated} }">
+                            <Button 
+                                text="Delete Order"
+                                type="Reject"
+                                icon="sap-icon://delete"
+                                press=".onDeleteOrder"
+                                width="10rem"
+                                class="order-action-btn" />
+                        </HBox>
+
+                        <VBox class="card-content">
+                            
+                            <!-- Order Number Section -->
+                            <VBox class="detail-group">
+                                <Label text="Order No" class="detail-label" />
+                                <Text text="{manageModel>/orderNo}" class="detail-value-large" />
+
+                                <VBox class="detail-group" visible="{= ${manageModel>/orderCreated} }">
+                                    <Label text="Status" class="detail-label" />
+                                    <ObjectStatus 
+                                        text="Order Created Successfully"
+                                        state="Success"
+                                        icon="sap-icon://accept" />
+                                </VBox>                         
+                            </VBox>                                               
+                            <!-- Key Metrics -->
+                    <HBox class="metrics-row" justifyContent="SpaceBetween">
+                                <VBox class="metric-item">
+                                    <Label text="Sales Order" class="detail-label" />
+                                    <Text text="{manageModel>/header/VBELN}" class="detail-value-emphasis" />
+                                </VBox>
+                                <VBox class="metric-item">
+                                    <Label text="Net Value" class="detail-label" />
+                                    <ObjectNumber 
+                                        number="{manageModel>/header/NETWR}" 
+                                        unit="{manageModel>/header/WAERK}"
+                                        emphasized="true"
+                                        class="detail-number-emphasis" />
+                                </VBox>
+                            </HBox>
+
+                            <!-- Order Information Grid -->
+                            <VBox class="detail-group">
+                                <HBox class="detail-row">
+                                    <VBox class="detail-field">
+                                        <Label text="Customer Code" class="detail-label" />
+                                        <Text text="{manageModel>/header/KUNNR}" class="detail-value" />
+                                    </VBox>
+                                    <VBox class="detail-field">
+                                        <Label text="Customer Reference" class="detail-label" />
+                                        <Text text="{manageModel>/header/BSTNK}" class="detail-value" />
+                                    </VBox>
+                                </HBox>
+                                
+                                <HBox class="detail-row">
+                                    <VBox class="detail-field">
+                                        <Label text="Reference Date" class="detail-label" />
+                                        <Text text="{manageModel>/header/BSTDK}" class="detail-value" />
+                                    </VBox>
+                                    <VBox class="detail-field">
+                                        <Label text="Shipping Method" class="detail-label" />
+                                        <Text text="{manageModel>/header/VSBED}" class="detail-value" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+                            <!-- 3rd Party Agent (Conditional) -->
+                            <VBox 
+                                class="detail-group agent-selection"
+                                visible="{= ${manageModel>/header/VSBED} === 'CL' }">
+                                <Label text="3rd Party Agent" class="detail-label required-label" />
+                                <ComboBox 
+                                    id="thirdPartyAgentComboBox"
+                                    selectedKey="{manageModel>/thirdPartyAgent}"
+                                    placeholder="Select 3rd party agent (required)"
+                                    width="100%"
+                                    enabled="{= !${manageModel>/viewMode} }"
+                                    selectionChange=".onThirdPartyAgentChange"
+                                    required="true">
+                                    <items>
+                                        <core:Item key="YES" text="Yes" />
+                                        <core:Item key="NO" text="No" />
+                                    </items>
+                                </ComboBox>
+                            </VBox>
+
+                            <!-- Create Order Action -->
+                            <VBox class="detail-group" alignItems="End" visible="{= !${manageModel>/orderCreated} }">
+                                <Button 
+                                    text="Create Order"
+                                    type="Emphasized"
+                                    press=".onCreateOrder"
+                                    width="100%" />
+                            </VBox>                        
+                        </VBox>
+                    </VBox>
+
+                    <!-- Order Items Card - Right Side -->
+                    <VBox class="manage-items-card" width="30%" height="100%">
+                            <VBox class="card-header">
+                                <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                    <Title text="Order Items" class="card-title" />
+                                    <Text text="{= ${manageModel>/items}.length } items" class="card-subtitle" />
+                                </HBox>
+                            </VBox>
+                            <VBox class="card-content-carousel">
+                                <Carousel
+                                    pages="{path: 'manageModel>/items', templateShareable: true}"
+                                    height="100%"
+                                    width="100%"
+                                    pageIndicatorPlacement="Bottom"
+                                    showPageIndicator="true"
+                                    class="items-carousel">
+                                    <VBox class="carousel-item-card">
+                                        <!-- Item Header -->
+                                        <VBox class="item-list-header">
+                                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                                <Text text="Item {path: 'manageModel>POSNR', formatter: '.formatter.formatItemNumber'}" class="item-number-badge" />
+                                                <Text text="{manageModel>MATNR}" class="material-code-header" />
+                                            </HBox>
+                                            <Text text="{manageModel>ARKTX}" class="item-description-header" />
+                                        </VBox>
+                                        
+                                        <!-- Item Details List -->
+                                        <VBox class="item-details-list">
+                                            <!-- Quantity with Allocation Bar -->
+                                            <VBox class="list-field quantity-field">
+                                                <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="field-header">
+                                                    <Text text="Quantity Remaining" class="field-label" />
+                                                    <ObjectNumber 
+                                                        number="{manageModel>KWMENG}" 
+                                                        unit="{manageModel>VRKME}"
+                                                        emphasized="true"
+                                                        class="field-value-primary" />
+                                                </HBox>
+                                                <ProgressIndicator
+                                                    percentValue="{manageModel>allocationPercent}"
+                                                    displayValue="{manageModel>allocationDisplay}"
+                                                    state="{manageModel>allocationState}"
+                                                    class="quantity-allocation-bar" />
+                                            </VBox>
+                                            
+                                            <!-- Unit Price -->
+                                            <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
+                                                <Text text="Unit Price" class="field-label" />
+                                                <ObjectNumber 
+                                                    number="{manageModel>NETPR}" 
+                                                    unit="{manageModel>WAERK}"
+                                                    emphasized="true"
+                                                    class="field-value-price" />
+                                            </HBox>
+                                            
+                                            <!-- Plant -->
+                                            <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
+                                                <Text text="Plant" class="field-label" />
+                                                <Text text="{manageModel>WERKS}" class="field-value-plant" />
+                                            </HBox>
+                                            
+                                            <!-- Item Position -->
+                                            <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
+                                                <Text text="Item Position" class="field-label" />
+                                                <Text text="{manageModel>POSNR}" class="field-value" />
+                                            </HBox>
+                                        </VBox>
+                                    </VBox>
+                                </Carousel>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+
+                <!-- Agent Order Allocation Section (Conditional - Show if allocations exist OR 3rd Party Agent = YES) -->
+                <VBox 
+                    class="agent-allocation-section"
+                    visible="{= ${manageModel>/orderCreated} &amp;&amp; (${manageModel>/thirdPartyAgent} === 'YES' || (${manageModel>/agentAllocations}.length > 0)) }">
+                    
+                    <VBox class="sapUiSmallMargin">
+                        <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                            <Title text="Agent Allocations" level="H2" class="agent-allocation-title" />
+                            <Button
+                                text="Add Agent"
+                                type="Emphasized"
+                                icon="sap-icon://add"
+                                press=".onAddAgentAllocation"
+                                class="sapUiSmallMarginStart" />
+                            <ToolbarSpacer />
+                            <Button
+                                text="Save Agent Details"
+                                type="Accept"
+                                icon="sap-icon://save"
+                                press=".onSaveAgentAllocations"
+                                class="sapUiSmallMarginStart" />
+                        </HBox>
+
+                        <!-- Agent Allocations List -->
+                        <List
+                            items="{path: 'manageModel>/agentAllocations', templateShareable: true}"
+                            class="agent-allocations-list">
+                            <items>
+                                <CustomListItem class="agent-allocation-item" type="Inactive">
+                                    <content>
+                                        <VBox width="100%">
+                                            <!-- Agent Header Panel -->
+                                            <Panel
+                                                expandable="true"
+                                                expanded="{manageModel>__expanded}"
+                                                class="agent-header-panel">
+                                                <headerToolbar>
+                                                    <Toolbar>
+                                                        <Title 
+                                                            text="{= (${manageModel>AGENT_NAME} || 'Unknown Agent') + ' - ' + (${manageModel>TRANS_NAME} || 'Unknown Transporter')}"
+                                                            level="H3" />
+                                                        <ToolbarSpacer />
+                                                        <Button
+                                                            icon="sap-icon://delete"
+                                                            type="Reject"
+                                                            press=".onDeleteAgentAllocation"
+                                                            tooltip="Delete this agent allocation" />
+                                                    </Toolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <!-- Agent Details Form -->
+                                                    <VBox class="agent-details-form">
+                                                        <HBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                                                            <!-- Agent Selection -->
+                                                            <VBox class="detail-field" width="25%">
+                                                                <Label text="Agent" class="detail-label required-label" />
+                                                                <Text 
+                                                                    text="{= (${manageModel>AGENT_NAME} || 'Unknown Agent') + (${manageModel>AGENT_ID} ? ' (' + ${manageModel>AGENT_ID} + ')' : '')}"
+                                                                    visible="{= !!${manageModel>_readonly} }"
+                                                                    class="detail-value" />
+                                                                <ComboBox 
+                                                                    selectedKey="{manageModel>AGENT_ID}"
+                                                                    placeholder="Select agent"
+                                                                    width="100%"
+                                                                    visible="{= !${manageModel>_readonly} }"
+                                                                    items="{path: 'manageModel>/agents', templateShareable: true}"
+                                                                    selectionChange=".onAgentChange">
+                                                                    <core:Item 
+                                                                        key="{manageModel>AGENT_ID}" 
+                                                                        text="{= (${manageModel>AGENT_NAME} || 'Unknown Agent') + (${manageModel>AGENT_ID} ? ' (' + ${manageModel>AGENT_ID} + ')' : '')}" />
+                                                                </ComboBox>
+                                                            </VBox>
+
+                                                            <!-- Loading Date -->
+                                                            <VBox class="detail-field" width="25%">
+                                                                <Label text="Loading Date" class="detail-label required-label" />
+                                                                <Text 
+                                                                    text="{manageModel>LOADING_DATE}"
+                                                                    visible="{= !!${manageModel>_readonly} }"
+                                                                    class="detail-value" />
+                                                                <DatePicker 
+                                                                    value="{manageModel>LOADING_DATE}"
+                                                                    valueFormat="yyyy-MM-dd"
+                                                                    displayFormat="long"
+                                                                    visible="{= !${manageModel>_readonly} }"
+                                                                    width="100%" />
+                                                            </VBox>
+
+                                                            <!-- Carrier Selection -->
+                                                            <VBox class="detail-field" width="25%">
+                                                                <Label text="Carrier" class="detail-label required-label" />
+                                                                <Text 
+                                                                    text="{manageModel>TRANS_NAME}"
+                                                                    visible="{= !!${manageModel>_readonly} }"
+                                                                    class="detail-value" />
+                                                                <ComboBox 
+                                                                    selectedKey="{manageModel>TRANSPORTER}"
+                                                                    placeholder="Select carrier"
+                                                                    width="100%"
+                                                                    visible="{= !${manageModel>_readonly} }"
+                                                                    items="{path: 'manageModel>/transporters', templateShareable: true}"
+                                                                    selectionChange=".onTransporterChange">
+                                                                    <core:Item key="{manageModel>CARRIER}" text="{manageModel>NAME}" />
+                                                                </ComboBox>
+                                                            </VBox>
+
+                                                            <!-- Carrier GSTN -->
+                                                            <VBox class="detail-field" width="25%">
+                                                                <Label text="Carrier GSTN" class="detail-label" />
+                                                                <Text text="{manageModel>TRANSPORTGSTN}" class="detail-value" />
+                                                            </VBox>
+                                                        </HBox>
+
+                                                        <!-- Agent Items Allocation Table -->
+                                                        <VBox class="sapUiSmallMarginTop">
+                                                            <Title text="Item Allocations for this Agent" level="H4" class="sapUiSmallMarginBottom" />
+                                                            <Table
+                                                                items="{path: 'manageModel>items', templateShareable: true}"
+                                                                class="agent-items-table">
+                                                                <columns>
+                                                                    <Column width="4rem"><Text text="Item" /></Column>
+                                                                    <Column width="9rem"><Text text="Material" /></Column>
+                                                                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Description" /></Column>
+                                                                    <Column hAlign="End" width="7rem"><Text text="Order Qty" /></Column>
+                                                                    <Column hAlign="End" width="8rem"><Text text="Allocate Qty" /></Column>
+                                                                    <Column hAlign="End" width="7rem"><Text text="Available" /></Column>
+                                                                    <Column width="4rem"><Text text="UoM" /></Column>
+                                                                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Delivery Location" /></Column>
+                                                                </columns>
+                                                                <items>
+                                                                    <ColumnListItem>
+                                                                        <cells>
+                                                                            <Text text="{manageModel>POSNR}" />
+                                                                            <Text text="{manageModel>MATNR}" />
+                                                                            <Text text="{manageModel>ARKTX}" />
+                                                                            <ObjectNumber 
+                                                                                number="{manageModel>KWMENG}" 
+                                                                                state="Information"
+                                                                                emphasized="true" />
+                                                                            <Input 
+                                                                                value="{manageModel>agentQuantity}"
+                                                                                type="Number"
+                                                                                width="100%"
+                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>KWMENG} > 0 }"
+                                                                                change=".onAgentItemQtyChange"
+                                                                                tooltip="Enter quantity to allocate to this agent (cannot exceed available quantity)" />
+                                                                            <ObjectNumber 
+                                                                                number="{manageModel>KWMENG}"
+                                                                                state="{= ${manageModel>KWMENG} > 0 ? 'Success' : 'Error' }"
+                                                                                emphasized="true"
+                                                                                class="available-qty-indicator" />
+                                                                            <Text text="{manageModel>VRKME}" />
+                                                                            <Input 
+                                                                                value="{manageModel>DELIVERY_LOC}"
+                                                                                placeholder="Delivery address"
+                                                                                width="100%"
+                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>KWMENG} > 0 }" />
+                                                                        </cells>
+                                                                    </ColumnListItem>
+                                                                </items>
+                                                            </Table>
+                                                        </VBox>
+                                                    </VBox>
+                                                </content>
+                                            </Panel>
+                                        </VBox>
+                                    </content>
+                                </CustomListItem>
+                            </items>
+                        </List>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

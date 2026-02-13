@@ -1,0 +1,21 @@
+specVersion: "4.0"
+metadata:
+  name: customerindent
+type: application
+builder:
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          url: https://eccdev.nrl.com:8001
+          client: '300'
+          auth: basic
+        credentials:
+          username: '100620'
+          password: 'Feb567#$'
+        app:
+          name: ZCUSTINDENT
+          description: Customer Indent Portal
+          package: ZCUST_PORTAL
+          transport: ''

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="data:,">
+	<title>Customer Indent Portal</title>
+	<style>
+		html, body, body > div, #container, #container-uiarea {
+			height: 100%;
+		}
+		
+		/* Loading Screen */
+		#splash-screen {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: #f7f7f7;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 9999;
+			transition: opacity 0.5s ease-out;
+		}
+		
+		#splash-screen.hidden {
+			opacity: 0;
+			pointer-events: none;
+		}
+		
+		.spinner {
+			width: 50px;
+			height: 50px;
+			border: 5px solid #e0e0e0;
+			border-top: 5px solid #0854a0;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+		
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		
+		.loading-text {
+			margin-top: 20px;
+			color: #354a5f;
+			font-family: "72", Arial, sans-serif;
+			font-size: 16px;
+		}
+	</style>
+	<script
+			id="sap-ui-bootstrap"
+			src="resources/sap-ui-core.js"
+			data-sap-ui-theme="sap_fiori_3"
+			data-sap-ui-resourceroots='{
+            "customerindent": "."
+        }'
+			data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
+			data-sap-ui-compatVersion="edge"
+			data-sap-ui-async="true"
+			data-sap-ui-preload="async"
+			data-sap-ui-frameOptions="trusted"
+		data-sap-ui-libs="sap.m,sap.ui.core,sap.f,sap.ui.comp,sap.suite.ui.commons"
+			data-sap-ui-xx-waitForTheme="true"
+	></script>
+	<script>
+		// Auto-navigate to CustomerIndent if no hash is present
+		window.addEventListener('load', function() {
+			if (!window.location.hash || window.location.hash === '#') {
+				window.location.hash = '#/';
+			}
+			
+			// Hide loading screen after app loads
+			setTimeout(function() {
+				var splash = document.getElementById('splash-screen');
+				if (splash) {
+					splash.classList.add('hidden');
+					setTimeout(function() {
+						splash.remove();
+					}, 500);
+				}
+			}, 1000);
+		});
+	</script>
+</head>
+<body class="sapUiBody sapUiSizeCompact" id="content">
+<div id="splash-screen">
+	<div class="spinner"></div>
+	<div class="loading-text">Loading Customer Portal...</div>
+</div>
+<div data-sap-ui-component data-name="customerindent" data-id="container" data-settings='{"id" : "customerindent"}' data-handle-validation="true"></div>
+</body>
+</html>

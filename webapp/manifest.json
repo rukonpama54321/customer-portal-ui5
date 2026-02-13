@@ -1,0 +1,160 @@
+{
+  "$schema": "https://sapui5.hana.ondemand.com/sdk/resources/sap/ui/core/designtime/manifest.schema.json",
+  "_version": "1.28.0",
+  "sap.app": {
+    "id": "customerindent",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.18.4",
+      "toolsId": "c997b609-3904-4197-9f17-5adc44cc7b47"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "2.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "CustomerOrder-display": {
+          "semanticObject": "CustomerOrder",
+          "action": "display",
+          "title": "{{CustomerOrder-display.flpTitle}}",
+          "subTitle": "{{CustomerOrder-display.flpSubtitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.84.54",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.f": {},
+        "sap.ui.comp": {},
+        "sap.suite.ui.commons": {}
+      }
+    },
+    "componentUsages": {},
+    "handleValidation": true,
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "customerindent.i18n.i18n"
+        },
+        "supportedLocales": [
+          "en"
+        ],
+        "fallbackLocale": "en"
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "defaultBindingMode": "TwoWay",
+          "useBatch": true,
+          "refreshAfterChange": false,
+          "headers": {
+            "sap-client": "300"
+          }
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "customerindent.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "RouteCustomerIndent",
+          "pattern": ":?query:",
+          "target": [
+            "TargetCustomerIndent"
+          ]
+        },
+        {
+          "name": "ManageOrder",
+          "pattern": "ManageOrder/{vbeln}",
+          "target": [
+            "TargetManageOrder"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetCustomerIndent": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "CustomerOrder",
+          "viewName": "CustomerOrder"
+        },
+        "TargetManageOrder": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "ManageOrder",
+          "viewName": "ManageOrder"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "customerindent.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    }
+  }
+}

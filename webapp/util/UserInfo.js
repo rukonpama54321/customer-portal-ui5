@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";return{getLoginInfo:function(){var e="",n="";if(sap.ushell&&sap.ushell.Container&&sap.ushell.Container.getUser){e=sap.ushell.Container.getUser().getId();n=sap.ushell.Container.getUser().getEmail()}return{userId:e,email:n}}}});
+//# sourceMappingURL=UserInfo.js.map

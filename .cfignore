@@ -1,0 +1,11 @@
+node_modules/
+.git/
+.gitignore
+*.log
+.env
+.DS_Store
+test/
+mta_archives/
+dist-zip/
+resources/
+approuter/node_modules/

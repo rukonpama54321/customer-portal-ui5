@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Indent Portal</title>
+    <link rel="icon" href="data:,">
+    <script src="../resources/sap-ui-core.js"
+            id="sap-ui-bootstrap"
+            data-sap-ui-libs="sap.m,sap.ui.core,sap.ui.comp,sap.suite.ui.commons"
+            data-sap-ui-compatVersion="edge"
+            data-sap-ui-theme="sap_fiori_3"
+            data-sap-ui-async="true"
+            data-sap-ui-preload=""
+            data-sap-ui-resourceroots='{"customerindent": "../", "test": "./"}'
+    ></script>
+    <script>
+        sap.ui.getCore().attachInit(function () {
+            sap.ui.require([
+                "sap/m/Shell",
+                "sap/m/App",
+                "sap/m/Page",
+                "sap/m/GenericTile",
+                "sap/m/TileContent",
+                "sap/m/ImageContent",
+                "sap/ui/core/ComponentContainer",
+                "sap/m/library"
+            ], function (Shell, App, Page, GenericTile, TileContent, ImageContent, ComponentContainer, mobileLibrary) {
+                
+                console.log("FLP Sandbox initializing...");
+                console.log("Current hash:", window.location.hash);
+                
+                // Function to launch the app
+                function launchApp() {
+                    console.log("Launching app...");
+                    document.getElementById("content").innerHTML = "";
+                    sap.ui.core.Component.create({
+                        name: "customerindent",
+                        manifest: true
+                    }).then(function(oComponent) {
+                        new ComponentContainer({
+                            component: oComponent,
+                            height: "100%"
+                        }).placeAt("content");
+                    });
+                }
+
+                // Check if hash indicates app should be launched
+                if (window.location.hash && window.location.hash.indexOf("#CustomerOrder-display") === 0) {
+                    launchApp();
+                    // Navigate to default route after component loads
+                    setTimeout(function() {
+                        if (!window.location.hash || window.location.hash === "#CustomerOrder-display") {
+                            window.location.hash = "#CustomerOrder-display/EntryPage";
+                        }
+                    }, 500);
+                    return;
+                }
+
+                console.log("Showing launchpad with tile...");
+                
+                // Show launchpad with tile
+                var oTile = new GenericTile({
+                    header: "Customer Indent",
+                    subheader: "Customer Indent Portal",
+                    size: "L",
+                    press: function() {
+                        console.log("Tile clicked");
+                        // Clear the content and launch app
+                        document.getElementById("content").innerHTML = "";
+                        launchApp();
+                    },
+                    tileContent: new TileContent({
+                        content: new ImageContent({
+                            src: "sap-icon://sales-order"
+                        })
+                    })
+                }).addStyleClass("sapUiTinyMargin");
+
+                var oPage = new Page({
+                    title: "My Home",
+                    content: [oTile]
+                }).addStyleClass("sapUiContentPadding");
+
+                var oApp = new App({
+                    pages: [oPage]
+                });
+
+                var oShell = new Shell({
+                    app: oApp,
+                    appWidthLimited: false
+                });
+
+                console.log("Placing shell...");
+                oShell.placeAt("content");
+            });
+        });
+    </script>
+</head>
+<body class="sapUiBody" id="content">
+</body>
+</html>

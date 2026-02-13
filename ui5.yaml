@@ -1,0 +1,33 @@
+specVersion: "4.0"
+metadata:
+  name: customerindent
+type: application
+server:
+  customMiddleware:
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertErrors: true
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
+        backend:
+          - path: /sap
+            url: https://eccdev.nrl.com:8001
+            client: '300'
+            authenticationType: BasicAuthentication
+            username: '100620'
+            password: 'Feb567#$'
+    - name: fiori-tools-appreload
+      afterMiddleware: compression
+      configuration:
+        port: 35729
+        path: webapp
+        delay: 300
+    - name: fiori-tools-preview
+      afterMiddleware: fiori-tools-appreload
+      configuration:
+        component: customerindent
+        ui5Theme: sap_fiori_3

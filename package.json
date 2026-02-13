@@ -1,0 +1,32 @@
+{
+  "name": "customerindent",
+  "version": "0.0.1",
+  "private": true,
+  "sapuxLayer": "CUSTOMER_BASE",
+  "description": "",
+  "keywords": [
+    "ui5",
+    "openui5",
+    "sapui5"
+  ],
+  "main": "webapp/index.html",
+  "scripts": {
+    "start": "fiori run --open \"index.html?sap-ui-xx-viewCache=false\"",
+    "start-local": "fiori run --config ./ui5-local.yaml --open \"index.html?sap-ui-xx-viewCache=false\"",
+    "build": "ui5 build -a --clean-dest --include-task=generateCachebusterInfo",
+    "deploy": "npm run build",
+    "deploy-config": "fiori add deploy-config"
+  },
+  "devDependencies": {
+    "@sap-ux/ui5-middleware-fe-mockserver": "^2.4.0",
+    "@sap/ux-ui5-tooling": "1",
+    "@ui5/cli": "^4.0.0",
+    "cross-env": "^7.0.3",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "rimraf": "6.0.1"
+  },
+  "dependencies": {
+    "cf": "^0.0.3"
+  }
+}

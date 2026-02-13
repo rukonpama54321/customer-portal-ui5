@@ -1,0 +1,9 @@
+---
+applications:
+  - name: customerindent
+    path: dist
+    memory: 256M
+    disk_quota: 256M
+    buildpack: staticfile_buildpack
+    env:
+      BACKEND_URL: https://eccdev.nrl.com:8001
