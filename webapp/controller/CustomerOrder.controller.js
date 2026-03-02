@@ -315,7 +315,18 @@ sap.ui.define([
             // Handle subtab selection (allOrders or fullyAssigned)
             else if (sKey === "allOrders" || sKey === "fullyAssigned") {
                 oViewModel.setProperty("/selectedOrdersSubTab", sKey);
-                this._applyFilters();
+                
+                // Check if we have data from a search
+                var aAllHeaders = oViewModel.getProperty("/allHeaders");
+                
+                if (!aAllHeaders || aAllHeaders.length === 0) {
+                    // No search performed yet
+                    oViewModel.setProperty("/headers", []);
+                    oViewModel.setProperty("/showEmptyMessage", true);
+                } else {
+                    // Apply filters to existing data
+                    this._applyFilters();
+                }
             }
         },
 
@@ -329,8 +340,40 @@ sap.ui.define([
             oModel.read("/CustomerOrderSet", {
                 success: function (oData) {
                     var aResults = (oData && oData.results) ? oData.results : [];
-                    oViewModel.setProperty("/createdOrders", aResults);
-                    oViewModel.setProperty("/busy", false);
+                    
+                    // For each order, check if it has agent allocations
+                    var iChecksPending = aResults.length;
+                    
+                    if (iChecksPending === 0) {
+                        oViewModel.setProperty("/createdOrders", aResults);
+                        oViewModel.setProperty("/busy", false);
+                        return;
+                    }
+                    
+                    aResults.forEach(function(oOrder) {
+                        // Check if agent allocations exist for this order
+                        oModel.read("/AgentOrderAllocationSet", {
+                            filters: [new sap.ui.model.Filter("ORDER_NO", sap.ui.model.FilterOperator.EQ, oOrder.ORDER_NO)],
+                            success: function(oAllocData) {
+                                oOrder.hasAllocations = (oAllocData.results && oAllocData.results.length > 0);
+                                iChecksPending--;
+                                
+                                if (iChecksPending === 0) {
+                                    oViewModel.setProperty("/createdOrders", aResults);
+                                    oViewModel.setProperty("/busy", false);
+                                }
+                            },
+                            error: function() {
+                                oOrder.hasAllocations = false;
+                                iChecksPending--;
+                                
+                                if (iChecksPending === 0) {
+                                    oViewModel.setProperty("/createdOrders", aResults);
+                                    oViewModel.setProperty("/busy", false);
+                                }
+                            }
+                        });
+                    });
                 }.bind(this),
                 error: function (oError) {
                     oViewModel.setProperty("/busy", false);
@@ -408,6 +451,72 @@ sap.ui.define([
                     }
                 }.bind(this)
             });
+        },
+
+        /**
+         * Creates a custom group header for created orders showing Sales Order with Net Value
+         * @param {object} oGroup - The group information
+         * @returns {sap.m.GroupHeaderListItem} The group header item
+         */
+        createGroupHeader: function (oGroup) {
+            var sap = window.sap;
+            var GroupHeaderListItem = sap.m.GroupHeaderListItem;
+
+            // Get the sales order number from group key
+            var sSalesOrder = oGroup.key;
+            
+            // Get data from viewModel since oGroup doesn't provide context
+            var oViewModel = this.getView().getModel("viewModel");
+            var aCreatedOrders = oViewModel.getProperty("/createdOrders") || [];
+            
+            // Find the first order with this sales order number to get NETWR, WAERK, and SHIP_COND
+            var oFirstOrderInGroup = aCreatedOrders.find(function(oOrder) {
+                return oOrder.SALESORDER === sSalesOrder;
+            });
+            
+            var sNetValue = "";
+            var sCurrency = "";
+            var sShipping = "";
+            
+            if (oFirstOrderInGroup) {
+                sNetValue = oFirstOrderInGroup.NETWR || "0";
+                sCurrency = oFirstOrderInGroup.WAERK || "";
+                
+                // Format shipping condition
+                var sShipCond = oFirstOrderInGroup.SHIP_COND || "";
+                if (sShipCond === "CL") {
+                    sShipping = "Collected";
+                } else if (sShipCond === "DL") {
+                    sShipping = "Delivered";
+                } else {
+                    sShipping = sShipCond;
+                }
+                
+                // Format the net value with thousand separators
+                if (sNetValue) {
+                    var fValue = parseFloat(sNetValue);
+                    if (!isNaN(fValue)) {
+                        sNetValue = fValue.toLocaleString('en-IN', { 
+                            minimumFractionDigits: 1, 
+                            maximumFractionDigits: 1 
+                        });
+                    }
+                }
+            }
+
+            // Format the title - Sales Order, Shipping, then net value
+            var sTitle = "Sales Order: " + sSalesOrder + "     •     " + sShipping + "     •     Net Value: " + sNetValue + " " + sCurrency;
+
+            // Create and return the GroupHeaderListItem
+            var oGroupHeader = new GroupHeaderListItem({
+                title: sTitle,
+                upperCase: false
+            });
+            
+            // Add custom style class for styling
+            oGroupHeader.addStyleClass("sales-order-group-header-item");
+
+            return oGroupHeader;
         }
     });
 });

@@ -449,7 +449,15 @@ sap.ui.define([
                 oViewModel.setProperty("/viewMode", false);  // Explicitly ensure editable for sales orders
                 oViewModel.setProperty("/orderNo", "");
                 oViewModel.setProperty("/orderCreated", false);
-                oViewModel.setProperty("/thirdPartyAgent", "");
+                
+                // Set thirdPartyAgent based on shipping condition
+                var sShippingCondition = oSelectedOrder.VSBED;
+                if (sShippingCondition === "DL") {
+                    oViewModel.setProperty("/thirdPartyAgent", "N/A");
+                } else {
+                    oViewModel.setProperty("/thirdPartyAgent", "");
+                }
+                
                 oViewModel.setProperty("/header", oSelectedOrder);
                 var aItems = (oSelectedOrder.ToItem && oSelectedOrder.ToItem.results) ? oSelectedOrder.ToItem.results : [];
                 
@@ -501,17 +509,19 @@ sap.ui.define([
                         
                         oViewModel.setProperty("/items", aItemsWithAllocation);
                         
-                        // Convert THIRDPARTY from backend format to UI format (YES/NO)
+                        // Convert THIRDPARTY from backend format to UI format (YES/NO/N/A)
                         var sThirdParty = "";
                         
                         console.log("Raw THIRDPARTY value:", oFullOrderData.THIRDPARTY, "Type:", typeof oFullOrderData.THIRDPARTY);
                         console.log("SHIP_COND (VSBED):", oFullOrderData.SHIP_COND);
                         
-                        // Handle various formats: "1"/"0", "Y"/"N", "YES"/"NO"
+                        // Handle various formats: "1"/"0"/"3", "Y"/"N", "YES"/"NO"/"N/A"
                         if (oFullOrderData.THIRDPARTY === "1" || oFullOrderData.THIRDPARTY === "Y" || oFullOrderData.THIRDPARTY === "YES") {
                             sThirdParty = "YES";
                         } else if (oFullOrderData.THIRDPARTY === "0" || oFullOrderData.THIRDPARTY === "N" || oFullOrderData.THIRDPARTY === "NO") {
                             sThirdParty = "NO";
+                        } else if (oFullOrderData.THIRDPARTY === "3" || oFullOrderData.THIRDPARTY === "N/A") {
+                            sThirdParty = "N/A";
                         } else {
                             sThirdParty = oFullOrderData.THIRDPARTY || "";
                         }
@@ -589,7 +599,14 @@ sap.ui.define([
                     // Reset to new order state
                     oViewModel.setProperty("/orderNo", "");
                     oViewModel.setProperty("/orderCreated", false);
-                    oViewModel.setProperty("/thirdPartyAgent", "");
+                    
+                    // Set thirdPartyAgent based on shipping condition
+                    var sShippingCondition = oSalesOrderData.VSBED;
+                    if (sShippingCondition === "DL") {
+                        oViewModel.setProperty("/thirdPartyAgent", "N/A");
+                    } else {
+                        oViewModel.setProperty("/thirdPartyAgent", "");
+                    }
                     
                     // Set header data from sales order
                     oViewModel.setProperty("/header", oSalesOrderData);
@@ -1723,9 +1740,22 @@ sap.ui.define([
                 if (v === "0") {
                     return "NO";
                 }
+                if (v === "3") {
+                    return "N/A";
+                }
                 return v;
             };
             var sThirdParty = fnNormalizeThirdParty(sThirdPartyAgent);
+            
+            // Map thirdParty UI value to backend value
+            var sThirdPartyBackendValue = "0"; // default NO
+            if (sThirdParty === "YES") {
+                sThirdPartyBackendValue = "1";
+            } else if (sThirdParty === "N/A") {
+                sThirdPartyBackendValue = "3";
+            } else if (sThirdParty === "NO") {
+                sThirdPartyBackendValue = "0";
+            }
             
             // Build deep entity with only metadata fields
             var oDeepEntity = {
@@ -1738,7 +1768,7 @@ sap.ui.define([
                 WAERK: fnVal(oHeader.WAERK),
                 BSTNK: fnVal(oHeader.BSTNK),
                 BSTDK: fnVal(oHeader.BSTDK),
-                THIRDPARTY: sThirdParty === "YES" ? "1" : "0"
+                THIRDPARTY: sThirdPartyBackendValue
             };
 
             oDeepEntity[sNavProp] = {

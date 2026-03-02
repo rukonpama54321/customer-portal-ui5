@@ -43,9 +43,24 @@
 
                         <VBox class="card-content">
                             
-                            <!-- Order Number Section -->
+                            <!-- Sales Order Section (Primary/Prominent) -->
+                            <VBox class="detail-group sales-order-highlight sapUiSmallMarginBottom">
+                                <Label text="Sales Order(SAP):" class="detail-label sapUiTinyMarginBottom" />
+                                <HBox alignItems="Baseline" justifyContent="SpaceBetween" wrap="Wrap">
+                                    <Title text="{manageModel>/header/VBELN}" level="H1" class="sales-order-number" />
+                                    <ObjectNumber 
+                                        number="{manageModel>/header/NETWR}" 
+                                        unit="{manageModel>/header/WAERK}"
+                                        emphasized="true"
+                                        class="sales-order-amount"
+                                        state="Success" />
+                                </HBox>
+                    
+                            </VBox>
+
+                            <!-- Customer Order Number Section -->
                             <VBox class="detail-group">
-                                <Label text="Order No" class="detail-label" />
+                                <Label text="Customer Order No" class="detail-label" />
                                 <Text text="{manageModel>/orderNo}" class="detail-value-large" />
 
                                 <VBox class="detail-group" visible="{= ${manageModel>/orderCreated} }">
@@ -55,22 +70,7 @@
                                         state="Success"
                                         icon="sap-icon://accept" />
                                 </VBox>                         
-                            </VBox>                                               
-                            <!-- Key Metrics -->
-                    <HBox class="metrics-row" justifyContent="SpaceBetween">
-                                <VBox class="metric-item">
-                                    <Label text="Sales Order" class="detail-label" />
-                                    <Text text="{manageModel>/header/VBELN}" class="detail-value-emphasis" />
-                                </VBox>
-                                <VBox class="metric-item">
-                                    <Label text="Net Value" class="detail-label" />
-                                    <ObjectNumber 
-                                        number="{manageModel>/header/NETWR}" 
-                                        unit="{manageModel>/header/WAERK}"
-                                        emphasized="true"
-                                        class="detail-number-emphasis" />
-                                </VBox>
-                            </HBox>
+                            </VBox>
 
                             <!-- Order Information Grid -->
                             <VBox class="detail-group">
@@ -99,20 +99,20 @@
 
                             <!-- 3rd Party Agent (Conditional) -->
                             <VBox 
-                                class="detail-group agent-selection"
-                                visible="{= ${manageModel>/header/VSBED} === 'CL' }">
+                                class="detail-group agent-selection">
                                 <Label text="3rd Party Agent" class="detail-label required-label" />
                                 <ComboBox 
                                     id="thirdPartyAgentComboBox"
                                     selectedKey="{manageModel>/thirdPartyAgent}"
                                     placeholder="Select 3rd party agent (required)"
                                     width="100%"
-                                    enabled="{= !${manageModel>/viewMode} }"
+                                    enabled="{= !${manageModel>/viewMode} &amp;&amp; ${manageModel>/header/VSBED} !== 'DL' }"
                                     selectionChange=".onThirdPartyAgentChange"
                                     required="true">
                                     <items>
                                         <core:Item key="YES" text="Yes" />
                                         <core:Item key="NO" text="No" />
+                                        <core:Item key="N/A" text="N/A" />
                                     </items>
                                 </ComboBox>
                             </VBox>
@@ -156,10 +156,10 @@
                                         
                                         <!-- Item Details List -->
                                         <VBox class="item-details-list">
-                                            <!-- Quantity with Allocation Bar -->
+                                            <!-- Quantity with Allocation Bar (for CL) / Simple Quantity (for DL) -->
                                             <VBox class="list-field quantity-field">
                                                 <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="field-header">
-                                                    <Text text="Quantity Remaining" class="field-label" />
+                                                    <Text text="{= ${manageModel>/header/VSBED} === 'DL' ? 'Quantity' : 'Quantity Remaining' }" class="field-label" />
                                                     <ObjectNumber 
                                                         number="{manageModel>KWMENG}" 
                                                         unit="{manageModel>VRKME}"
@@ -170,6 +170,7 @@
                                                     percentValue="{manageModel>allocationPercent}"
                                                     displayValue="{manageModel>allocationDisplay}"
                                                     state="{manageModel>allocationState}"
+                                                    visible="{= ${manageModel>/header/VSBED} !== 'DL' }"
                                                     class="quantity-allocation-bar" />
                                             </VBox>
                                             
@@ -187,12 +188,6 @@
                                             <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
                                                 <Text text="Plant" class="field-label" />
                                                 <Text text="{manageModel>WERKS}" class="field-value-plant" />
-                                            </HBox>
-                                            
-                                            <!-- Item Position -->
-                                            <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
-                                                <Text text="Item Position" class="field-label" />
-                                                <Text text="{manageModel>POSNR}" class="field-value" />
                                             </HBox>
                                         </VBox>
                                     </VBox>

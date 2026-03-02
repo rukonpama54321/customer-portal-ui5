@@ -1912,6 +1912,9 @@
     width: 100%;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
 }
 
 .manage-detail-card:hover,
@@ -1926,6 +1929,13 @@
 
 .manage-items-card {
     margin-top: 0;
+}
+
+.manage-detail-card .card-content,
+.manage-items-card .card-content-carousel {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 /* Card Header */
@@ -2542,4 +2552,140 @@
 
 .assigned-order-badge .sapMObjStatusIcon {
     color: white !important;
+}
+
+/* ========================================
+   Sales Order Highlight Section
+   ======================================== */
+.sales-order-highlight {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 5px solid #0854a0;
+    box-shadow: 0 4px 12px rgba(8, 84, 160, 0.15);
+}
+
+.sales-order-number {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    color: #0854a0 !important;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.sales-order-amount .sapMObjectNumber {
+    font-size: 1.75rem !important;
+}
+
+.sales-order-amount .sapMObjectNumberText {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #059669 !important;
+}
+
+.sales-order-amount .sapMObjectNumberUnit {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: #059669 !important;
+}
+
+.sales-order-subtitle {
+    font-size: 0.875rem !important;
+    color: #64748b !important;
+    font-style: italic;
+}
+
+/* ========================================
+   Created Orders - Sales Order Group Header
+   ======================================== */
+.created-orders-list .sapMGHLI,
+.sales-order-group-header-item {
+    background: linear-gradient(135deg, #e8f4f8 0%, #d1e7f0 100%) !important;
+    border: 2px solid #0854a0 !important;
+    border-left: 5px solid #0854a0 !important;
+    border-radius: 8px !important;
+    margin: 0.75rem 0 !important;
+    box-shadow: 0 2px 8px rgba(8, 84, 160, 0.25) !important;
+    padding: 1rem 1.5rem !important;
+    min-height: 2.5rem !important;
+}
+
+.created-orders-list .sapMGHLITitle,
+.sales-order-group-header-item .sapMGHLITitle {
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: #0b3d6b !important;
+    letter-spacing: 0.03em !important;
+    text-transform: none !important;
+    line-height: 1.5 !important;
+}
+
+/* Customer Order List Items */
+.created-orders-list {
+    background: transparent !important;
+}
+
+.created-order-item {
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    margin-bottom: 0.75rem !important;
+    border: 1px solid rgba(8, 84, 160, 0.15) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s ease !important;
+    overflow: visible !important;
+}
+
+.created-order-item:hover {
+    background: linear-gradient(90deg, rgba(14, 165, 163, 0.04) 0%, rgba(8, 84, 160, 0.06) 100%) !important;
+    border-color: rgba(8, 84, 160, 0.35) !important;
+    transform: translateX(6px) scale(1.01) !important;
+    box-shadow: 0 4px 12px rgba(8, 84, 160, 0.2) !important;
+}
+
+.created-order-content {
+    padding: 1.25rem !important;
+}
+
+.customer-order-number {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #0854a0 !important;
+    margin: 0 !important;
+}
+
+.order-info-row {
+    margin-top: 0.75rem !important;
+}
+
+.info-label {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.info-value {
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    color: #1a3a52 !important;
+}
+
+/* View Details Button Styling */
+.created-order-item .sapMBtn {
+    border-radius: 6px !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 600 !important;
+}
+
+.created-order-item .sapMBtnEmphasized {
+    background: linear-gradient(135deg, #0854a0 0%, #1565c0 100%) !important;
+    border: none !important;
+    box-shadow: 0 2px 6px rgba(8, 84, 160, 0.3) !important;
+}
+
+.created-order-item .sapMBtnEmphasized:hover {
+    background: linear-gradient(135deg, #064080 0%, #0d4fa0 100%) !important;
+    box-shadow: 0 4px 10px rgba(8, 84, 160, 0.4) !important;
 }

@@ -226,7 +226,7 @@
                                     </VBox>
                                 </content>
                             </Panel>
-
+                            
                             <!-- Quick Filters Panel -->
                             <Panel 
                                 headerText="Filters" 
@@ -256,7 +256,7 @@
                             </Panel>
 
                             <MessageStrip
-                                text="No fully assigned sales orders found for the selected date range."
+                                text="No fully assigned sales orders found. Use the search above to find sales orders in the date range."
                                 type="Information"
                                 showIcon="true"
                                 visible="{viewModel>/showEmptyMessage}" />
@@ -362,7 +362,7 @@
                                             showIcon="true"
                                             visible="{= ${viewModel>/createdOrders}.length === 0 }" />
 
-                                        <Table
+                                        <List
                                             items="{
                                                 path: 'viewModel>/createdOrders',
                                                 sorter: {
@@ -370,43 +370,54 @@
                                                     descending: false,
                                                     group: true
                                                 },
+                                                groupHeaderFactory: '.createGroupHeader',
                                                 templateShareable: true
                                             }"
                                             visible="{= ${viewModel>/createdOrders}.length > 0 }"
-                                            class="created-orders-table">
-                                            <columns>
-                                                <Column width="8rem"><Text text="Order No" /></Column>
-                                                <Column width="8rem"><Text text="Sales Order" /></Column>
-                                                <Column width="9rem"><Text text="Customer Code" /></Column>
-                                                <Column width="12rem"><Text text="Customer Ref" /></Column>
-                                                <Column hAlign="End" width="8rem"><Text text="Net Value" /></Column>
-                                                <Column width="5rem"><Text text="Currency" /></Column>
-                                                <Column width="6rem"><Text text="Ref Date" /></Column>
-                                                <Column width="8rem"><Text text="Status" /></Column>
-                                                <Column width="8rem"><Text text="Action" /></Column>
-                                            </columns>
+                                            class="created-orders-list"
+                                            mode="None">
                                             <items>
-                                                <ColumnListItem>
-                                                    <cells>
-                                                        <Text text="{viewModel>ORDER_NO}" />
-                                                        <Text text="{viewModel>SALESORDER}" />
-                                                        <Text text="{viewModel>KUNNR}" />
-                                                        <Text text="{viewModel>BSTNK}" />
-                                                        <ObjectNumber number="{viewModel>NETWR}" />
-                                                        <Text text="{viewModel>WAERK}" />
-                                                        <Text text="{viewModel>BSTDK}" />
-                                                        <ObjectStatus
-                                                            text="Created"
-                                                            state="Success"
-                                                            icon="sap-icon://accept" />
-                                                        <Button
-                                                            text="View"
-                                                            type="Transparent"
-                                                            press=".onViewCreatedOrder" />
-                                                    </cells>
-                                                </ColumnListItem>
+                                                <CustomListItem class="created-order-item" type="Active" press=".onViewCreatedOrder">
+                                                    <content>
+                                                        <VBox width="100%" class="created-order-content">
+                                                            <HBox justifyContent="SpaceBetween" alignItems="Start" width="100%">
+                                                                <VBox width="70%">
+                                                                    <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                                                        <Title text="{viewModel>ORDER_NO}" level="H4" class="customer-order-number" />
+                                                                        <ObjectStatus
+                                                                            text="{= ${viewModel>hasAllocations} ? 'Agents Allocated' : 'Created' }"
+                                                                            state="{= ${viewModel>hasAllocations} ? 'Information' : 'Success' }"
+                                                                            icon="{= ${viewModel>hasAllocations} ? 'sap-icon://group' : 'sap-icon://accept' }"
+                                                                            class="sapUiTinyMarginStart" />
+                                                                    </HBox>
+                                                                    <HBox wrap="Wrap" class="order-info-row">
+                                                                        <VBox class="sapUiSmallMarginEnd">
+                                                                            <Label text="Customer Code" class="info-label" />
+                                                                            <Text text="{viewModel>KUNNR}" class="info-value" />
+                                                                        </VBox>
+                                                                        <VBox class="sapUiSmallMarginEnd">
+                                                                            <Label text="Customer Reference" class="info-label" />
+                                                                            <Text text="{viewModel>BSTNK}" class="info-value" />
+                                                                        </VBox>
+                                                                        <VBox>
+                                                                            <Label text="Reference Date" class="info-label" />
+                                                                            <Text text="{viewModel>BSTDK}" class="info-value" />
+                                                                        </VBox>
+                                                                    </HBox>
+                                                                </VBox>
+                                                                <VBox alignItems="End">
+                                                                    <Button
+                                                                        text="View Details"
+                                                                        type="Emphasized"
+                                                                        icon="sap-icon://display"
+                                                                        press=".onViewCreatedOrder" />
+                                                                </VBox>
+                                                            </HBox>
+                                                        </VBox>
+                                                    </content>
+                                                </CustomListItem>
                                             </items>
-                                        </Table>
+                                        </List>
                                     </VBox>
                                 </content>
                             </Panel>
