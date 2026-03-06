@@ -1,0 +1,62 @@
+<mvc:View
+    controllerName="customerindent.controller.Home"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <Page showHeader="false">
+        <content>
+            <VBox
+                height="100%"
+                justifyContent="Center"
+                alignItems="Center"
+                class="sapUiMediumMarginTop">
+
+                <VBox>
+                    <HBox alignItems="Center" class="sapUiMediumMarginBottom">
+                        <Image src="img/logo.png" alt="Logo" height="3rem" class="sapUiSmallMarginEnd" />
+                        <VBox>
+                            <Title text="Customer Indent Portal" level="H1" />
+                            <Text text="Select an application to continue" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <HBox wrap="Wrap" justifyContent="Center" class="sapUiMediumMarginTop">
+
+                    <!-- Tile 1: Bulk Indent Portal -->
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        header="Bulk Indent Portal"
+                        subheader="Manage bulk indents for customers"
+                        press=".onBulkIndentPress"
+                        frameType="OneByOne">
+                        <tileContent>
+                            <TileContent>
+                                <content>
+                                    <ImageContent src="sap-icon://sales-order" />
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
+
+                    <!-- Tile 2: Direct Customer Indent (WebDynpro) -->
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        header="Direct Customer Indent"
+                        subheader="Open direct indent entry (SAP WebDynpro)"
+                        press=".onDirectIndentPress"
+                        frameType="OneByOne">
+                        <tileContent>
+                            <TileContent>
+                                <content>
+                                    <ImageContent src="sap-icon://add-document" />
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
+
+                </HBox>
+
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

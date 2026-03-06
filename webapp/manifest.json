@@ -119,8 +119,15 @@
       },
       "routes": [
         {
+          "name": "RouteHome",
+          "pattern": "",
+          "target": [
+            "TargetHome"
+          ]
+        },
+        {
           "name": "RouteCustomerIndent",
-          "pattern": ":?query:",
+          "pattern": "CustomerBulkIndent",
           "target": [
             "TargetCustomerIndent"
           ]
@@ -134,6 +141,13 @@
         }
       ],
       "targets": {
+        "TargetHome": {
+          "viewType": "XML",
+          "transition": "show",
+          "clearControlAggregation": false,
+          "viewId": "Home",
+          "viewName": "Home"
+        },
         "TargetCustomerIndent": {
           "viewType": "XML",
           "transition": "slide",
