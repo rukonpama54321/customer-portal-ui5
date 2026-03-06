@@ -18,17 +18,8 @@ framework:
     - name: themelib_sap_fiori_3
 server:
   customMiddleware:
-    - name: fiori-tools-proxy
+    - name: custom-proxy-middleware
       afterMiddleware: compression
-      configuration:
-        ignoreCertErrors: true
-        backend:
-          - path: /sap/opu/odata
-            url: https://eccdev.nrl.com:8001
-            client: '300'
-            authenticationType: BasicAuthentication
-            username: '100620'
-            password: 'Feb567#$'
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
@@ -40,3 +31,12 @@ server:
       configuration:
         component: customerindent
         ui5Theme: sap_fiori_3
+
+---
+specVersion: "4.0"
+kind: extension
+type: server-middleware
+metadata:
+  name: custom-proxy-middleware
+middleware:
+  path: ./custom-proxy-middleware.js

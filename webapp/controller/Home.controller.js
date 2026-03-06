@@ -15,7 +15,7 @@ sap.ui.define([
 
         onDirectIndentPress: function () {
             window.open(
-                "http://eccdev.nrl.com:8000/sap/bc/webdynpro/sap/zsd_cust_indent_dir_inbapp?sap-client=800&sap-language=EN",
+                "/sap/bc/webdynpro/sap/zsd_cust_indent_dir_inbapp?sap-client=800&sap-language=EN",
                 "_blank"
             );
         }
