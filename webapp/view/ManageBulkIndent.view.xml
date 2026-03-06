@@ -1,10 +1,10 @@
 <mvc:View
-    controllerName="customerindent.controller.ManageOrder"
+    controllerName="customerindent.controller.ManageBulkIndent"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     xmlns="sap.m">
     <Page
-        title="Manage Bulk Order"
+        title="Manage Bulk Indent"
         showNavButton="true"
         navButtonPress=".onNavBack"
         busy="{manageModel>/busy}">
@@ -15,11 +15,20 @@
                     <HBox alignItems="Center" wrap="Wrap">
                         <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
                         <VBox>
-                            <Title text="Manage Bulk Order" level="H1" class="manage-page-title" />
-                            <Text text="Create customer order from selected sales order" class="manage-page-subtitle" />
+                            <Title text="Manage Bulk Indent" level="H1" class="manage-page-title" />
+                            <Text text="Create bulk indent from selected sales document" class="manage-page-subtitle" />
                         </VBox>
                     </HBox>
                 </VBox>
+
+                <!-- Non-latest order warning -->
+                <MessageStrip
+                    text="{manageModel>/notLatestOrderMessage}"
+                    type="Warning"
+                    showIcon="true"
+                    showCloseButton="false"
+                    visible="{= !!${manageModel>/notLatestOrderMessage} }"
+                    class="sapUiSmallMargin sapUiSmallMarginBottom" />
 
                 <!-- Cards Container -->
                 <HBox class="sapUiSmallMargin" wrap="Wrap" alignItems="Stretch">
@@ -31,7 +40,7 @@
                             <Title text="Order Details" class="card-title" />
                         </VBox>
                         <!-- Order Actions (Delete) -->
-                        <HBox class="detail-group order-action-row" justifyContent="Start" wrap="Wrap" visible="{= ${manageModel>/orderCreated} }">
+                        <HBox class="detail-group order-action-row" justifyContent="Start" wrap="Wrap" visible="{= ${manageModel>/orderCreated} &amp;&amp; !${manageModel>/viewMode} }">
                             <Button 
                                 text="Delete Order"
                                 type="Reject"
@@ -45,30 +54,33 @@
                             
                             <!-- Sales Order Section (Primary/Prominent) -->
                             <VBox class="detail-group sales-order-highlight sapUiSmallMarginBottom">
-                                <Label text="Sales Order(SAP):" class="detail-label sapUiTinyMarginBottom" />
+                                <Label text="Sales Document(SAP):" class="detail-label sapUiTinyMarginBottom" />
                                 <HBox alignItems="Baseline" justifyContent="SpaceBetween" wrap="Wrap">
                                     <Title text="{manageModel>/header/VBELN}" level="H1" class="sales-order-number" />
-                                    <ObjectNumber 
-                                        number="{manageModel>/header/NETWR}" 
-                                        unit="{manageModel>/header/WAERK}"
-                                        emphasized="true"
-                                        class="sales-order-amount"
-                                        state="Success" />
+                                    <VBox alignItems="End">
+                                        <Label text="Order Amount" class="detail-label sapUiTinyMarginBottom" />
+                                        <ObjectNumber 
+                                            number="{manageModel>/header/NETWR}" 
+                                            unit="{manageModel>/header/WAERK}"
+                                            emphasized="true"
+                                            class="sales-order-amount"
+                                            state="Success" />
+                                    </VBox>
                                 </HBox>
                     
                             </VBox>
 
                             <!-- Customer Order Number Section -->
                             <VBox class="detail-group">
-                                <Label text="Customer Order No" class="detail-label" />
+                                <Label text="Bulk Indent No" class="detail-label" />
                                 <Text text="{manageModel>/orderNo}" class="detail-value-large" />
 
                                 <VBox class="detail-group" visible="{= ${manageModel>/orderCreated} }">
                                     <Label text="Status" class="detail-label" />
                                     <ObjectStatus 
-                                        text="Order Created Successfully"
+                                        text="{= ${manageModel>/hasAgentAllocations} ? 'Agents Allocated' : 'Bulk Indent Created Successfully' }"
                                         state="Success"
-                                        icon="sap-icon://accept" />
+                                        icon="{= ${manageModel>/hasAgentAllocations} ? 'sap-icon://employee' : 'sap-icon://accept' }" />
                                 </VBox>                         
                             </VBox>
 
@@ -101,12 +113,29 @@
                             <VBox 
                                 class="detail-group agent-selection">
                                 <Label text="3rd Party Agent" class="detail-label required-label" />
+                                <!-- CL orders: No N/A option -->
                                 <ComboBox 
                                     id="thirdPartyAgentComboBox"
                                     selectedKey="{manageModel>/thirdPartyAgent}"
                                     placeholder="Select 3rd party agent (required)"
                                     width="100%"
-                                    enabled="{= !${manageModel>/viewMode} &amp;&amp; ${manageModel>/header/VSBED} !== 'DL' }"
+                                    visible="{= ${manageModel>/header/VSBED} === 'CL' }"
+                                    enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }"
+                                    selectionChange=".onThirdPartyAgentChange"
+                                    required="true">
+                                    <items>
+                                        <core:Item key="YES" text="Yes" />
+                                        <core:Item key="NO" text="No" />
+                                    </items>
+                                </ComboBox>
+                                <!-- Non-CL orders: all options including N/A -->
+                                <ComboBox 
+                                    id="thirdPartyAgentComboBoxFull"
+                                    selectedKey="{manageModel>/thirdPartyAgent}"
+                                    placeholder="Select 3rd party agent (required)"
+                                    width="100%"
+                                    visible="{= ${manageModel>/header/VSBED} !== 'CL' }"
+                                    enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} &amp;&amp; ${manageModel>/header/VSBED} !== 'DL' }"
                                     selectionChange=".onThirdPartyAgentChange"
                                     required="true">
                                     <items>
@@ -120,7 +149,7 @@
                             <!-- Create Order Action -->
                             <VBox class="detail-group" alignItems="End" visible="{= !${manageModel>/orderCreated} }">
                                 <Button 
-                                    text="Create Order"
+                                    text="Create Bulk Indent"
                                     type="Emphasized"
                                     press=".onCreateOrder"
                                     width="100%" />
@@ -209,6 +238,7 @@
                                 type="Emphasized"
                                 icon="sap-icon://add"
                                 press=".onAddAgentAllocation"
+                                visible="{= !${manageModel>/viewMode} }"
                                 class="sapUiSmallMarginStart" />
                             <ToolbarSpacer />
                             <Button
@@ -216,6 +246,7 @@
                                 type="Accept"
                                 icon="sap-icon://save"
                                 press=".onSaveAgentAllocations"
+                                visible="{= !${manageModel>/viewMode} }"
                                 class="sapUiSmallMarginStart" />
                         </HBox>
 
@@ -242,6 +273,7 @@
                                                             icon="sap-icon://delete"
                                                             type="Reject"
                                                             press=".onDeleteAgentAllocation"
+                                                            visible="{= !${manageModel>/viewMode} }"
                                                             tooltip="Delete this agent allocation" />
                                                     </Toolbar>
                                                 </headerToolbar>
@@ -321,7 +353,6 @@
                                                                     <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Description" /></Column>
                                                                     <Column hAlign="End" width="7rem"><Text text="Order Qty" /></Column>
                                                                     <Column hAlign="End" width="8rem"><Text text="Allocate Qty" /></Column>
-                                                                    <Column hAlign="End" width="7rem"><Text text="Available" /></Column>
                                                                     <Column width="4rem"><Text text="UoM" /></Column>
                                                                     <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Delivery Location" /></Column>
                                                                 </columns>
@@ -339,20 +370,15 @@
                                                                                 value="{manageModel>agentQuantity}"
                                                                                 type="Number"
                                                                                 width="100%"
-                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>KWMENG} > 0 }"
+                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>availableQty} > 0 }"
                                                                                 change=".onAgentItemQtyChange"
                                                                                 tooltip="Enter quantity to allocate to this agent (cannot exceed available quantity)" />
-                                                                            <ObjectNumber 
-                                                                                number="{manageModel>KWMENG}"
-                                                                                state="{= ${manageModel>KWMENG} > 0 ? 'Success' : 'Error' }"
-                                                                                emphasized="true"
-                                                                                class="available-qty-indicator" />
                                                                             <Text text="{manageModel>VRKME}" />
                                                                             <Input 
                                                                                 value="{manageModel>DELIVERY_LOC}"
                                                                                 placeholder="Delivery address"
                                                                                 width="100%"
-                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>KWMENG} > 0 }" />
+                                                                                editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>availableQty} > 0 }" />
                                                                         </cells>
                                                                     </ColumnListItem>
                                                                 </items>

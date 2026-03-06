@@ -12,7 +12,7 @@ sap.ui.define([
 ], function (Controller, History, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, VBox, Text, formatter) {
     "use strict";
 
-    return Controller.extend("customerindent.controller.ManageOrder", {
+    return Controller.extend("customerindent.controller.ManageBulkIndent", {
         formatter: formatter,
         
         onInit: function () {
@@ -20,6 +20,7 @@ sap.ui.define([
                 busy: false,
                 orderCreated: false,
                 viewMode: false,  // false = Manage mode, true = View mode
+                notLatestOrderMessage: "",  // non-empty = this order is superseded
                 header: {},
                 items: [],
                 orderNo: "",
@@ -32,7 +33,7 @@ sap.ui.define([
             this.getView().setModel(oViewModel, "manageModel");
 
             var oRouter = this.getOwnerComponent().getRouter();
-            oRouter.getRoute("ManageOrder").attachPatternMatched(this._onRouteMatched, this);
+            oRouter.getRoute("ManageBulkIndent").attachPatternMatched(this._onRouteMatched, this);
         },
 
         _loadAgents: function () {
@@ -45,6 +46,8 @@ sap.ui.define([
                 success: function (oData) {
                     var aAgents = oData.results || [];
                     oViewModel.setProperty("/agents", aAgents);
+                    // Re-enrich already-loaded allocations in case they arrived first
+                    this._enrichAllocationsWithNames();
                 }.bind(this),
                 error: function (oError) {
                     // Set empty array as fallback
@@ -70,6 +73,8 @@ sap.ui.define([
                         console.log("Sample values - CARRIER:", aTransporters[0].CARRIER, "NAME:", aTransporters[0].NAME, "GSTN:", aTransporters[0].GSTN);
                     }
                     oViewModel.setProperty("/transporters", aTransporters);
+                    // Re-enrich already-loaded allocations in case they arrived first
+                    this._enrichAllocationsWithNames();
                 }.bind(this),
                 error: function (oError) {
                     // Set empty array as fallback
@@ -77,6 +82,72 @@ sap.ui.define([
                     console.warn("Transporters service unavailable - using fallback", oError);
                 }.bind(this)
             });
+        },
+
+        /**
+         * Re-enriches loaded agentAllocations with AGENT_NAME and TRANS_NAME from the
+         * /agents and /transporters lists. Called from all three load callbacks so that
+         * whichever completes last wins — eliminating timing races when the backend
+         * does not populate these fields directly on the allocation record.
+         */
+        _enrichAllocationsWithNames: function () {
+            var oViewModel = this.getView().getModel("manageModel");
+            var aAllocations = oViewModel.getProperty("/agentAllocations") || [];
+            if (aAllocations.length === 0) { return; }
+
+            var aAgents       = oViewModel.getProperty("/agents")       || [];
+            var aTransporters = oViewModel.getProperty("/transporters") || [];
+            if (aAgents.length === 0 && aTransporters.length === 0) { return; }
+
+            var bChanged = false;
+
+            aAllocations.forEach(function (oAlloc, iIdx) {
+                // Enrich agent name
+                if (aAgents.length > 0 && oAlloc.AGENT_ID) {
+                    var oAgent = aAgents.find(function (a) {
+                        return a.AGENT_ID === oAlloc.AGENT_ID;
+                    });
+                    if (oAgent) {
+                        if (oAgent.AGENT_NAME && oAgent.AGENT_NAME !== oAlloc.AGENT_NAME) {
+                            oViewModel.setProperty("/agentAllocations/" + iIdx + "/AGENT_NAME", oAgent.AGENT_NAME);
+                            bChanged = true;
+                        }
+                        if (oAgent.AGENT_MAIL !== undefined) { oViewModel.setProperty("/agentAllocations/" + iIdx + "/AGENT_MAIL", oAgent.AGENT_MAIL || ""); }
+                        if (oAgent.AGENT_PH   !== undefined) { oViewModel.setProperty("/agentAllocations/" + iIdx + "/AGENT_PH",   oAgent.AGENT_PH   || ""); }
+                        if (oAgent.AGENT_ADDR !== undefined) { oViewModel.setProperty("/agentAllocations/" + iIdx + "/AGENT_ADDR", oAgent.AGENT_ADDR || ""); }
+                    }
+                }
+
+                // Enrich transporter name
+                if (aTransporters.length > 0 && oAlloc.TRANSPORTER) {
+                    var sNormCarrier = oAlloc.TRANSPORTER.padStart(10, "0");
+                    var oTransporter = aTransporters.find(function (t) {
+                        return (t.CARRIER || "").padStart(10, "0") === sNormCarrier;
+                    });
+                    if (oTransporter) {
+                        if (oTransporter.NAME && oTransporter.NAME !== oAlloc.TRANS_NAME) {
+                            oViewModel.setProperty("/agentAllocations/" + iIdx + "/TRANS_NAME",    oTransporter.NAME || "");
+                            oViewModel.setProperty("/agentAllocations/" + iIdx + "/TRANSPORTGSTN", oTransporter.GSTN || "");
+                            bChanged = true;
+                        }
+                    }
+                }
+            });
+
+            if (bChanged) {
+                oViewModel.updateBindings(false);
+            }
+        },
+
+        /**
+         * Updates /hasAgentAllocations based on whether any saved (ALLOCATION_ID) allocations exist.
+         * Drives the dynamic order status label in the view.
+         */
+        _updateOrderStatus: function () {
+            var oViewModel = this.getView().getModel("manageModel");
+            var aAllocations = oViewModel.getProperty("/agentAllocations") || [];
+            var bHas = aAllocations.some(function (a) { return !!a.ALLOCATION_ID; });
+            oViewModel.setProperty("/hasAgentAllocations", bHas);
         },
 
         _initializeOrderItems: function (aItems) {
@@ -143,9 +214,13 @@ sap.ui.define([
             });
             
             // Update the model to trigger UI binding updates
+            // Round totalAllocatedQty to avoid floating-point drift
+            aItems.forEach(function(oItem) {
+                oItem.totalAllocatedQty = Math.round((oItem.totalAllocatedQty || 0) * 1000) / 1000;
+            });
             oViewModel.setProperty("/items", aItems);
             console.log("Final recalculated allocated quantities:", aItems);
-            
+
             // Final debug after recalculation
             console.log("🎭 Post-recalculation debug:");
             console.log("  - Items updated in model");
@@ -172,6 +247,7 @@ sap.ui.define([
             
             if (!sOrderNo) {
                 oViewModel.setProperty("/agentAllocations", []);
+                this._updateOrderStatus();
                 return;
             }
             
@@ -202,6 +278,7 @@ sap.ui.define([
                     if (aAllocations.length === 0) {
                         console.log("⚠️ No allocations found for ORDER_NO:", sOrderNo);
                         oViewModel.setProperty("/agentAllocations", []);
+                        this._updateOrderStatus();
                         return;
                     }
                     
@@ -218,123 +295,34 @@ sap.ui.define([
                     });
                     
                     // Map backend allocations to the UI structure
+                    // AGENT_NAME, TRANS_NAME and TRANSPORTGSTN are stored directly in AgentOrderAllocationHeader
+                    // by the backend — no need to look them up from agents/transporters lists.
                     var aMappedAllocations = aAllocations.map(function (oAllocation) {
                         console.log("🔄 Mapping allocation:", oAllocation.ALLOCATION_ID, "with items:", oAllocation.AgentOrderHeadertoItem);
-                        
-                        // Get agents and transporters lists for enriching data
-                        var aAgents = oViewModel.getProperty("/agents") || [];
-                        var aTransporters = oViewModel.getProperty("/transporters") || [];
-                        
-                        console.log("📋 Available for lookup - Agents:", aAgents.length, "Transporters:", aTransporters.length);
-                        
-                        // Look up agent details if not in the allocation data
-                        var oAgentDetails = {};
-                        if (oAllocation.AGENT_ID) {
-                            var oFoundAgent = aAgents.find(function(oAgent) {
-                                return oAgent.AGENT_ID === oAllocation.AGENT_ID;
-                            });
-                            if (oFoundAgent) {
-                                oAgentDetails = {
-                                    AGENT_NAME: oFoundAgent.AGENT_NAME || oAllocation.AGENT_NAME,
-                                    AGENT_MAIL: oFoundAgent.AGENT_MAIL || oAllocation.AGENT_MAIL,
-                                    AGENT_PH: oFoundAgent.AGENT_PH || oAllocation.AGENT_PH,
-                                    AGENT_ADDR: oFoundAgent.AGENT_ADDR || oAllocation.AGENT_ADDR
-                                };
-                                console.log("👤 Found agent details:", oAgentDetails);
-                            } else {
-                                console.log("❌ Agent not found in lookup for ID:", oAllocation.AGENT_ID);
-                                // Use data from allocation even if not in lookup
-                                oAgentDetails = {
-                                    AGENT_NAME: oAllocation.AGENT_NAME,
-                                    AGENT_MAIL: oAllocation.AGENT_MAIL,
-                                    AGENT_PH: oAllocation.AGENT_PH,
-                                    AGENT_ADDR: oAllocation.AGENT_ADDR
-                                };
-                            }
-                        }
-                        
-                        // Look up transporter details if not in the allocation data
-                        var oTransporterDetails = {};
-                        if (oAllocation.TRANSPORTER) {
-                            console.log("🚛 Looking for transporter with CARRIER:", oAllocation.TRANSPORTER);
-                            
-                            // Backend strips leading zeros from CARRIER - normalize for comparison
-                            var sNormalizedCarrier = oAllocation.TRANSPORTER.padStart(10, '0');
-                            
-                            var oFoundTransporter = aTransporters.find(function(oTransporter) {
-                                var sTransporterCarrier = (oTransporter.CARRIER || "").padStart(10, '0');
-                                return sTransporterCarrier === sNormalizedCarrier;
-                            });
-                            
-                            if (oFoundTransporter) {
-                                oTransporterDetails = {
-                                    TRANS_NAME: oFoundTransporter.NAME || oAllocation.TRANS_NAME,
-                                    TRANSPORTGSTN: oFoundTransporter.GSTN || oAllocation.TRANSPORTGSTN
-                                };
-                                console.log("🚛 Found transporter (normalized match):", oFoundTransporter.CARRIER, "→", oTransporterDetails);
-                            } else {
-                                console.log("❌ Transporter not found in lookup for CARRIER:", oAllocation.TRANSPORTER, 
-                                           "(tried with padding:", sNormalizedCarrier + ")");
-                                // Use data from allocation even if not in lookup
-                                oTransporterDetails = {
-                                    TRANS_NAME: oAllocation.TRANS_NAME,
-                                    TRANSPORTGSTN: oAllocation.TRANSPORTGSTN
-                                };
-                            }
-                        }
-                        
+
                         // Map allocation items and merge with full order item details
                         // Show ALL order items, with allocation data merged for items that were allocated
                         var bIsReadonly = !!oAllocation.ALLOCATION_ID;  // Determine if allocation is from backend
                         
-                        // WORKAROUND: Backend duplicates items - deduplicate by MATERIAL
-                        // Keep LAST occurrence and validate quantity consistency
+                        // Build a deduplicated map of items keyed by MATERIAL.
+                        // IMPORTANT: filter strictly by ALLOCATION_ID so that items belonging
+                        // to other allocations for the same order are never mixed in.
                         var mDeduplicatedItems = {};
-                        var mDuplicateQuantities = {}; // Track all quantities for each material
-                        
+
                         if (oAllocation.AgentOrderHeadertoItem && oAllocation.AgentOrderHeadertoItem.results) {
                             oAllocation.AgentOrderHeadertoItem.results.forEach(function(oAllocItem) {
-                                var sMaterial = oAllocItem.MATERIAL;
-                                
-                                // Track all quantities for this material
-                                if (!mDuplicateQuantities[sMaterial]) {
-                                    mDuplicateQuantities[sMaterial] = [];
+                                // Skip items that don't belong to this specific allocation
+                                if (oAllocItem.ALLOCATION_ID !== oAllocation.ALLOCATION_ID) {
+                                    return;
                                 }
-                                mDuplicateQuantities[sMaterial].push(oAllocItem.QUANTITY);
-                                
+
+                                var sMaterial = oAllocItem.MATERIAL;
+
                                 if (!mDeduplicatedItems[sMaterial]) {
-                                    // First occurrence - keep it for now
                                     mDeduplicatedItems[sMaterial] = Object.assign({}, oAllocItem);
                                 } else {
-                                    // Duplicate found - REPLACE with latest (keep LAST occurrence)
-                                    var sOldQty = mDeduplicatedItems[sMaterial].QUANTITY;
-                                    var sNewQty = oAllocItem.QUANTITY;
-                                    
-                                    // Check if quantities differ (backend data corruption)
-                                    if (sOldQty !== sNewQty) {
-                                        console.error("⚠️ CRITICAL BACKEND BUG: Material", sMaterial, 
-                                                     "has duplicates with DIFFERENT quantities! Previous:", sOldQty, 
-                                                     "Current:", sNewQty, "- Keeping LAST occurrence:", sNewQty);
-                                    } else {
-                                        console.warn("BACKEND BUG: Duplicate item detected for MATERIAL:", sMaterial, 
-                                                    "QUANTITY:", sNewQty, "- Keeping LAST occurrence");
-                                    }
-                                    
-                                    // Replace with latest occurrence
+                                    // True duplicate within the same allocation - keep last occurrence
                                     mDeduplicatedItems[sMaterial] = Object.assign({}, oAllocItem);
-                                }
-                            });
-                            
-                            // Final validation: Log summary of quantity inconsistencies
-                            Object.keys(mDuplicateQuantities).forEach(function(sMaterial) {
-                                var aQuantities = mDuplicateQuantities[sMaterial];
-                                if (aQuantities.length > 1) {
-                                    var bAllSame = aQuantities.every(function(q) { return q === aQuantities[0]; });
-                                    if (!bAllSame) {
-                                        console.error("❌ DATA CORRUPTION for", sMaterial + ":", 
-                                                     "Backend returned", aQuantities.length, "duplicates with quantities:", 
-                                                     aQuantities.join(", "), "- Using LAST:", aQuantities[aQuantities.length - 1]);
-                                    }
                                 }
                             });
                         }
@@ -367,14 +355,11 @@ sap.ui.define([
                             ORDER_NO: oAllocation.ORDER_NO,
                             ALLOCATION_ID: oAllocation.ALLOCATION_ID,
                             AGENT_ID: oAllocation.AGENT_ID,
-                            AGENT_NAME: oAgentDetails.AGENT_NAME || oAllocation.AGENT_NAME || "",
-                            AGENT_MAIL: oAgentDetails.AGENT_MAIL || oAllocation.AGENT_MAIL || "",
-                            AGENT_PH: oAgentDetails.AGENT_PH || oAllocation.AGENT_PH || "",
-                            AGENT_ADDR: oAgentDetails.AGENT_ADDR || oAllocation.AGENT_ADDR || "",
+                            AGENT_NAME: oAllocation.AGENT_NAME || "",
                             LOADING_DATE: oAllocation.LOADING_DATE,
                             TRANSPORTER: oAllocation.TRANSPORTER,
-                            TRANS_NAME: oTransporterDetails.TRANS_NAME || oAllocation.TRANS_NAME || "",
-                            TRANSPORTGSTN: oTransporterDetails.TRANSPORTGSTN || oAllocation.TRANSPORTGSTN || "",
+                            TRANS_NAME: oAllocation.TRANS_NAME || "",
+                            TRANSPORTGSTN: oAllocation.TRANSPORTGSTN || "",
                             items: aItems
                         };
                         console.log("✨ Final mapped allocation:", {
@@ -388,8 +373,13 @@ sap.ui.define([
                     
                     console.log("🎯 Setting /agentAllocations to:", aMappedAllocations.length, "allocations");
                     oViewModel.setProperty("/agentAllocations", aMappedAllocations);
+                    this._updateOrderStatus();
                     console.log("✅ Successfully loaded and mapped agent allocations");
-                    
+
+                    // Enrich names from already-loaded agents/transporters lists (or they will
+                    // enrich from their own success callbacks if they arrive later)
+                    this._enrichAllocationsWithNames();
+
                     // Debug UI binding state
                     console.log("🎪 UI Debug - After setting allocations:");
                     console.log("  - Model path /agentAllocations:", oViewModel.getProperty("/agentAllocations"));
@@ -413,6 +403,7 @@ sap.ui.define([
                     // No allocations found or error - set empty array
                     console.error("💥 Error loading agent allocations:", oError);
                     oViewModel.setProperty("/agentAllocations", []);
+                    this._updateOrderStatus();
                     console.warn("Failed to load agent allocations:", oError);
                 }.bind(this)
             });
@@ -437,7 +428,8 @@ sap.ui.define([
             
             // Set view mode in the manage model
             oViewModel.setProperty("/viewMode", bViewMode);
-            console.log("Set viewMode in manageModel to:", bViewMode);
+            oViewModel.setProperty("/notLatestOrderMessage", "");  // reset on every navigation
+            oViewModel.setProperty("/orderCreated", false);  // reset; will be set true if loading a created order
             
             // Handle both sales orders (VBELN) and created orders (ORDER_NO)
             var bIsSalesOrder = oSelectedOrder && oSelectedOrder.VBELN === sVbeln;
@@ -455,7 +447,17 @@ sap.ui.define([
                 if (sShippingCondition === "DL") {
                     oViewModel.setProperty("/thirdPartyAgent", "N/A");
                 } else {
-                    oViewModel.setProperty("/thirdPartyAgent", "");
+                    // Pre-populate from existing customer order THIRDPARTY if available
+                    var sRaw = oSelectedOrder.__thirdPartyRaw || "";
+                    var sPreFill = "";
+                    if (sRaw === "1" || sRaw === "Y" || sRaw === "YES") {
+                        sPreFill = "YES";
+                    } else if (sRaw === "0" || sRaw === "N" || sRaw === "NO") {
+                        sPreFill = "NO";
+                    } else if (sRaw === "3" || sRaw === "N/A") {
+                        sPreFill = "N/A";
+                    }
+                    oViewModel.setProperty("/thirdPartyAgent", sPreFill);
                 }
                 
                 oViewModel.setProperty("/header", oSelectedOrder);
@@ -468,6 +470,7 @@ sap.ui.define([
                 
                 oViewModel.setProperty("/items", aItemsWithAllocation);
                 oViewModel.setProperty("/agentAllocations", []);
+                this._updateOrderStatus();
                 
                 // Initialize progress bar display values
                 this._updateAllocationDisplayForAllItems();
@@ -475,6 +478,9 @@ sap.ui.define([
                 // Created Order: Fetch from backend to verify it still exists
                 var oModel = oView.getModel();
                 oViewModel.setProperty("/busy", true);
+                // Set orderCreated immediately so the 3rd Party ComboBox is disabled before async load
+                oViewModel.setProperty("/orderCreated", true);
+                oViewModel.setProperty("/orderNo", oSelectedOrder.ORDER_NO);
                 
                 oModel.read("/CustomerOrderSet('" + oSelectedOrder.ORDER_NO + "')", {
                     urlParameters: {
@@ -559,6 +565,9 @@ sap.ui.define([
                         setTimeout(function() {
                             this._loadAgentAllocations(oFullOrderData.ORDER_NO);
                         }.bind(this), 500);
+
+                        // Enforce view-only if a newer order exists for this sales order
+                        this._enforceLatestOrderViewMode(oFullOrderData.ORDER_NO, oFullOrderData.SALESORDER);
                     }.bind(this),
                     error: function (oError) {
                         oViewModel.setProperty("/busy", false);
@@ -568,20 +577,66 @@ sap.ui.define([
                         
                         if (bOrderNotFound && oSelectedOrder.SALESORDER) {
                             // Fetch the sales order to allow creating a new customer order
-                            this._loadSalesOrderForNewOrder(oSelectedOrder.SALESORDER);
+                            // Carry over THIRDPARTY from the deleted order so the ComboBox is pre-filled
+                            this._loadSalesOrderForNewOrder(oSelectedOrder.SALESORDER, oSelectedOrder.THIRDPARTY);
                         } else {
-                            MessageToast.show("Failed to load order. Please select an order from the list.");
+                            this._handleODataError(
+                                oError,
+                                "The order could not be loaded. Please go back and select the order again."
+                            );
                             this.onNavBack();
                         }
                     }.bind(this)
                 });
             } else {
-                MessageToast.show("Order data not found. Please select an order from the list.");
+                MessageBox.error("The order could not be found. Please go back and select the order again.");
                 this.onNavBack();
             }
         },
 
-        _loadSalesOrderForNewOrder: function (sSalesOrder) {
+        _enforceLatestOrderViewMode: function (sOrderNo, sSalesOrder) {
+            if (!sSalesOrder) { return; }
+            var oView = this.getView();
+            var oModel = oView.getModel();
+            var oViewModel = oView.getModel("manageModel");
+
+            oModel.read("/CustomerOrderSet", {
+                urlParameters: { "$top": "9999" },
+                success: function (oData) {
+                    var aOrders = (oData.results || []).filter(function (o) {
+                        return o.SALESORDER === sSalesOrder;
+                    });
+
+                    if (aOrders.length <= 1) {
+                        // Only one order for this sales order – no restriction
+                        return;
+                    }
+
+                    // Sort descending to find the latest ORDER_NO
+                    aOrders.sort(function (a, b) {
+                        return b.ORDER_NO.localeCompare(a.ORDER_NO);
+                    });
+
+                    var sLatestOrderNo = aOrders[0].ORDER_NO;
+
+                    if (sOrderNo !== sLatestOrderNo) {
+                        // This order is superseded – force read-only and show a banner
+                        oViewModel.setProperty("/viewMode", true);
+                        oViewModel.setProperty(
+                            "/notLatestOrderMessage",
+                            "This order (" + sOrderNo + ") is read-only because a newer order (" +
+                            sLatestOrderNo + ") exists for Sales Document " + sSalesOrder +
+                            ". Delete the later order first to make changes here."
+                        );
+                    }
+                }.bind(this),
+                error: function () {
+                    // Silently skip – existing viewMode remains
+                }.bind(this)
+            });
+        },
+
+        _loadSalesOrderForNewOrder: function (sSalesOrder, sThirdPartyRaw) {
             var oView = this.getView();
             var oModel = oView.getModel();
             var oViewModel = oView.getModel("manageModel");
@@ -600,12 +655,21 @@ sap.ui.define([
                     oViewModel.setProperty("/orderNo", "");
                     oViewModel.setProperty("/orderCreated", false);
                     
-                    // Set thirdPartyAgent based on shipping condition
+                    // Set thirdPartyAgent based on shipping condition (or pre-fill from prior order)
                     var sShippingCondition = oSalesOrderData.VSBED;
                     if (sShippingCondition === "DL") {
                         oViewModel.setProperty("/thirdPartyAgent", "N/A");
                     } else {
-                        oViewModel.setProperty("/thirdPartyAgent", "");
+                        var sRaw2 = sThirdPartyRaw || "";
+                        var sPreFill2 = "";
+                        if (sRaw2 === "1" || sRaw2 === "Y" || sRaw2 === "YES") {
+                            sPreFill2 = "YES";
+                        } else if (sRaw2 === "0" || sRaw2 === "N" || sRaw2 === "NO") {
+                            sPreFill2 = "NO";
+                        } else if (sRaw2 === "3" || sRaw2 === "N/A") {
+                            sPreFill2 = "N/A";
+                        }
+                        oViewModel.setProperty("/thirdPartyAgent", sPreFill2);
                     }
                     
                     // Set header data from sales order
@@ -617,13 +681,17 @@ sap.ui.define([
                     
                     oViewModel.setProperty("/items", aItemsWithAllocation);
                     oViewModel.setProperty("/agentAllocations", []);
+                    this._updateOrderStatus();
                     
                     // Initialize progress bar display values
                     this._updateAllocationDisplayForAllItems();
                 }.bind(this),
                 error: function (oError) {
                     oViewModel.setProperty("/busy", false);
-                    MessageToast.show("Failed to load sales order. Please try again.");
+                    this._handleODataError(
+                        oError,
+                        "The sales document data could not be loaded. Please go back and try again."
+                    );
                     this.onNavBack();
                 }.bind(this)
             });
@@ -714,7 +782,7 @@ sap.ui.define([
         },
 
         _validateAgentItemQty: function (iEnteredQty, iOrderQty, iTotalAllocatedQty) {
-            var iAvailableQty = (iOrderQty || 0) - (iTotalAllocatedQty || 0);
+            var iAvailableQty = Math.round(((iOrderQty || 0) - (iTotalAllocatedQty || 0)) * 1000) / 1000;
             return {
                 isValid: iEnteredQty <= iAvailableQty,
                 availableQty: iAvailableQty,
@@ -787,23 +855,23 @@ sap.ui.define([
                 return;
             }
 
-            // Calculate total allocated quantity across all agents for this material
-            // Excluding the current agent's quantity to get the actual other allocations
+            // Calculate total allocated by ALL OTHER agents (excluding current),
+            // including saved ones. Sum directly from the allocation items rather than
+            // relying on USEDQTY, which would double-count within the same order.
             var iTotalAllocatedByOthers = 0;
             aAgentAllocations.forEach(function (agent, agentIdx) {
+                if (agentIdx === iAgentIndex) { return; }  // skip current agent
                 if (agent.items) {
                     agent.items.forEach(function (item) {
                         if (item.MATNR === sMaterial) {
-                            // Don't count the current agent's current input
-                            if (agentIdx !== iAgentIndex) {
-                                iTotalAllocatedByOthers += parseFloat(item.agentQuantity) || 0;
-                            }
+                            iTotalAllocatedByOthers += parseFloat(item.agentQuantity) || 0;
                         }
                     });
                 }
             });
+            iTotalAllocatedByOthers = Math.round(iTotalAllocatedByOthers * 1000) / 1000;
 
-            // Validate the entered quantity
+            // Validate against the raw order quantity minus what other agents have taken.
             var oValidation = this._validateAgentItemQty(iEnteredQty, oMainItem.KWMENG, iTotalAllocatedByOthers);
             
             if (!oValidation.isValid && iEnteredQty > 0) {
@@ -817,7 +885,7 @@ sap.ui.define([
             }
 
             // Calculate total allocated quantity across all agents for this material (including current)
-            var iTotalAllocated = iTotalAllocatedByOthers + iEnteredQty;
+            var iTotalAllocated = Math.round((iTotalAllocatedByOthers + iEnteredQty) * 1000) / 1000;
 
             // Update the main item with total allocated quantity
             var iMainItemIndex = aMainItems.indexOf(oMainItem);
@@ -854,6 +922,8 @@ sap.ui.define([
 
                 // Calculate values for progress bar
                 var fKWMENG = parseFloat(oItem.KWMENG) || 0;
+                fTotalAllocated = Math.round(fTotalAllocated * 1000) / 1000;
+                fKWMENG = Math.round(fKWMENG * 1000) / 1000;
                 var fPercent = fKWMENG > 0 ? (fTotalAllocated / fKWMENG) * 100 : 0;
                 var sDisplay = fTotalAllocated + " / " + fKWMENG + " " + (oItem.VRKME || "") + " allocated";
                 var sState = fTotalAllocated > 0 ? "Success" : "None";
@@ -881,16 +951,27 @@ sap.ui.define([
                 TRANS_NAME: "",
                 TRANSPORTGSTN: "",
                 items: aItems.map(function (oItem) {
+                    var fOrderQty       = parseFloat(oItem.KWMENG) || 0;
+                    var fAllocatedQty   = parseFloat(oItem.totalAllocatedQty) || 0;
+                    var fAvailableQty   = Math.round((fOrderQty - fAllocatedQty) * 1000) / 1000;
+                    // For partially-assigned orders the remaining KWMENG already reflects
+                    // previously allocated quantities, so use full KWMENG as the ceiling when
+                    // no further allocation has occurred in the current order session.
+                    if (fAvailableQty <= 0 && fAllocatedQty === 0) {
+                        fAvailableQty = fOrderQty;
+                    }
                     return Object.assign({}, oItem, {
                         agentQuantity: "",
                         DELIVERY_LOC: "",
-                        _readonly: false  // New allocation items are editable
+                        _readonly: false,    // New allocation items are editable
+                        availableQty: fAvailableQty
                     });
                 })
             };
 
             aAllocations.push(oNewAllocation);
             oViewModel.setProperty("/agentAllocations", aAllocations);
+            this._updateOrderStatus();
 
             // Update allocation display for progress bars
             this._updateAllocationDisplayForAllItems();
@@ -942,6 +1023,7 @@ sap.ui.define([
                                 success: function () {
                                     aAllocations.splice(iIndex, 1);
                                     oViewModel.setProperty("/agentAllocations", aAllocations);
+                                    this._updateOrderStatus();
                                     
                                     // Recalculate allocated quantities for all items after deletion
                                     this._recalculateAllocatedQuantities();
@@ -962,14 +1044,10 @@ sap.ui.define([
                                 }.bind(this),
                                 error: function (oError) {
                                     oViewModel.setProperty("/busy", false);
-                                    var sErrorMessage = "Failed to delete agent allocation";
-                                    try {
-                                        var oErrorResponse = JSON.parse(oError.responseText);
-                                        sErrorMessage = oErrorResponse.error.message.value || sErrorMessage;
-                                    } catch (e) {
-                                        sErrorMessage = oError.message || sErrorMessage;
-                                    }
-                                    MessageBox.error("Delete failed: " + sErrorMessage);
+                                    this._handleODataError(
+                                        oError,
+                                        "The allocation could not be deleted. Please try again or contact support."
+                                    );
                                 }.bind(this)
                             });
                         }.bind(this);
@@ -979,6 +1057,7 @@ sap.ui.define([
                     } else {
                         aAllocations.splice(iIndex, 1);
                         oViewModel.setProperty("/agentAllocations", aAllocations);
+                        this._updateOrderStatus();
                         
                         // Recalculate allocated quantities for all items after deletion
                         this._recalculateAllocatedQuantities();
@@ -1011,8 +1090,18 @@ sap.ui.define([
                 return;
             }
 
-            // Validate agent allocations before saving
-            var oAllocValidation = this._validateAgentAllocations();
+            // Only save NEW allocations (no ALLOCATION_ID). Already-saved ones must not be re-created.
+            var aNewAllocations = aAgentAllocations.filter(function (oAlloc) {
+                return !oAlloc.ALLOCATION_ID;
+            });
+
+            if (aNewAllocations.length === 0) {
+                MessageToast.show("All allocations are already saved.");
+                return;
+            }
+
+            // Validate only the new agent allocations before saving
+            var oAllocValidation = this._validateAgentAllocations(aNewAllocations);
             if (!oAllocValidation.isValid) {
                 MessageBox.error("Agent Allocation Validation Error: " + oAllocValidation.error, {
                     title: "Validation Failed"
@@ -1027,7 +1116,7 @@ sap.ui.define([
             // Build payloads with validation and enrichment
             var aPayloads = [];
             try {
-                aPayloads = aAgentAllocations.map(function (oAllocation, iIndex) {
+                aPayloads = aNewAllocations.map(function (oAllocation, iIndex) {
                     console.log("📦 Building payload for allocation " + (iIndex + 1) + ":", {
                         AGENT_ID: oAllocation.AGENT_ID,
                         AGENT_NAME: oAllocation.AGENT_NAME,
@@ -1156,10 +1245,14 @@ sap.ui.define([
                     return;
                 }
 
-                // Skip items with zero allocated quantity (not allocated, may not exist in backend)
                 var fAllocatedQty = parseFloat(oItem.totalAllocatedQty) || 0;
-                if (fAllocatedQty === 0) {
-                    console.log("Skipping USEDQTY update for POSNR:", oItem.POSNR, "(not allocated, qty=0)");
+                var fPreviouslyUsed = parseFloat(oItem.previouslyUsedQty) || 0;
+
+                // Only skip if qty is 0 AND was never stored in backend (i.e., USEDQTY was already 0).
+                // If previouslyUsedQty > 0 it means the backend still holds a stale non-zero USEDQTY
+                // that must be cleared to 0, otherwise available qty will be wrong on next load.
+                if (fAllocatedQty === 0 && fPreviouslyUsed === 0) {
+                    console.log("Skipping USEDQTY update for POSNR:", oItem.POSNR, "(never allocated, qty=0)");
                     fnUpdateNextItem();
                     return;
                 }
@@ -1361,55 +1454,51 @@ sap.ui.define([
             var oViewModel = oView.getModel("manageModel");
 
             if (!sSalesOrder) {
-                MessageToast.show("Sales order not found. Cannot validate deletion.");
+                MessageToast.show("Sales document not found. Cannot validate deletion.");
                 return;
             }
 
             oViewModel.setProperty("/busy", true);
 
-            // Read all orders to find if this is the latest for the sales order
+            // Read all customer orders – SALESORDER is non-filterable on the backend
+            // so we filter client-side after fetching
             oModel.read("/CustomerOrderSet", {
-                filters: [new Filter("SALESORDER", FilterOperator.EQ, sSalesOrder)],
+                urlParameters: { "$top": "9999" },
                 success: function (oData) {
                     oViewModel.setProperty("/busy", false);
-                    
-                    var aOrders = oData.results || [];
+
+                    // Filter client-side for this sales order
+                    var aOrders = (oData.results || []).filter(function (o) {
+                        return o.SALESORDER === sSalesOrder;
+                    });
+
                     if (aOrders.length === 0) {
-                        MessageToast.show("No orders found for this sales order.");
+                        MessageToast.show("No bulk indents found for this sales document.");
                         return;
                     }
 
-                    // Sort orders by ORDER_NO descending to find the latest
+                    // Sort descending by ORDER_NO to find the latest
                     aOrders.sort(function (a, b) {
                         return b.ORDER_NO.localeCompare(a.ORDER_NO);
                     });
 
                     var sLatestOrderNo = aOrders[0].ORDER_NO;
 
-                    console.log("Checking deletion eligibility:");
-                    console.log("  Current Order:", sOrderNo);
-                    console.log("  Latest Order for Sales Order " + sSalesOrder + ":", sLatestOrderNo);
-                    console.log("  All Orders for this Sales Order:", aOrders.map(function (o) { return o.ORDER_NO; }).join(", "));
-
                     if (sOrderNo !== sLatestOrderNo) {
                         MessageBox.error(
                             "Only the latest order can be deleted.\n\n" +
-                            "Sales Order: " + sSalesOrder + "\n" +
                             "Latest Order: " + sLatestOrderNo + "\n" +
                             "Current Order: " + sOrderNo + "\n\n" +
-                            "Please delete order " + sLatestOrderNo + " first before deleting this order.",
-                            {
-                                title: "Delete Not Allowed",
-                                details: "Order Sequence: " + aOrders.map(function (o) { return o.ORDER_NO; }).join(" → ")
-                            }
+                            "Please delete order " + sLatestOrderNo + " first.",
+                            { title: "Delete Not Allowed" }
                         );
                         return;
                     }
 
-                    // This is the latest order, show confirmation dialog
+                    // This is the latest order – show confirmation dialog
                     MessageBox.confirm(
-                        "Are you sure you want to delete order " + sOrderNo + "? This will delete the order header and all associated items.\n\n" +
-                        "This is the latest order for Sales Order " + sSalesOrder + ".",
+                        "Are you sure you want to delete order " + sOrderNo + "?\n\n" +
+                        "This will permanently delete the bulk indent and all associated items for Sales Document " + sSalesOrder + ".",
                         {
                             title: "Delete Order",
                             icon: MessageBox.Icon.WARNING,
@@ -1470,10 +1559,10 @@ sap.ui.define([
             });
         },
 
-        _validateAgentAllocations: function () {
+        _validateAgentAllocations: function (aAllocationsToValidate) {
             var oViewModel = this.getView().getModel("manageModel");
             var aItems = oViewModel.getProperty("/items") || [];
-            var aAgentAllocations = oViewModel.getProperty("/agentAllocations") || [];
+            var aAgentAllocations = aAllocationsToValidate || oViewModel.getProperty("/agentAllocations") || [];
 
             console.log("Validating agent allocations:", aAgentAllocations);
 
@@ -1603,8 +1692,8 @@ sap.ui.define([
             // Check each item to ensure allocated quantity doesn't exceed order quantity
             for (var i = 0; i < aItems.length; i++) {
                 var oItem = aItems[i];
-                var iOrderQty = parseFloat(oItem.KWMENG) || 0;
-                var iTotalAllocated = parseFloat(oItem.totalAllocatedQty) || 0;
+                var iOrderQty = Math.round((parseFloat(oItem.KWMENG) || 0) * 1000) / 1000;
+                var iTotalAllocated = Math.round((parseFloat(oItem.totalAllocatedQty) || 0) * 1000) / 1000;
 
                 if (iTotalAllocated > iOrderQty) {
                     return {
@@ -1897,9 +1986,9 @@ sap.ui.define([
             var oContent = new VBox({
                 width: "100%",
                 items: [
-                    new Text({ text: "Order created successfully." }).addStyleClass("order-success-title"),
+                    new Text({ text: "Bulk indent created successfully." }).addStyleClass("order-success-title"),
                     new Text({ text: "Order No: " + fnVal(sOrderNo, "-") }).addStyleClass("order-success-meta"),
-                    new Text({ text: "Sales Order: " + fnVal(sSalesOrder, "-") }).addStyleClass("order-success-meta"),
+                    new Text({ text: "Sales Document: " + fnVal(sSalesOrder, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Customer Code: " + fnVal(sCustomer, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Customer Ref: " + fnVal(sCustomerRef, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Reference Date: " + fnVal(sRefDate, "-") }).addStyleClass("order-success-meta"),
@@ -1910,7 +1999,7 @@ sap.ui.define([
 
             MessageBox.show(oContent, {
                 icon: MessageBox.Icon.SUCCESS,
-                title: "Order Created",
+                title: "Bulk Indent Created",
                 actions: [sActionClose],
                 emphasizedAction: sActionClose,
                 styleClass: "order-success-dialog",
@@ -1918,6 +2007,35 @@ sap.ui.define([
                     MessageToast.show("Order number " + sOrderNo + " is ready for processing.");
                 }.bind(this)
             });
+        },
+
+        /**
+         * Centralised OData error handler.
+         * Detects session expiry (HTTP 401 / 403) and prompts the customer to log in again.
+         * Falls back to a plain customer-friendly message for all other failures.
+         * @param {object} oError  - The OData error object received in an error callback
+         * @param {string} [sMsg]  - Optional context-specific fallback message
+         */
+        _handleODataError: function (oError, sMsg) {
+            var iStatus = parseInt(oError && oError.statusCode, 10);
+
+            if (iStatus === 401 || iStatus === 403) {
+                MessageBox.error(
+                    "Your session has expired. Please log in again to continue.",
+                    {
+                        title: "Session Expired",
+                        actions: [MessageBox.Action.OK],
+                        onClose: function () {
+                            window.location.reload();
+                        }
+                    }
+                );
+                return;
+            }
+
+            MessageBox.error(
+                sMsg || "Something went wrong. Please try again, or contact support if the problem persists."
+            );
         },
 
         onNavBack: function () {

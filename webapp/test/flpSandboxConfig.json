@@ -20,8 +20,8 @@
                 {
                   "tileType": "sap.ushell.ui.tile.StaticTile",
                   "properties": {
-                    "title": "Customer Order",
-                    "subtitle": "Customer Order Portal",
+                    "title": "Bulk Indent",
+                    "subtitle": "Bulk Indent Portal",
                     "infoState": "Neutral",
                     "info": "",
                     "icon": "sap-icon://sales-order",
@@ -41,7 +41,7 @@
             "CustomerOrder-display": {
               "semanticObject": "CustomerOrder",
               "action": "display",
-              "title": "Customer Order",
+              "title": "Bulk Indent",
               "signature": {
                 "parameters": {},
                 "additionalParameters": "allowed"

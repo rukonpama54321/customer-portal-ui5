@@ -1,10 +1,10 @@
 <mvc:View
-    controllerName="customerindent.controller.CustomerOrder"
+    controllerName="customerindent.controller.CustomerBulkIndent"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     xmlns="sap.m">
     <Page
-        title="Sales Order Lookup"
+        title="Sales Document Lookup"
         busy="{viewModel>/busy}">
         <content>
             <VBox width="100%">
@@ -13,8 +13,8 @@
                         <HBox alignItems="Center" wrap="Wrap">
                             <Image src="img/logo.png" alt="Logo" />
                             <VBox>
-                                <Title text="Customer Order Portal" level="H1" />
-                                <Text text="Manage bulk orders for customers" />
+                                <Title text="Bulk Indent Portal" level="H1" />
+                                <Text text="Manage bulk indents for customers" />
                             </VBox>
                         </HBox>
                     </HBox>
@@ -25,7 +25,7 @@
                     select=".onTabSelect">
                     <!-- Tab 1: Sales Orders with Subtabs -->
                     <items>
-                        <IconTabFilter text="Sales Orders" key="salesOrders" iconColor="Positive">
+                        <IconTabFilter text="Sales Documents" key="salesOrders" iconColor="Positive">
                             <items>
                                 <IconTabFilter text="All Orders" key="allOrders" icon="sap-icon://list" iconColor="Default">
                             <!-- Search Criteria Panel -->
@@ -100,14 +100,14 @@
                             </Panel>
 
                             <MessageStrip
-                                text="No sales orders found for the selected date range."
+                                text="No sales documents found for the selected date range."
                                 type="Information"
                                 showIcon="true"
                                 visible="{viewModel>/showEmptyMessage}" />
 
                             <VBox
                                 visible="{= ${viewModel>/headers}.length > 0 }">
-                                <Title text="Sales Orders" />
+                                <Title text="Sales Documents" />
                                 <List
                                     id="salesOrderList"
                                     items="{viewModel>/headers}"
@@ -189,43 +189,129 @@
                             </VBox>
                         </IconTabFilter>
 
-                        <!-- Subtab 2: Fully Assigned Orders -->
-                        <IconTabFilter text="Fully Assigned" key="fullyAssigned" icon="sap-icon://complete" iconColor="Positive">
-                            <!-- Search Criteria Panel -->
-                            <Panel headerText="Search Criteria" expandable="true" expanded="true">
+                        <!-- Subtab 2: Partially Assigned Orders -->
+                        <IconTabFilter text="Partially Assigned" key="partiallyAssigned" icon="sap-icon://status-in-process" iconColor="Critical">
+
+                            <!-- Quick Filters Panel -->
+                            <Panel 
+                                headerText="Filters" 
+                                expandable="true" 
+                                expanded="true"
+                                visible="{= (${viewModel>/allHeaders} || []).length > 0 }">
                                 <content>
                                     <VBox class="sapUiSmallMargin">
-                                        <HBox wrap="Wrap" alignItems="End">
-                                            <VBox class="sapUiSmallMarginEnd">
-                                                <Label text="Customer Reference Date Range" />
-                                                <HBox>
-                                                    <DatePicker
-                                                        value="{viewModel>/fromDate}"
-                                                        valueFormat="yyyy-MM-dd"
-                                                        displayFormat="long"
-                                                        width="14rem"
-                                                        placeholder="From date"
-                                                        class="sapUiTinyMarginEnd" />
-                                                    <DatePicker
-                                                        value="{viewModel>/toDate}"
-                                                        valueFormat="yyyy-MM-dd"
-                                                        displayFormat="long"
-                                                        width="14rem"
-                                                        placeholder="To date" />
-                                                </HBox>
-                                            </VBox>
-                                            <VBox>
-                                                <Button
-                                                    text="Search"
-                                                    type="Emphasized"
-                                                    icon="sap-icon://search"
-                                                    press=".onSearch"
-                                                    width="10rem" />
+                                        <HBox wrap="Wrap" alignItems="Center">
+                                            <VBox class="sapUiSmallMarginEnd" width="15rem">
+                                                <Label text="Shipping Condition" />
+                                                <ComboBox
+                                                    selectedKey="{viewModel>/filterShippingCondition}"
+                                                    placeholder="All"
+                                                    width="100%"
+                                                    selectionChange=".onShippingConditionFilter">
+                                                    <items>
+                                                        <core:Item key="" text="All" />
+                                                        <core:Item key="CL" text="Collected (CL)" />
+                                                        <core:Item key="DL" text="Delivered (DL)" />
+                                                    </items>
+                                                </ComboBox>
                                             </VBox>
                                         </HBox>
                                     </VBox>
                                 </content>
                             </Panel>
+
+                            <MessageStrip
+                                text="No partially assigned sales documents found."
+                                type="Information"
+                                showIcon="true"
+                                visible="{viewModel>/showEmptyMessage}" />
+
+                            <VBox
+                                visible="{= ${viewModel>/headers}.length > 0 }">
+                                <Title text="Partially Assigned Sales Documents" />
+                                <List
+                                    items="{viewModel>/headers}"
+                                    mode="None">
+                                    <items>
+                                        <CustomListItem class="order-card-item" type="Active" press=".onHeaderToggle">
+                                            <content>
+                                                <VBox width="100%">
+                                                    <HBox justifyContent="SpaceBetween" alignItems="Start" width="100%" class="order-header-section">
+                                                        <VBox>
+                                                            <Title text="{viewModel>VBELN}" level="H3" />
+                                                            <Text text="{= 'Customer Ref: ' + (${viewModel>BSTNK} || '-') }" class="sapUiTinyMarginTop" />
+                                                            <Text text="{= 'Customer Ref Date: ' + (${viewModel>BSTDK} || '-') }" class="sapUiTinyMarginTop" />
+                                                            <Text text="{= 'Customer Code: ' + (${viewModel>KUNNR} || '-') }" class="sapUiTinyMarginTop" />
+                                                            <ObjectStatus text="{path: 'viewModel>VSBED', formatter: '.formatShipping'}" state="Information" class="sapUiTinyMarginTop" />
+                                                        </VBox>
+                                                        <VBox alignItems="End">
+                                                            <ObjectStatus 
+                                                                text="Partially Assigned"
+                                                                state="Warning"
+                                                                icon="sap-icon://status-in-process"
+                                                                class="sapUiTinyMarginBottom" />
+                                                            <ObjectNumber 
+                                                                number="{viewModel>NETWR}" 
+                                                                unit="{viewModel>WAERK}"
+                                                                emphasized="true"
+                                                                class="order-net-value" />
+                                                            <Text text="Net Value" class="sapUiTinyMarginTop order-label" />
+                                                        </VBox>
+                                                    </HBox>
+
+                                                    <VBox visible="{viewModel>__expanded}" class="sapUiSmallMarginTop items-section-animated">
+                                                        <Title text="Remaining Quantities" level="H4" class="sapUiSmallMarginBottom" />
+                                                        <Table
+                                                            items="{viewModel>ToItem/results}"
+                                                            inset="false"
+                                                            class="order-items-table">
+                                                            <columns>
+                                                                <Column width="6rem"><Text text="ITEM" /></Column>
+                                                                <Column width="10rem"><Text text="MATERIAL" /></Column>
+                                                                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="DESCRIPTION" /></Column>
+                                                                <Column hAlign="End" width="9rem"><Text text="QTY REMAINING" /></Column>
+                                                                <Column width="5rem"><Text text="UOM" /></Column>
+                                                                <Column hAlign="End" width="9rem"><Text text="NET PRICE" /></Column>
+                                                                <Column width="5rem"><Text text="CURR" /></Column>
+                                                                <Column width="6rem"><Text text="PLANT" /></Column>
+                                                            </columns>
+                                                            <items>
+                                                                <ColumnListItem>
+                                                                    <cells>
+                                                                        <Text text="{viewModel>POSNR}" />
+                                                                        <Text text="{viewModel>MATNR}" />
+                                                                        <Text text="{viewModel>ARKTX}" />
+                                                                        <ObjectNumber
+                                                                            number="{viewModel>KWMENG}"
+                                                                            state="{= parseFloat(${viewModel>KWMENG} || '0') === 0 ? 'Error' : 'Warning' }"
+                                                                            emphasized="true" />
+                                                                        <Text text="{viewModel>VRKME}" />
+                                                                        <Text text="{viewModel>NETPR}" />
+                                                                        <Text text="{viewModel>WAERK}" />
+                                                                        <Text text="{viewModel>WERKS}" />
+                                                                    </cells>
+                                                                </ColumnListItem>
+                                                            </items>
+                                                        </Table>
+                                                    </VBox>
+
+                                                    <HBox justifyContent="End" width="100%" visible="{viewModel>__expanded}" class="sapUiSmallMarginTop">
+                                                        <Button
+                                                            text="Manage"
+                                                            type="Emphasized"
+                                                            press=".onManagePress"
+                                                            width="auto" />
+                                                    </HBox>
+                                                </VBox>
+                                            </content>
+                                        </CustomListItem>
+                                    </items>
+                                </List>
+                            </VBox>
+                        </IconTabFilter>
+
+                        <!-- Subtab 3: Fully Assigned Orders -->
+                        <IconTabFilter text="Fully Assigned" key="fullyAssigned" icon="sap-icon://complete" iconColor="Positive">
                             
                             <!-- Quick Filters Panel -->
                             <Panel 
@@ -256,14 +342,14 @@
                             </Panel>
 
                             <MessageStrip
-                                text="No fully assigned sales orders found. Use the search above to find sales orders in the date range."
+                                text="No fully assigned sales documents found."
                                 type="Information"
                                 showIcon="true"
                                 visible="{viewModel>/showEmptyMessage}" />
 
                             <VBox
                                 visible="{= ${viewModel>/headers}.length > 0 }">
-                                <Title text="Fully Assigned Sales Orders" />
+                                <Title text="Fully Assigned Sales Documents" />
                                 <List
                                     id="fullyAssignedOrderList"
                                     items="{viewModel>/headers}"
@@ -306,6 +392,7 @@
                                                                 <Column width="10rem"><Text text="MATERIAL" /></Column>
                                                                 <Column minScreenWidth="Tablet" demandPopin="true"><Text text="DESCRIPTION" /></Column>
                                                                 <Column hAlign="End" width="9rem"><Text text="QTY (UNASSIGNED)" /></Column>
+                                                                <Column hAlign="End" width="9rem"><Text text="TOTAL QTY" /></Column>
                                                                 <Column width="5rem"><Text text="UOM" /></Column>
                                                                 <Column hAlign="End" width="9rem"><Text text="NET PRICE" /></Column>
                                                                 <Column width="5rem"><Text text="CURR" /></Column>
@@ -317,7 +404,8 @@
                                                                         <Text text="{viewModel>POSNR}" />
                                                                         <Text text="{viewModel>MATNR}" />
                                                                         <Text text="{viewModel>ARKTX}" />
-                                                                        <Text text="{viewModel>KWMENG}"/>                                                                                   
+                                                                        <Text text="{viewModel>KWMENG}"/>
+                                                                        <Text text="{= ${viewModel>__origKWMENG} || ${viewModel>KWMENG} }" />
                                                                         <Text text="{viewModel>VRKME}" />
                                                                         <Text text="{viewModel>NETPR}" />
                                                                         <Text text="{viewModel>WAERK}" />
@@ -328,13 +416,6 @@
                                                         </Table>
                                                     </VBox>
 
-                                                    <HBox justifyContent="End" width="100%" visible="{viewModel>__expanded}" class="sapUiSmallMarginTop">
-                                                        <Button
-                                                            text="View Details"
-                                                            type="Transparent"
-                                                            press=".onManagePress"
-                                                            width="auto" />
-                                                    </HBox>
                                                 </VBox>
                                             </content>
                                         </CustomListItem>
@@ -345,9 +426,9 @@
                     </items>
                 </IconTabFilter>
 
-                        <!-- Tab 2: Created Orders -->
-                        <IconTabFilter text="Created Orders" key="createdOrders">
-                            <Panel headerText="Created Orders">
+                        <!-- Tab 2: Bulk Indents -->
+                        <IconTabFilter text="Bulk Indents" key="createdOrders">
+                            <Panel headerText="Bulk Indents">
                                 <content>
                                     <VBox width="100%">
                                         <Button
@@ -357,7 +438,7 @@
                                             class="sapUiSmallMarginBottom" />
 
                                         <MessageStrip
-                                            text="No created orders found."
+                                            text="No bulk indents found."
                                             type="Information"
                                             showIcon="true"
                                             visible="{= ${viewModel>/createdOrders}.length === 0 }" />
@@ -382,6 +463,7 @@
                                                         <VBox width="100%" class="created-order-content">
                                                             <HBox justifyContent="SpaceBetween" alignItems="Start" width="100%">
                                                                 <VBox width="70%">
+                                                                    <Label text="Bulk Indent No." class="info-label" />
                                                                     <HBox alignItems="Center" class="sapUiTinyMarginBottom">
                                                                         <Title text="{viewModel>ORDER_NO}" level="H4" class="customer-order-number" />
                                                                         <ObjectStatus

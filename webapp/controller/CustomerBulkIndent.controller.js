@@ -8,7 +8,7 @@ sap.ui.define([
 ], function (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) {
     "use strict";
 
-    return Controller.extend("customerindent.controller.CustomerOrder", {
+    return Controller.extend("customerindent.controller.CustomerBulkIndent", {
         onInit: function () {
             var oToday = new Date();
             var oFromDate = new Date();
@@ -37,7 +37,6 @@ sap.ui.define([
         },
 
         _onRouteMatched: function () {
-            // Check if created orders need to be refreshed (e.g., after deletion)
             var oComponent = this.getOwnerComponent();
             var oComponentModel = oComponent.getModel("componentData");
             
@@ -54,6 +53,10 @@ sap.ui.define([
                     oTabBar.setSelectedKey("createdOrders");
                 }
             }
+
+            // Always refresh assignment flags on return so partial/fully assigned
+            // lists reflect any orders created or updated since the last search.
+            this._refreshSalesOrderFlags();
         },
 
         onSearch: function () {
@@ -106,27 +109,123 @@ sap.ui.define([
                         
                         return Object.assign({}, oHeader, {
                             __expanded: false,
-                            __isAssigned: isAssigned
+                            __isAssigned: isAssigned,
+                            __isPartiallyAssigned: false  // will be set after CustomerOrderSet fetch
                         });
                     });
-                    
-                    console.log("Orders with assignment status:", aWithFlags.map(function(o) {
-                        return { VBELN: o.VBELN, assigned: o.__isAssigned };
-                    }));
-                    
+
                     // Reset filters on new search
                     oViewModel.setProperty("/showAssignedOrders", true);
                     oViewModel.setProperty("/filterShippingCondition", "");
-                    
-                    // Store all data and apply filters
-                    oViewModel.setProperty("/allHeaders", aWithFlags);
-                    this._applyFilters();
-                    
-                    oViewModel.setProperty("/busy", false);
+
+                    // Fetch CustomerOrderSet (SALESORDER is non-filterable, so fetch all and match client-side)
+                    // to determine which sales orders have customer orders created (partially assigned)
+                    oModel.read("/CustomerOrderSet", {
+                        urlParameters: { "$top": "9999", "$expand": "CustOrderHeadertoItem" },
+                        success: function (oCustData) {
+                            var aCustOrders = (oCustData && oCustData.results) ? oCustData.results : [];
+
+                            // Build a Set of SALESORDER values that have at least one customer order
+                            // where 3rd Party Agent is YES — exclude NO and N/A orders from Partially Assigned
+                            var oSalesOrdersWithOrders = {};
+                            // Also track sales orders with NO/N/A customer orders — treat as fully assigned
+                            var oSalesOrdersNoThirdParty = {};
+                            // Track the raw THIRDPARTY value from the latest customer order per SALESORDER
+                            var oSalesOrderThirdPartyRaw = {};
+                            // Build a lookup: SALESORDER → { MATNR: original KWMENG }
+                            // CustomerOrderItem.KWMENG holds the original ordered qty
+                            var oOrigQtyLookup = {};
+                            aCustOrders.forEach(function (oCust) {
+                                if (oCust.SALESORDER) {
+                                    var sThirdParty = oCust.THIRDPARTY || "";
+                                    var bIsYes = (sThirdParty === "1" || sThirdParty === "Y" || sThirdParty === "YES");
+                                    var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
+                                                     sThirdParty === "3" || sThirdParty === "N/A");
+                                    if (bIsYes) {
+                                        oSalesOrdersWithOrders[oCust.SALESORDER] = true;
+                                    }
+                                    if (bIsNoOrNA) {
+                                        oSalesOrdersNoThirdParty[oCust.SALESORDER] = true;
+                                    }
+                                    // Store raw value (first one found; all orders for a SALESORDER share same value)
+                                    if (!oSalesOrderThirdPartyRaw[oCust.SALESORDER] && sThirdParty) {
+                                        oSalesOrderThirdPartyRaw[oCust.SALESORDER] = sThirdParty;
+                                    }
+                                    // Build original qty lookup from CustomerOrderItem
+                                    var aItems = (oCust.CustOrderHeadertoItem && oCust.CustOrderHeadertoItem.results) || [];
+                                    if (!oOrigQtyLookup[oCust.SALESORDER]) {
+                                        oOrigQtyLookup[oCust.SALESORDER] = {};
+                                    }
+                                    aItems.forEach(function (oItem) {
+                                        var sMATNR = oItem.MATNR || "";
+                                        if (sMATNR && !oOrigQtyLookup[oCust.SALESORDER][sMATNR]) {
+                                            oOrigQtyLookup[oCust.SALESORDER][sMATNR] = oItem.KWMENG || "";
+                                        }
+                                    });
+                                }
+                            });
+
+                            // Mark __isPartiallyAssigned: has a customer order (YES agent) AND not fully assigned
+                            // For NO/N/A orders: zero out all item quantities and mark as fully assigned
+                            var aFinal = aWithFlags.map(function (oHeader) {
+                                var bHasOrders = !!oSalesOrdersWithOrders[oHeader.VBELN];
+                                var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[oHeader.VBELN];
+                                var oQtyMap = oOrigQtyLookup[oHeader.VBELN] || {};
+
+                                var sThirdPartyRaw = oSalesOrderThirdPartyRaw[oHeader.VBELN] || "";
+
+                                if (bIsNoThirdParty) {
+                                    // Zero out remaining quantities for all items, but preserve the original for display
+                                    var oUpdatedHeader = Object.assign({}, oHeader);
+                                    if (oUpdatedHeader.ToItem && oUpdatedHeader.ToItem.results) {
+                                        oUpdatedHeader.ToItem = {
+                                            results: oUpdatedHeader.ToItem.results.map(function (oItem) {
+                                                var sOrig = oQtyMap[oItem.MATNR] || oItem.KWMENG;
+                                                return Object.assign({}, oItem, { __origKWMENG: sOrig, KWMENG: "0" });
+                                            })
+                                        };
+                                    }
+                                    oUpdatedHeader.__isAssigned = true;
+                                    oUpdatedHeader.__isPartiallyAssigned = false;
+                                    oUpdatedHeader.__thirdPartyRaw = sThirdPartyRaw;
+                                    return oUpdatedHeader;
+                                }
+
+                                // For agent-fully-assigned orders, stamp __origKWMENG from CustomerOrderItem
+                                var oFinalHeader = Object.assign({}, oHeader, {
+                                    __isPartiallyAssigned: bHasOrders && !oHeader.__isAssigned,
+                                    __thirdPartyRaw: sThirdPartyRaw
+                                });
+                                if (oFinalHeader.__isAssigned && Object.keys(oQtyMap).length > 0 &&
+                                    oFinalHeader.ToItem && oFinalHeader.ToItem.results) {
+                                    oFinalHeader.ToItem = {
+                                        results: oFinalHeader.ToItem.results.map(function (oItem) {
+                                            var sOrig = oQtyMap[oItem.MATNR] || oItem.KWMENG;
+                                            return Object.assign({}, oItem, { __origKWMENG: sOrig });
+                                        })
+                                    };
+                                }
+                                return oFinalHeader;
+                            });
+
+                            oViewModel.setProperty("/allHeaders", aFinal);
+                            this._applyFilters();
+                            oViewModel.setProperty("/busy", false);
+                        }.bind(this),
+                        error: function () {
+                            // Fallback: proceed without partial assignment info
+                            oViewModel.setProperty("/allHeaders", aWithFlags);
+                            this._applyFilters();
+                            oViewModel.setProperty("/busy", false);
+                        }.bind(this)
+                    });
                 }.bind(this),
-                error: function () {
+                error: function (oError) {
                     oViewModel.setProperty("/busy", false);
-                    MessageToast.show("Unable to load sales orders. Try again.");
+                    this._handleODataError(
+                        oError,
+                        "Your orders could not be loaded. Please check your connection and try again."
+                    );
                 }.bind(this)
             });
         },
@@ -184,6 +283,10 @@ sap.ui.define([
             var aFiltered = aAllHeaders.filter(function(oHeader) {
                 // Filter by subtab selection
                 if (sSelectedSubTab === "fullyAssigned" && !oHeader.__isAssigned) {
+                    return false;
+                }
+
+                if (sSelectedSubTab === "partiallyAssigned" && !oHeader.__isPartiallyAssigned) {
                     return false;
                 }
                 
@@ -268,7 +371,7 @@ sap.ui.define([
                 }
                 
                 console.log("onManagePress - Navigating to ManageOrder with vbeln:", oOrderData.VBELN, "viewMode:", bIsViewMode);
-                oRouter.navTo("ManageOrder", {
+                oRouter.navTo("ManageBulkIndent", {
                     vbeln: oOrderData.VBELN
                 }, false);
             } catch (error) {
@@ -312,8 +415,8 @@ sap.ui.define([
             if (sKey === "createdOrders") {
                 this._loadCreatedOrders();
             } 
-            // Handle subtab selection (allOrders or fullyAssigned)
-            else if (sKey === "allOrders" || sKey === "fullyAssigned") {
+            // Handle subtab selection
+            else if (sKey === "allOrders" || sKey === "fullyAssigned" || sKey === "partiallyAssigned") {
                 oViewModel.setProperty("/selectedOrdersSubTab", sKey);
                 
                 // Check if we have data from a search
@@ -323,11 +426,92 @@ sap.ui.define([
                     // No search performed yet
                     oViewModel.setProperty("/headers", []);
                     oViewModel.setProperty("/showEmptyMessage", true);
+                } else if (sKey === "partiallyAssigned" || sKey === "fullyAssigned") {
+                    // Refresh flags from backend so the list reflects latest order state
+                    this._refreshSalesOrderFlags();
                 } else {
                     // Apply filters to existing data
                     this._applyFilters();
                 }
             }
+        },
+
+        /**
+         * Re-fetches CustomerOrderSet and recomputes __isAssigned / __isPartiallyAssigned
+         * on all entries already in /allHeaders, then re-applies the current filters.
+         * Called on every route-match and when switching to partial/fully-assigned subtabs.
+         */
+        _refreshSalesOrderFlags: function () {
+            var oView = this.getView();
+            var oModel = oView.getModel();
+            var oViewModel = oView.getModel("viewModel");
+            var aAllHeaders = oViewModel.getProperty("/allHeaders");
+
+            if (!aAllHeaders || aAllHeaders.length === 0) {
+                return;  // Nothing loaded yet – nothing to refresh
+            }
+
+            oViewModel.setProperty("/busy", true);
+
+            oModel.read("/CustomerOrderSet", {
+                urlParameters: { "$top": "9999", "$expand": "CustOrderHeadertoItem" },
+                success: function (oCustData) {
+                    var aCustOrders = (oCustData && oCustData.results) ? oCustData.results : [];
+
+                    var oSalesOrdersWithOrders = {};
+                    var oSalesOrdersNoThirdParty = {};
+                    var oSalesOrderThirdPartyRaw = {};
+
+                    aCustOrders.forEach(function (oCust) {
+                        if (oCust.SALESORDER) {
+                            var sThirdParty = oCust.THIRDPARTY || "";
+                            var bIsYes = (sThirdParty === "1" || sThirdParty === "Y" || sThirdParty === "YES");
+                            var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
+                                             sThirdParty === "3" || sThirdParty === "N/A");
+                            if (bIsYes) {
+                                oSalesOrdersWithOrders[oCust.SALESORDER] = true;
+                            }
+                            if (bIsNoOrNA) {
+                                oSalesOrdersNoThirdParty[oCust.SALESORDER] = true;
+                            }
+                            if (!oSalesOrderThirdPartyRaw[oCust.SALESORDER] && sThirdParty) {
+                                oSalesOrderThirdPartyRaw[oCust.SALESORDER] = sThirdParty;
+                            }
+                        }
+                    });
+
+                    var aUpdated = aAllHeaders.map(function (oHeader) {
+                        var bHasOrders    = !!oSalesOrdersWithOrders[oHeader.VBELN];
+                        var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[oHeader.VBELN];
+                        var sThirdPartyRaw  = oSalesOrderThirdPartyRaw[oHeader.VBELN] || oHeader.__thirdPartyRaw || "";
+
+                        // Re-check whether all item quantities are zero (fully consumed)
+                        var bAllZero = false;
+                        if (oHeader.ToItem && oHeader.ToItem.results && oHeader.ToItem.results.length > 0) {
+                            bAllZero = oHeader.ToItem.results.every(function (oItem) {
+                                return parseFloat(oItem.KWMENG || "0") === 0;
+                            });
+                        }
+
+                        var bIsAssigned = bAllZero || bIsNoThirdParty;
+
+                        return Object.assign({}, oHeader, {
+                            __isAssigned: bIsAssigned,
+                            __isPartiallyAssigned: bHasOrders && !bIsAssigned,
+                            __thirdPartyRaw: sThirdPartyRaw
+                        });
+                    });
+
+                    oViewModel.setProperty("/allHeaders", aUpdated);
+                    this._applyFilters();
+                    oViewModel.setProperty("/busy", false);
+                }.bind(this),
+                error: function () {
+                    // Silently fall back – just re-apply existing filters without flag changes
+                    this._applyFilters();
+                    oViewModel.setProperty("/busy", false);
+                }.bind(this)
+            });
         },
 
         _loadCreatedOrders: function () {
@@ -377,7 +561,10 @@ sap.ui.define([
                 }.bind(this),
                 error: function (oError) {
                     oViewModel.setProperty("/busy", false);
-                    MessageToast.show("Failed to load created orders: " + (oError.message || "Unknown error"));
+                    this._handleODataError(
+                        oError,
+                        "Your orders could not be loaded. Please try again or contact support."
+                    );
                 }.bind(this)
             });
         },
@@ -425,12 +612,12 @@ sap.ui.define([
                     }
                     
                     oComponentModel.setProperty("/selectedOrder", oFullOrderData);
-                    oComponentModel.setProperty("/viewMode", true);  // View mode - readonly
+                    oComponentModel.setProperty("/viewMode", false);  // ManageOrder will lock if not the latest order
 
                     // Navigate to ManageOrder route with ORDER_NO
                     try {
                         var oRouter = oComponent.getRouter();
-                        oRouter.navTo("ManageOrder", {
+                        oRouter.navTo("ManageBulkIndent", {
                             vbeln: oFullOrderData.ORDER_NO
                         }, false);
                     } catch (error) {
@@ -447,10 +634,43 @@ sap.ui.define([
                         // Silently refresh the created orders list to remove the deleted order
                         this._loadCreatedOrders();
                     } else {
-                        MessageToast.show("Failed to load order details: " + (oError.message || "Unknown error"));
+                        this._handleODataError(
+                            oError,
+                            "The order details could not be loaded. Please try again."
+                        );
                     }
                 }.bind(this)
             });
+        },
+
+        /**
+         * Centralised OData error handler.
+         * Detects session expiry (HTTP 401 / 403) and prompts the customer to log in again.
+         * Falls back to a plain customer-friendly message for all other failures.
+         * @param {object} oError  - The OData error object received in an error callback
+         * @param {string} [sMsg]  - Optional context-specific fallback message
+         */
+        _handleODataError: function (oError, sMsg) {
+            var iStatus = parseInt(oError && oError.statusCode, 10);
+
+            if (iStatus === 401 || iStatus === 403) {
+                MessageBox.error(
+                    "Your session has expired. Please log in again to continue.",
+                    {
+                        title: "Session Expired",
+                        actions: [MessageBox.Action.OK],
+                        onClose: function () {
+                            // Reloading causes SAP BSP to redirect to the login screen
+                            window.location.reload();
+                        }
+                    }
+                );
+                return;
+            }
+
+            MessageBox.error(
+                sMsg || "Something went wrong. Please try again, or contact support if the problem persists."
+            );
         },
 
         /**
@@ -505,7 +725,7 @@ sap.ui.define([
             }
 
             // Format the title - Sales Order, Shipping, then net value
-            var sTitle = "Sales Order: " + sSalesOrder + "     •     " + sShipping + "     •     Net Value: " + sNetValue + " " + sCurrency;
+            var sTitle = "Sales Document: " + sSalesOrder + "     •     " + sShipping + "     •     Net Value: " + sNetValue + " " + sCurrency;
 
             // Create and return the GroupHeaderListItem
             var oGroupHeader = new GroupHeaderListItem({

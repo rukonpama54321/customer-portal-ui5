@@ -45,8 +45,8 @@ sap.ui.define([
                 case "RouteCustomerIndent":
                     sTitle = "Customer Indent";
                     break;
-                case "ManageOrder":
-                    sTitle = "Manage Bulk Order";
+                case "ManageBulkIndent":
+                    sTitle = "Manage Bulk Indent";
                     break;
                 case "ChangeIndentWithVehicleTab":
                     sTitle = "Change Indent with Vehicle";
