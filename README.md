@@ -1,11 +1,13 @@
 # Customer Portal - SAP UI5 Application
 
-A comprehensive SAP UI5 application for managing customer sales orders and agent allocations with transporter management.
+A comprehensive SAP UI5 application for managing customer indent operations — supporting both bulk indent creation and direct indent via SAP WebDynpro.
 
 ## 🚀 Features
 
+- **🏠 Home Screen** - Central landing page with navigation to Bulk Indent and Direct Indent
+- **📦 Bulk Indent** - Create and manage bulk indents from sales orders with agent allocation
+- **🔗 Direct Indent** - Seamlessly navigate to SAP WebDynpro application for direct indent entry
 - **🔍 Sales Order Lookup** - Advanced search and filtering for sales orders
-- **📊 Order Management** - Create and manage bulk orders from sales orders  
 - **👥 Agent Allocation** - Assign agents to orders with quantity management
 - **🚛 Transporter Management** - Handle carrier selection and GSTN details
 - **✅ Data Validation** - Comprehensive validation and error handling
@@ -38,11 +40,14 @@ A comprehensive SAP UI5 application for managing customer sales orders and agent
 Customer Portal/
 ├── webapp/
 │   ├── controller/              # MVC Controllers
-│   │   ├── CustomerOrder.controller.js    # Order search & listing
-│   │   └── ManageOrder.controller.js      # Order creation & management
+│   │   ├── Home.controller.js             # Home screen navigation
+│   │   ├── CustomerBulkIndent.controller.js  # Bulk indent search & listing
+│   │   └── ManageBulkIndent.controller.js    # Bulk indent creation & management
 │   ├── view/                    # XML Views
-│   │   ├── CustomerOrder.view.xml         # Main search interface
-│   │   └── ManageOrder.view.xml           # Order management UI
+│   │   ├── App.view.xml                   # App shell
+│   │   ├── Home.view.xml                  # Home screen
+│   │   ├── CustomerBulkIndent.view.xml    # Bulk indent search interface
+│   │   └── ManageBulkIndent.view.xml      # Bulk indent management UI
 │   ├── css/                     # Custom stylesheets
 │   │   └── style.css
 │   ├── util/                    # Utility functions
@@ -99,24 +104,35 @@ Customer Portal/
 
 ## 💡 Usage
 
-### 1. Sales Order Search
+### 1. Home Screen
+- Landing page presented after login
+- Two options available:
+  - **Bulk Indent** — navigate to the bulk indent management flow
+  - **Direct Indent** — opens the SAP WebDynpro application (`ZSD_CUST_INDENT_DIR_INBAPP`) in a new tab using the existing SAP session
+
+### 2. Bulk Indent — Sales Order Search
 - Use the search functionality to find sales orders by various criteria
 - Apply filters for customer code, reference numbers, dates
 - View order details including items and net values
 
-### 2. Order Creation
+### 3. Bulk Indent — Order Creation
 - Select a sales order from search results
 - Click "Manage" to navigate to order creation
 - Fill in required third-party agent information (if applicable)
 - Create the order with proper validation
 
-### 3. Agent Management  
+### 4. Agent Management
 - Add multiple agents to an order
 - Assign specific quantities to each agent per order item
 - Select appropriate transporters with GSTN details
 - Validate all allocations before saving
 
-### 4. Data Validation
+### 5. Direct Indent (WebDynpro)
+- Clicking **Direct Indent** on the Home screen opens the SAP WebDynpro app in a new browser tab
+- Uses a relative URL so the existing SAP login session is reused — no re-authentication required
+- Requires the ICF service `ZSD_CUST_INDENT_DIR_INBAPP` to be active in `SICF`
+
+### 6. Data Validation
 - System ensures all required fields are populated
 - Prevents over-allocation of quantities
 - Validates agent and transporter details
@@ -126,26 +142,34 @@ Customer Portal/
 
 ### Controllers
 
-- **`CustomerOrder.controller.js`** 
-  - Handles sales order search and filtering
-  - Manages order listing with pagination
-  - Controls navigation to order management
+- **`Home.controller.js`**
+  - Entry point controller for the home screen
+  - Routes to Bulk Indent (`RouteCustomerIndent`)
+  - Opens Direct Indent WebDynpro app in a new tab using relative URL + session reuse parameter
 
-- **`ManageOrder.controller.js`**
-  - Order creation and validation logic
+- **`CustomerBulkIndent.controller.js`**
+  - Handles sales order search and filtering
+  - Manages bulk indent listing with pagination
+  - Controls navigation to indent management
+
+- **`ManageBulkIndent.controller.js`**
+  - Bulk indent creation and validation logic
   - Agent allocation management
   - Transporter selection and validation
   - Data persistence and error handling
 
 ### Views
 
-- **`CustomerOrder.view.xml`**
-  - Responsive search interface
-  - Order cards with expandable details
-  - Created orders listing with grouping
+- **`Home.view.xml`**
+  - Home screen with Bulk Indent and Direct Indent buttons
 
-- **`ManageOrder.view.xml`**  
-  - Order details display with metrics
+- **`CustomerBulkIndent.view.xml`**
+  - Responsive search interface
+  - Indent cards with expandable details
+  - Created indents listing with grouping
+
+- **`ManageBulkIndent.view.xml`**
+  - Indent details display with metrics
   - Agent allocation forms and tables
   - Progress indicators for quantity allocation
 
@@ -200,6 +224,9 @@ We welcome contributions! Please follow these steps:
 
 ## 📝 Recent Updates
 
+- ✅ Added Home screen with Bulk Indent and Direct Indent navigation
+- ✅ Renamed controllers/views from `CustomerOrder`/`ManageOrder` to `CustomerBulkIndent`/`ManageBulkIndent`
+- ✅ Fixed WebDynpro 403 error — switched to relative URL with `sap-wd-run-sc=X` for session reuse
 - ✅ Enhanced data validation and error handling
 - ✅ Fixed template sharing warnings for better performance
 - ✅ Implemented LIFO order deletion policy
