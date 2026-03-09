@@ -3,7 +3,7 @@ const proxy = require('http-proxy-middleware');
 const SAP_ODATA_TARGET = 'https://eccdev.nrl.com:8001';
 const SAP_WD_TARGET = 'http://eccdev.nrl.com:8000';
 const username = '100620';
-const password = 'Feb567#$';
+const password = 'Mar567#$';
 const auth = Buffer.from(`${username}:${password}`).toString('base64');
 
 function makeProxy(target) {
