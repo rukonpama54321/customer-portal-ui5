@@ -1,5 +1,76 @@
 ﻿/* SAP UI5 Customer Portal - Custom Styles */
 
+/* ========================================
+   Home Page Tiles
+   ======================================== */
+.portalTile {
+    width: 18rem !important;
+    min-height: 11rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(8, 84, 160, 0.12) !important;
+    border: 1.5px solid rgba(8, 84, 160, 0.15) !important;
+    background: linear-gradient(145deg, #ffffff 0%, #f0f6ff 100%) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    overflow: hidden !important;
+}
+
+.portalTile:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    box-shadow: 0 12px 36px rgba(8, 84, 160, 0.22) !important;
+    border-color: rgba(8, 84, 160, 0.35) !important;
+    cursor: pointer;
+}
+
+.portalTile:active {
+    transform: translateY(-2px) scale(1.01) !important;
+}
+
+.portalTile .sapMGTHdrTxt {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #1a3a52 !important;
+    letter-spacing: -0.01em;
+}
+
+.portalTile .sapMGTSubHdrTxt {
+    font-size: 0.82rem !important;
+    color: #5a7a9a !important;
+    font-weight: 400 !important;
+}
+
+.portalTile .sapMGTFtrTxt {
+    font-size: 0.75rem !important;
+    color: #0854a0 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.portalTile .sapMGTImgCnt {
+    font-size: 2.5rem !important;
+    color: #0854a0 !important;
+}
+
+/* Accent variant for the second tile */
+.portalTileAccent {
+    background: linear-gradient(145deg, #ffffff 0%, #f0fff8 100%) !important;
+    border-color: rgba(14, 165, 100, 0.2) !important;
+}
+
+.portalTileAccent:hover {
+    box-shadow: 0 12px 36px rgba(14, 120, 80, 0.18) !important;
+    border-color: rgba(14, 120, 80, 0.35) !important;
+}
+
+.portalTileAccent .sapMGTFtrTxt {
+    color: #0e8a50 !important;
+}
+
+.portalTileAccent .sapMGTImgCnt {
+    color: #0e8a50 !important;
+}
+
+
 /* Order success dialog styling */
 .order-success-dialog .sapMDialogTitle {
     font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;

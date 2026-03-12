@@ -24,13 +24,13 @@
 
                     <!-- Tile 1: Bulk Indent Portal -->
                     <GenericTile
-                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        class="portalTile sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         header="Bulk Indent Portal"
-                        subheader="Manage bulk indents for customers"
+                        subheader="Manage Bulk Indents"
                         press=".onBulkIndentPress"
-                        frameType="OneByOne">
+                        frameType="TwoByOne">
                         <tileContent>
-                            <TileContent>
+                            <TileContent footer="New Portal">
                                 <content>
                                     <ImageContent src="sap-icon://sales-order" />
                                 </content>
@@ -40,13 +40,13 @@
 
                     <!-- Tile 2: Direct Customer Indent (WebDynpro) -->
                     <GenericTile
-                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        class="portalTile portalTileAccent sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         header="Direct Customer Indent"
-                        subheader="Open direct indent entry (SAP WebDynpro)"
+                        subheader="Create Direct Indents"
                         press=".onDirectIndentPress"
-                        frameType="OneByOne">
+                        frameType="TwoByOne">
                         <tileContent>
-                            <TileContent>
+                            <TileContent footer="Existing Portal">
                                 <content>
                                     <ImageContent src="sap-icon://add-document" />
                                 </content>
