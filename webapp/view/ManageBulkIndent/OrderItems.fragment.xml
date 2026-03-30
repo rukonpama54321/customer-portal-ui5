@@ -1,0 +1,71 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+
+    <VBox class="manage-items-card" width="30%" height="100%">
+        <VBox class="card-header">
+            <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                <Title text="Order Items" class="card-title" />
+                <Text text="{= ${manageModel>/items}.length } items" class="card-subtitle" />
+            </HBox>
+        </VBox>
+        <VBox class="card-content-carousel">
+            <Carousel
+                pages="{path: 'manageModel>/items', templateShareable: true}"
+                height="100%"
+                width="100%"
+                pageIndicatorPlacement="Bottom"
+                showPageIndicator="true"
+                class="items-carousel">
+                <VBox class="carousel-item-card">
+                    <!-- Item Header -->
+                    <VBox class="item-list-header">
+                        <HBox justifyContent="SpaceBetween" alignItems="Center">
+                            <Text text="Item {path: 'manageModel>POSNR', formatter: '.formatter.formatItemNumber'}" class="item-number-badge" />
+                            <Text text="{manageModel>MATNR}" class="material-code-header" />
+                        </HBox>
+                        <Text text="{manageModel>ARKTX}" class="item-description-header" />
+                    </VBox>
+
+                    <!-- Item Details List -->
+                    <VBox class="item-details-list">
+                        <!-- Quantity with Allocation Bar (CL) / Simple Quantity (DL) -->
+                        <VBox class="list-field quantity-field">
+                            <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="field-header">
+                                <Text text="{= ${manageModel>/header/VSBED} === 'DL' ? 'Quantity' : 'Quantity Remaining' }" class="field-label" />
+                                <ObjectNumber
+                                    number="{manageModel>KWMENG}"
+                                    unit="{manageModel>VRKME}"
+                                    emphasized="true"
+                                    class="field-value-primary" />
+                            </HBox>
+                            <ProgressIndicator
+                                percentValue="{manageModel>allocationPercent}"
+                                displayValue="{manageModel>allocationDisplay}"
+                                state="{manageModel>allocationState}"
+                                visible="{= ${manageModel>/header/VSBED} !== 'DL' }"
+                                class="quantity-allocation-bar" />
+                        </VBox>
+
+                        <!-- Unit Price -->
+                        <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
+                            <Text text="Unit Price" class="field-label" />
+                            <ObjectNumber
+                                number="{manageModel>NETPR}"
+                                unit="{manageModel>WAERK}"
+                                emphasized="true"
+                                class="field-value-price" />
+                        </HBox>
+
+                        <!-- Plant -->
+                        <HBox justifyContent="SpaceBetween" alignItems="Baseline" class="list-field">
+                            <Text text="Plant" class="field-label" />
+                            <Text text="{manageModel>WERKS}" class="field-value-plant" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </Carousel>
+        </VBox>
+    </VBox>
+
+</core:FragmentDefinition>

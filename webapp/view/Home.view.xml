@@ -1,26 +1,28 @@
 <mvc:View
     controllerName="customerindent.controller.Home"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
     xmlns="sap.m">
-    <Page showHeader="false">
+    <Page showHeader="false" class="portalHomePage" enableScrolling="false">
         <content>
+            <core:HTML content="&lt;video autoplay muted loop playsinline class=&quot;portal-bg-video&quot;&gt;&lt;source src=&quot;img/Untitled%20design.mp4&quot; type=&quot;video/mp4&quot;&gt;&lt;/video&gt;&lt;div class=&quot;portal-bg-overlay&quot;&gt;&lt;/div&gt;" />
             <VBox
                 height="100%"
-                justifyContent="Center"
-                alignItems="Center"
-                class="sapUiMediumMarginTop">
+                justifyContent="Start"
+                alignItems="Start"
+                class="sapUiSmallMarginTop portalHomeContent">
 
                 <VBox>
                     <HBox alignItems="Center" class="sapUiMediumMarginBottom">
-                        <Image src="img/logo.png" alt="Logo" height="3rem" class="sapUiSmallMarginEnd" />
-                        <VBox>
+                        <Image src="img/logo.png" alt="Logo" height="5rem" class="sapUiSmallMarginEnd" />
+                        <VBox class="portalLogoText">
                             <Title text="Customer Indent Portal" level="H1" />
                             <Text text="Select an application to continue" />
                         </VBox>
                     </HBox>
                 </VBox>
 
-                <HBox wrap="Wrap" justifyContent="Center" class="sapUiMediumMarginTop">
+                <HBox wrap="Wrap" justifyContent="Start" class="sapUiMediumMarginTop">
 
                     <!-- Tile 1: Bulk Indent Portal -->
                     <GenericTile
@@ -30,7 +32,7 @@
                         press=".onBulkIndentPress"
                         frameType="TwoByOne">
                         <tileContent>
-                            <TileContent footer="New Portal">
+                            <TileContent footer="For bulk indents without/without third party agents">
                                 <content>
                                     <ImageContent src="sap-icon://sales-order" />
                                 </content>
@@ -42,7 +44,7 @@
                     <GenericTile
                         class="portalTile portalTileAccent sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         header="Direct Customer Indent"
-                        subheader="Create Direct Indents"
+                        subheader="For Direct Indents with Vehicles"
                         press=".onDirectIndentPress"
                         frameType="TwoByOne">
                         <tileContent>

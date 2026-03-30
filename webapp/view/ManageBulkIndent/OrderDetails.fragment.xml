@@ -1,0 +1,125 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+
+    <VBox class="manage-detail-card" width="70%" height="100%">
+        <VBox class="card-header">
+            <Title text="Order Details" class="card-title" />
+        </VBox>
+
+        <!-- Order Actions (Delete) -->
+        <HBox class="detail-group order-action-row" justifyContent="Start" wrap="Wrap" visible="{= ${manageModel>/orderCreated} &amp;&amp; !${manageModel>/viewMode} }">
+            <Button
+                text="Delete Order"
+                type="Reject"
+                icon="sap-icon://delete"
+                press=".onDeleteOrder"
+                width="10rem"
+                class="order-action-btn" />
+        </HBox>
+
+        <VBox class="card-content">
+
+            <!-- Sales Order Section -->
+            <VBox class="detail-group sales-order-highlight sapUiSmallMarginBottom">
+                <Label text="Sales Document(SAP):" class="detail-label sapUiTinyMarginBottom" />
+                <HBox alignItems="Baseline" justifyContent="SpaceBetween" wrap="Wrap">
+                    <Title text="{manageModel>/header/VBELN}" level="H1" class="sales-order-number" />
+                    <VBox alignItems="End">
+                        <Label text="Order Amount" class="detail-label sapUiTinyMarginBottom" />
+                        <ObjectNumber
+                            number="{manageModel>/header/NETWR}"
+                            unit="{manageModel>/header/WAERK}"
+                            emphasized="true"
+                            class="sales-order-amount"
+                            state="Success" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Bulk Indent No & Status -->
+            <VBox class="detail-group">
+                <Label text="Bulk Indent No" class="detail-label" />
+                <Text text="{manageModel>/orderNo}" class="detail-value-large" />
+                <VBox class="detail-group" visible="{= ${manageModel>/orderCreated} }">
+                    <Label text="Status" class="detail-label" />
+                    <ObjectStatus
+                        text="{= ${manageModel>/hasAgentAllocations} ? 'Agents Allocated' : 'Bulk Indent Created Successfully' }"
+                        state="Success"
+                        icon="{= ${manageModel>/hasAgentAllocations} ? 'sap-icon://employee' : 'sap-icon://accept' }" />
+                </VBox>
+            </VBox>
+
+            <!-- Order Information Grid -->
+            <VBox class="detail-group">
+                <HBox class="detail-row">
+                    <VBox class="detail-field">
+                        <Label text="Customer Code" class="detail-label" />
+                        <Text text="{manageModel>/header/KUNNR}" class="detail-value" />
+                    </VBox>
+                    <VBox class="detail-field">
+                        <Label text="Customer Reference" class="detail-label" />
+                        <Text text="{manageModel>/header/BSTNK}" class="detail-value" />
+                    </VBox>
+                </HBox>
+                <HBox class="detail-row">
+                    <VBox class="detail-field">
+                        <Label text="Reference Date" class="detail-label" />
+                        <Text text="{manageModel>/header/BSTDK}" class="detail-value" />
+                    </VBox>
+                    <VBox class="detail-field">
+                        <Label text="Shipping Method" class="detail-label" />
+                        <Text text="{manageModel>/header/VSBED}" class="detail-value" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- 3rd Party Agent -->
+            <VBox class="detail-group agent-selection">
+                <Label text="3rd Party Agent" class="detail-label required-label" />
+                <!-- CL orders: No N/A option -->
+                <ComboBox
+                    id="thirdPartyAgentComboBox"
+                    selectedKey="{manageModel>/thirdPartyAgent}"
+                    placeholder="Select 3rd party agent (required)"
+                    width="100%"
+                    visible="{= ${manageModel>/header/VSBED} === 'CL' }"
+                    enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }"
+                    selectionChange=".onThirdPartyAgentChange"
+                    required="true">
+                    <items>
+                        <core:Item key="YES" text="Yes" />
+                        <core:Item key="NO" text="No" />
+                    </items>
+                </ComboBox>
+                <!-- Non-CL orders: all options including N/A -->
+                <ComboBox
+                    id="thirdPartyAgentComboBoxFull"
+                    selectedKey="{manageModel>/thirdPartyAgent}"
+                    placeholder="Select 3rd party agent (required)"
+                    width="100%"
+                    visible="{= ${manageModel>/header/VSBED} !== 'CL' }"
+                    enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} &amp;&amp; ${manageModel>/header/VSBED} !== 'DL' }"
+                    selectionChange=".onThirdPartyAgentChange"
+                    required="true">
+                    <items>
+                        <core:Item key="YES" text="Yes" />
+                        <core:Item key="NO" text="No" />
+                        <core:Item key="N/A" text="N/A" />
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <!-- Create Order Action -->
+            <VBox class="detail-group" alignItems="End" visible="{= !${manageModel>/orderCreated} }">
+                <Button
+                    text="Create Bulk Indent"
+                    type="Emphasized"
+                    press=".onCreateOrder"
+                    width="100%" />
+            </VBox>
+
+        </VBox>
+    </VBox>
+
+</core:FragmentDefinition>

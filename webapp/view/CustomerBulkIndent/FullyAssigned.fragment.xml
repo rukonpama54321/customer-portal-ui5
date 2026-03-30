@@ -1,0 +1,113 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+
+    <!-- Quick Filters Panel -->
+    <Panel
+        headerText="Filters"
+        expandable="true"
+        expanded="true"
+        visible="{= (${viewModel>/allHeaders} || []).length > 0 }">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <HBox wrap="Wrap" alignItems="Center">
+                    <VBox class="sapUiSmallMarginEnd" width="15rem">
+                        <Label text="Shipping Condition" />
+                        <ComboBox
+                            selectedKey="{viewModel>/filterShippingCondition}"
+                            placeholder="All"
+                            width="100%"
+                            selectionChange=".onShippingConditionFilter">
+                            <items>
+                                <core:Item key="" text="All" />
+                                <core:Item key="CL" text="Collected (CL)" />
+                                <core:Item key="DL" text="Delivered (DL)" />
+                            </items>
+                        </ComboBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </content>
+    </Panel>
+
+    <MessageStrip
+        text="No fully assigned sales documents found."
+        type="Information"
+        showIcon="true"
+        visible="{viewModel>/showEmptyMessage}" />
+
+    <VBox visible="{= ${viewModel>/headers}.length > 0 }">
+        <Title text="Fully Assigned Sales Documents" />
+        <List
+            id="fullyAssignedOrderList"
+            items="{viewModel>/headers}"
+            mode="None">
+            <items>
+                <CustomListItem class="order-card-item" type="Active" press=".onHeaderToggle">
+                    <content>
+                        <VBox width="100%">
+                            <HBox justifyContent="SpaceBetween" alignItems="Start" width="100%" class="order-header-section">
+                                <VBox>
+                                    <Title text="{viewModel>VBELN}" level="H3" />
+                                    <Text text="{= 'Customer Ref: ' + (${viewModel>BSTNK} || '-') }" class="sapUiTinyMarginTop" />
+                                    <Text text="{= 'Customer Ref Date: ' + (${viewModel>BSTDK} || '-') }" class="sapUiTinyMarginTop" />
+                                    <Text text="{= 'Customer Code: ' + (${viewModel>KUNNR} || '-') }" class="sapUiTinyMarginTop" />
+                                    <ObjectStatus text="{path: 'viewModel>VSBED', formatter: '.formatShipping'}" state="Information" class="sapUiTinyMarginTop" />
+                                </VBox>
+                                <VBox alignItems="End">
+                                    <ObjectStatus
+                                        text="Fully Assigned"
+                                        state="Success"
+                                        icon="sap-icon://complete"
+                                        class="sapUiTinyMarginBottom assigned-order-badge" />
+                                    <ObjectNumber
+                                        number="{viewModel>NETWR}"
+                                        unit="{viewModel>WAERK}"
+                                        emphasized="true"
+                                        class="order-net-value" />
+                                    <Text text="Net Value" class="sapUiTinyMarginTop order-label" />
+                                </VBox>
+                            </HBox>
+
+                            <VBox visible="{viewModel>__expanded}" class="sapUiSmallMarginTop items-section-animated">
+                                <Title text="Items" level="H4" class="sapUiSmallMarginBottom" />
+                                <Table
+                                    items="{viewModel>ToItem/results}"
+                                    inset="false"
+                                    class="order-items-table">
+                                    <columns>
+                                        <Column width="6rem"><Text text="ITEM" /></Column>
+                                        <Column width="10rem"><Text text="MATERIAL" /></Column>
+                                        <Column minScreenWidth="Tablet" demandPopin="true"><Text text="DESCRIPTION" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="QTY (UNASSIGNED)" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="TOTAL QTY" /></Column>
+                                        <Column width="5rem"><Text text="UOM" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="NET PRICE" /></Column>
+                                        <Column width="5rem"><Text text="CURR" /></Column>
+                                        <Column width="6rem"><Text text="PLANT" /></Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{viewModel>POSNR}" />
+                                                <Text text="{viewModel>MATNR}" />
+                                                <Text text="{viewModel>ARKTX}" />
+                                                <Text text="{viewModel>KWMENG}" />
+                                                <Text text="{= ${viewModel>__origKWMENG} || ${viewModel>KWMENG} }" />
+                                                <Text text="{viewModel>VRKME}" />
+                                                <Text text="{viewModel>NETPR}" />
+                                                <Text text="{viewModel>WAERK}" />
+                                                <Text text="{viewModel>WERKS}" />
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </CustomListItem>
+            </items>
+        </List>
+    </VBox>
+
+</core:FragmentDefinition>

@@ -1,11 +1,95 @@
 ﻿/* SAP UI5 Customer Portal - Custom Styles */
 
 /* ========================================
+   Video Background
+   ======================================== */
+.portal-bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -2;
+    pointer-events: none;
+}
+
+.portal-bg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(8, 25, 55, 0.52);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.portalHomePage,
+.portalHomePage .sapMPageSection,
+.portalHomePage .sapMPageScroll,
+.portalHomePage .sapUiScrollDelegate,
+.portalHomePage .sapMScrollContScroll {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Full-page sizing so video fills without scroll */
+.portalHomePage,
+.portalHomePage > .sapMPageInner,
+.portalHomePage .sapMPageContent {
+    height: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Shift content to the left */
+.portalHomeContent {
+    padding-left: 5vw !important;
+    padding-right: 5vw !important;
+    max-width: 60vw;
+}
+
+/* Keep logo title/subtitle readable over video */
+.portalLogoText .sapMTitle {
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.portalLogoText .sapMText {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Force tile header/subheader to be dark and readable */
+.portalTile .sapMGTHdrTxt,
+.portalTile .sapMGTHdrPart {
+    color: #1a3a52 !important;
+    text-shadow: none !important;
+}
+
+.portalTile .sapMGTSubHdrTxt {
+    color: #4a6a8a !important;
+    text-shadow: none !important;
+}
+
+.portalTile .sapMGTFtrTxt {
+    color: #0854a0 !important;
+    text-shadow: none !important;
+}
+
+.portalTileAccent .sapMGTFtrTxt {
+    color: #0e8a50 !important;
+    text-shadow: none !important;
+}
+
+
+/* ========================================
    Home Page Tiles
    ======================================== */
 .portalTile {
-    width: 18rem !important;
-    min-height: 11rem !important;
+    width: 26rem !important;
+    min-height: 14rem !important;
     border-radius: 16px !important;
     box-shadow: 0 4px 20px rgba(8, 84, 160, 0.12) !important;
     border: 1.5px solid rgba(8, 84, 160, 0.15) !important;
@@ -26,7 +110,7 @@
 }
 
 .portalTile .sapMGTHdrTxt {
-    font-size: 1.1rem !important;
+    font-size: 1.35rem !important;
     font-weight: 700 !important;
     color: #1a3a52 !important;
     letter-spacing: -0.01em;
@@ -47,7 +131,7 @@
 }
 
 .portalTile .sapMGTImgCnt {
-    font-size: 2.5rem !important;
+    font-size: 3.5rem !important;
     color: #0854a0 !important;
 }
 

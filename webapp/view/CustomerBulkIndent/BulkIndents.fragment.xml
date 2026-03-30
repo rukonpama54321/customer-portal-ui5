@@ -1,0 +1,81 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+
+    <Panel headerText="Bulk Indents">
+        <content>
+            <VBox width="100%">
+                <Button
+                    text="Refresh"
+                    icon="sap-icon://refresh"
+                    press=".onRefreshCreatedOrders"
+                    class="sapUiSmallMarginBottom" />
+
+                <MessageStrip
+                    text="No bulk indents found."
+                    type="Information"
+                    showIcon="true"
+                    visible="{= ${viewModel>/createdOrders}.length === 0 }" />
+
+                <List
+                    items="{
+                        path: 'viewModel>/createdOrders',
+                        sorter: {
+                            path: 'SALESORDER',
+                            descending: false,
+                            group: true
+                        },
+                        groupHeaderFactory: '.createGroupHeader',
+                        templateShareable: true
+                    }"
+                    visible="{= ${viewModel>/createdOrders}.length > 0 }"
+                    class="created-orders-list"
+                    mode="None">
+                    <items>
+                        <CustomListItem class="created-order-item" type="Active" press=".onViewCreatedOrder">
+                            <content>
+                                <VBox width="100%" class="created-order-content">
+                                    <HBox justifyContent="SpaceBetween" alignItems="Start" width="100%">
+                                        <VBox width="70%">
+                                            <Label text="Bulk Indent No." class="info-label" />
+                                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                                <Title text="{viewModel>ORDER_NO}" level="H4" class="customer-order-number" />
+                                                <ObjectStatus
+                                                    text="{= ${viewModel>hasAllocations} ? 'Agents Allocated' : 'Created' }"
+                                                    state="{= ${viewModel>hasAllocations} ? 'Information' : 'Success' }"
+                                                    icon="{= ${viewModel>hasAllocations} ? 'sap-icon://group' : 'sap-icon://accept' }"
+                                                    class="sapUiTinyMarginStart" />
+                                            </HBox>
+                                            <HBox wrap="Wrap" class="order-info-row">
+                                                <VBox class="sapUiSmallMarginEnd">
+                                                    <Label text="Customer Code" class="info-label" />
+                                                    <Text text="{viewModel>KUNNR}" class="info-value" />
+                                                </VBox>
+                                                <VBox class="sapUiSmallMarginEnd">
+                                                    <Label text="Customer Reference" class="info-label" />
+                                                    <Text text="{viewModel>BSTNK}" class="info-value" />
+                                                </VBox>
+                                                <VBox>
+                                                    <Label text="Reference Date" class="info-label" />
+                                                    <Text text="{viewModel>BSTDK}" class="info-value" />
+                                                </VBox>
+                                            </HBox>
+                                        </VBox>
+                                        <VBox alignItems="End">
+                                            <Button
+                                                text="View Details"
+                                                type="Emphasized"
+                                                icon="sap-icon://display"
+                                                press=".onViewCreatedOrder" />
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </content>
+                        </CustomListItem>
+                    </items>
+                </List>
+            </VBox>
+        </content>
+    </Panel>
+
+</core:FragmentDefinition>
