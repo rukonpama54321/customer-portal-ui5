@@ -25,6 +25,8 @@ sap.ui.define([
                 items: [],
                 orderNo: "",
                 thirdPartyAgent: "",
+                delLocation: "",
+                delDate: "",
                 agents: [],
                 transporters: [],
                 agentAllocations: []
@@ -459,7 +461,11 @@ sap.ui.define([
                     }
                     oViewModel.setProperty("/thirdPartyAgent", sPreFill);
                 }
-                
+
+                // Reset DL-specific fields for new order creation
+                oViewModel.setProperty("/delLocation", "");
+                oViewModel.setProperty("/delDate", "");
+
                 oViewModel.setProperty("/header", oSelectedOrder);
                 var aItems = (oSelectedOrder.ToItem && oSelectedOrder.ToItem.results) ? oSelectedOrder.ToItem.results : [];
                 
@@ -506,7 +512,26 @@ sap.ui.define([
                             THIRDPARTY: oFullOrderData.THIRDPARTY
                         };
                         oViewModel.setProperty("/header", oHeader);
-                        
+
+                        // Populate DL delivery fields if applicable
+                        if (oFullOrderData.SHIP_COND === "DL") {
+                            oViewModel.setProperty("/delLocation", oFullOrderData.DelLocation || "");
+                            var oDelDateTime = oFullOrderData.DelDate;
+                            if (oDelDateTime instanceof Date && !isNaN(oDelDateTime.getTime())) {
+                                var iDLY  = oDelDateTime.getFullYear();
+                                var iDLMo = oDelDateTime.getMonth() + 1;
+                                var iDLDy = oDelDateTime.getDate();
+                                var sDLMo = iDLMo < 10 ? "0" + iDLMo : String(iDLMo);
+                                var sDLDy = iDLDy < 10 ? "0" + iDLDy : String(iDLDy);
+                                oViewModel.setProperty("/delDate", iDLY + "-" + sDLMo + "-" + sDLDy);
+                            } else {
+                                oViewModel.setProperty("/delDate", "");
+                            }
+                        } else {
+                            oViewModel.setProperty("/delLocation", "");
+                            oViewModel.setProperty("/delDate", "");
+                        }
+
                         // Map created order items
                         var aCreatedItems = (oFullOrderData.CustOrderHeadertoItem && oFullOrderData.CustOrderHeadertoItem.results) 
                             ? oFullOrderData.CustOrderHeadertoItem.results : [];
@@ -1748,7 +1773,41 @@ sap.ui.define([
                 });
                 return;
             }
-            
+
+            // Validate DL delivery fields
+            if (sShippingMethod === "DL") {
+                var sDelLocation = oViewModel.getProperty("/delLocation") || "";
+                var sDelDate = oViewModel.getProperty("/delDate") || "";
+                if (!sDelLocation.trim()) {
+                    MessageBox.error("Please enter the Delivery Location. This is mandatory for Delivered (DL) shipping method.", {
+                        title: "Validation Error",
+                        onClose: function() {
+                            var oInput = this.byId("delLocationInput");
+                            if (oInput) {
+                                oInput.setValueState("Error");
+                                oInput.setValueStateText("Delivery Location is required for DL shipping");
+                                oInput.focus();
+                            }
+                        }.bind(this)
+                    });
+                    return;
+                }
+                if (!sDelDate) {
+                    MessageBox.error("Please select the Delivery Date. This is mandatory for Delivered (DL) shipping method.", {
+                        title: "Validation Error",
+                        onClose: function() {
+                            var oDatePicker = this.byId("delDatePicker");
+                            if (oDatePicker) {
+                                oDatePicker.setValueState("Error");
+                                oDatePicker.setValueStateText("Delivery Date is required for DL shipping");
+                                oDatePicker.focus();
+                            }
+                        }.bind(this)
+                    });
+                    return;
+                }
+            }
+
             // Clear any previous validation state
             var oCombo = this.byId("thirdPartyAgentCombo");
             if (oCombo) {
@@ -1818,6 +1877,9 @@ sap.ui.define([
             var aItems = oViewModel.getProperty("/items");
             var sOrderNo = oViewModel.getProperty("/orderNo") || "";
             var sThirdPartyAgent = oViewModel.getProperty("/thirdPartyAgent");
+            var sDelLocationVal = oViewModel.getProperty("/delLocation") || "";
+            var sDelDateStr = oViewModel.getProperty("/delDate") || "";
+            var oDelDateVal = sDelDateStr ? new Date(sDelDateStr) : null;
             var fnVal = function (v) {
                 return v === undefined || v === null ? "" : v;
             };
@@ -1849,6 +1911,7 @@ sap.ui.define([
             // Build deep entity with only metadata fields
             var oDeepEntity = {
                 ORDER_NO: fnVal(oHeader.ORDER_NO || sOrderNo),
+                Crdate: new Date(),
                 KUNNR: fnVal(oHeader.KUNNR),
                 KUNNR_DESC: fnVal(oHeader.BSTNK),
                 SALESORDER: fnVal(oHeader.VBELN || oHeader.SALESORDER),
@@ -1857,7 +1920,9 @@ sap.ui.define([
                 WAERK: fnVal(oHeader.WAERK),
                 BSTNK: fnVal(oHeader.BSTNK),
                 BSTDK: fnVal(oHeader.BSTDK),
-                THIRDPARTY: sThirdPartyBackendValue
+                THIRDPARTY: sThirdPartyBackendValue,
+                DelLocation: sDelLocationVal,
+                DelDate: oDelDateVal
             };
 
             oDeepEntity[sNavProp] = {

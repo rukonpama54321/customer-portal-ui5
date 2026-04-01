@@ -110,6 +110,30 @@
                 </ComboBox>
             </VBox>
 
+            <!-- DL Delivery Fields -->
+            <VBox class="detail-group" visible="{= ${manageModel>/header/VSBED} === 'DL' }">
+                <VBox class="detail-field sapUiSmallMarginBottom">
+                    <Label text="Delivery Location" class="detail-label required-label" />
+                    <Input
+                        id="delLocationInput"
+                        value="{manageModel>/delLocation}"
+                        placeholder="Enter delivery location"
+                        width="100%"
+                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }" />
+                </VBox>
+                <VBox class="detail-field">
+                    <Label text="Delivery Date" class="detail-label required-label" />
+                    <DatePicker
+                        id="delDatePicker"
+                        value="{manageModel>/delDate}"
+                        valueFormat="yyyy-MM-dd"
+                        displayFormat="dd/MM/yyyy"
+                        placeholder="Select delivery date"
+                        width="100%"
+                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }" />
+                </VBox>
+            </VBox>
+
             <!-- Create Order Action -->
             <VBox class="detail-group" alignItems="End" visible="{= !${manageModel>/orderCreated} }">
                 <Button

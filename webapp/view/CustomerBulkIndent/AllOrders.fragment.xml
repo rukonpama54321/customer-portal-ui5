@@ -96,6 +96,12 @@
                                     <Text text="{= 'Customer Ref Date: ' + (${viewModel>BSTDK} || '-') }" class="sapUiTinyMarginTop" />
                                     <Text text="{= 'Customer Code: ' + (${viewModel>KUNNR} || '-') }" class="sapUiTinyMarginTop" />
                                     <ObjectStatus text="{path: 'viewModel>VSBED', formatter: '.formatShipping'}" state="Information" class="sapUiTinyMarginTop" />
+                                    <Label text="Total Amount" class="detail-label sapUiTinyMarginTop" />
+                                    <ObjectNumber
+                                        number="{viewModel>NETWR}"
+                                        unit="{viewModel>WAERK}"
+                                        emphasized="false"
+                                        class="order-net-value-small" />
                                 </VBox>
                                 <VBox alignItems="End">
                                     <ObjectStatus
@@ -104,12 +110,6 @@
                                         icon="sap-icon://complete"
                                         visible="{viewModel>__isAssigned}"
                                         class="sapUiTinyMarginBottom assigned-order-badge" />
-                                    <ObjectNumber
-                                        number="{viewModel>NETWR}"
-                                        unit="{viewModel>WAERK}"
-                                        emphasized="true"
-                                        class="order-net-value" />
-                                    <Text text="Net Value" class="sapUiTinyMarginTop order-label" />
                                 </VBox>
                             </HBox>
 
