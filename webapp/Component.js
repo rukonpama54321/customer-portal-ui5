@@ -30,6 +30,13 @@ sap.ui.define([
 
         onRouteMatched: function (oEvent) {
             var sRouteName = oEvent.getParameter("name");
+
+            // Session guard: redirect unauthenticated users to the login page
+            if (sRouteName !== "RouteLogin" && sessionStorage.getItem("portal_isLoggedIn") !== "true") {
+                this.getRouter().navTo("RouteLogin", {}, true);
+                return;
+            }
+
             var sTitle = "Customer Indent App";
 
             switch (sRouteName) {

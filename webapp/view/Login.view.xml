@@ -1,0 +1,74 @@
+<mvc:View
+    controllerName="customerindent.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+    <Page showHeader="false" class="loginPage" enableScrolling="false">
+        <content>
+            <core:HTML content="&lt;video autoplay muted loop playsinline class=&quot;portal-bg-video&quot;&gt;&lt;source src=&quot;img/Untitled%20design.mp4&quot; type=&quot;video/mp4&quot;&gt;&lt;/video&gt;&lt;div class=&quot;portal-bg-overlay&quot;&gt;&lt;/div&gt;" />
+            <VBox
+                height="100%"
+                justifyContent="Center"
+                alignItems="Center"
+                class="loginPageContent">
+
+                <VBox class="loginCard" alignItems="Center">
+
+                    <!-- Branded header banner -->
+                    <VBox width="100%" alignItems="Center" class="loginBanner">
+                        <Image src="img/logo.png" alt="NRL Logo" height="5.5rem" class="loginBannerLogo" />
+                    </VBox>
+
+                    <!-- Title block -->
+                    <VBox alignItems="Center" class="loginTitleBlock sapUiMediumMarginBottom">
+                        <Title text="Customer Indent Portal" level="H2" class="loginTitle" />
+                        <Text text="Sign in to your account" class="loginSubtitle" />
+                    </VBox>
+
+                    <!-- Username -->
+                    <VBox width="100%" class="sapUiSmallMarginBottom loginFormArea">
+                        <Label text="Username" class="loginLabel" />
+                        <Input
+                            id="usernameInput"
+                            placeholder="Enter your SAP username"
+                            width="100%"
+                            class="loginInput sapUiTinyMarginTop"
+                            submit=".onLoginPress" />
+                    </VBox>
+
+                    <!-- Password -->
+                    <VBox width="100%" class="sapUiMediumMarginBottom loginFormArea">
+                        <Label text="Password" class="loginLabel" />
+                        <Input
+                            id="passwordInput"
+                            type="Password"
+                            placeholder="Enter your password"
+                            width="100%"
+                            class="loginInput sapUiTinyMarginTop"
+                            submit=".onLoginPress" />
+                    </VBox>
+
+                    <!-- Sign In Button -->
+                    <VBox width="100%" class="loginFormArea">
+                    <Button
+                        id="loginButton"
+                        text="Sign In"
+                        type="Emphasized"
+                        width="100%"
+                        class="loginButton"
+                        press=".onLoginPress" />
+
+                    <!-- Error strip -->
+                    <MessageStrip
+                        id="loginError"
+                        text=""
+                        type="Error"
+                        showIcon="true"
+                        visible="false"
+                        class="sapUiSmallMarginTop loginErrorStrip" />
+                    </VBox>
+
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

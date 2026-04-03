@@ -1,6 +1,137 @@
 ﻿/* SAP UI5 Customer Portal - Custom Styles */
 
 /* ========================================
+   Login Page
+   ======================================== */
+.loginPage,
+.loginPage .sapMPageSection,
+.loginPage .sapMPageScroll,
+.loginPage .sapUiScrollDelegate,
+.loginPage .sapMScrollContScroll {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.loginPage,
+.loginPage > .sapMPageInner,
+.loginPage .sapMPageContent {
+    height: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.loginPageContent {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 1rem;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+.loginCard {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 0 0 2rem 0;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(8, 25, 55, 0.4), 0 4px 16px rgba(8, 25, 55, 0.2);
+    overflow: hidden;
+}
+
+/* Branded top banner */
+.loginBanner {
+    background: linear-gradient(145deg, #05224a 0%, #0854a0 60%, #0a6abf 100%);
+    width: 100% !important;
+    padding: 2rem 1rem 1.8rem 1rem;
+    border-radius: 20px 20px 0 0;
+    box-sizing: border-box;
+}
+
+.loginBannerLogo {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
+/* Title block below banner */
+.loginTitleBlock {
+    padding: 1.4rem 2.2rem 0 2.2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.loginTitle.sapMTitle {
+    color: #1a3a52 !important;
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+
+.loginSubtitle.sapMText {
+    color: #6a8aaa !important;
+    font-size: 0.88rem !important;
+    text-align: center;
+    margin-top: 0.2rem;
+}
+
+.loginLabel.sapMLabel {
+    color: #3a5a7a !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* Horizontal padding for form fields */
+.loginFormArea {
+    padding-left: 2.2rem !important;
+    padding-right: 2.2rem !important;
+    box-sizing: border-box;
+}
+
+.loginInput.sapMInputBase {
+    border-radius: 10px !important;
+    border: 1.5px solid rgba(8, 84, 160, 0.22) !important;
+    background: #f7f9fc !important;
+}
+
+.loginInput.sapMInputBase:focus-within {
+    border-color: #0854a0 !important;
+    box-shadow: 0 0 0 3px rgba(8, 84, 160, 0.12) !important;
+}
+
+.loginButton.sapMBtn {
+    border-radius: 10px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    height: 2.8rem !important;
+    background: linear-gradient(135deg, #0854a0 0%, #0a6abf 100%) !important;
+    box-shadow: 0 4px 14px rgba(8, 84, 160, 0.35) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.loginButton.sapMBtn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(8, 84, 160, 0.45) !important;
+}
+
+.loginButton.sapMBtn:active {
+    transform: translateY(0) !important;
+}
+
+.loginErrorStrip {
+    width: 100% !important;
+    border-radius: 10px !important;
+}
+
+/* ========================================
    Video Background
    ======================================== */
 .portal-bg-video {
@@ -59,6 +190,41 @@
 .portalLogoText .sapMText {
     color: rgba(255, 255, 255, 0.9) !important;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Top bar sign-out area */
+.portalTopBar {
+    width: 100% !important;
+}
+
+.portalSignOutArea {
+    padding-top: 0.4rem;
+}
+
+.portalUserLabel.sapMText {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.78rem !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 0.25rem;
+}
+
+.portalSignOutBtn.sapMBtn {
+    color: #ffffff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.55) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease, border-color 0.2s ease !important;
+}
+
+.portalSignOutBtn.sapMBtn:hover {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.portalSignOutBtn .sapMBtnIcon,
+.portalSignOutBtn .sapMBtnContent {
+    color: #ffffff !important;
 }
 
 /* Force tile header/subheader to be dark and readable */
