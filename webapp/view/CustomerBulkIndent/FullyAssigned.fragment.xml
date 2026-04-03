@@ -72,7 +72,7 @@
                             <VBox visible="{viewModel>__expanded}" class="sapUiSmallMarginTop items-section-animated">
                                 <Title text="Items" level="H4" class="sapUiSmallMarginBottom" />
                                 <Table
-                                    items="{viewModel>ToItem/results}"
+                                    items="{path: 'viewModel>ToItem/results', templateShareable: false}"
                                     inset="false"
                                     class="order-items-table">
                                     <columns>

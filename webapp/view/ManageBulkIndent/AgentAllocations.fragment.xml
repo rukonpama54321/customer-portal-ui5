@@ -129,7 +129,6 @@
                                                         <Column hAlign="End" width="7rem"><Text text="Order Qty" /></Column>
                                                         <Column hAlign="End" width="8rem"><Text text="Allocate Qty" /></Column>
                                                         <Column width="4rem"><Text text="UoM" /></Column>
-                                                        <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Delivery Location" /></Column>
                                                     </columns>
                                                     <items>
                                                         <ColumnListItem>
@@ -149,11 +148,6 @@
                                                                     change=".onAgentItemQtyChange"
                                                                     tooltip="Enter quantity to allocate to this agent (cannot exceed available quantity)" />
                                                                 <Text text="{manageModel>VRKME}" />
-                                                                <Input
-                                                                    value="{manageModel>DELIVERY_LOC}"
-                                                                    placeholder="Delivery address"
-                                                                    width="100%"
-                                                                    editable="{= !${manageModel>_readonly} &amp;&amp; ${manageModel>availableQty} > 0 }" />
                                                             </cells>
                                                         </ColumnListItem>
                                                     </items>

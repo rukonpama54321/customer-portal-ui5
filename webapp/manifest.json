@@ -85,18 +85,6 @@
           "en"
         ],
         "fallbackLocale": "en"
-      },
-      "": {
-        "dataSource": "mainService",
-        "preload": true,
-        "settings": {
-          "defaultBindingMode": "TwoWay",
-          "useBatch": true,
-          "refreshAfterChange": false,
-          "headers": {
-            "sap-client": "300"
-          }
-        }
       }
     },
     "resources": {

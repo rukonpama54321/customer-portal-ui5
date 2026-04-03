@@ -198,33 +198,47 @@
 }
 
 .portalSignOutArea {
-    padding-top: 0.4rem;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+    background: rgba(8, 25, 55, 0.65);
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    padding: 0.6rem 1.2rem;
+    min-width: 140px;
+    align-items: flex-end;
 }
 
 .portalUserLabel.sapMText {
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-size: 0.78rem !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    margin-bottom: 0.25rem;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
 }
 
 .portalSignOutBtn.sapMBtn {
     color: #ffffff !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.55) !important;
+    border: 2px solid rgba(255, 255, 255, 0.8) !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.18) !important;
     backdrop-filter: blur(4px);
+    font-weight: 600 !important;
     transition: background 0.2s ease, border-color 0.2s ease !important;
 }
 
 .portalSignOutBtn.sapMBtn:hover {
-    background: rgba(255, 255, 255, 0.22) !important;
-    border-color: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.32) !important;
+    border-color: #ffffff !important;
 }
 
 .portalSignOutBtn .sapMBtnIcon,
 .portalSignOutBtn .sapMBtnContent {
     color: #ffffff !important;
+    font-size: 0.95rem !important;
 }
 
 /* Force tile header/subheader to be dark and readable */
@@ -2902,17 +2916,17 @@
 }
 
 .sales-order-amount .sapMObjectNumber {
-    font-size: 1.75rem !important;
+    font-size: 1.1rem !important;
 }
 
 .sales-order-amount .sapMObjectNumberText {
-    font-size: 1.75rem !important;
+    font-size: 1.1rem !important;
     font-weight: 700 !important;
     color: #059669 !important;
 }
 
 .sales-order-amount .sapMObjectNumberUnit {
-    font-size: 1.25rem !important;
+    font-size: 0.9rem !important;
     font-weight: 600 !important;
     color: #059669 !important;
 }

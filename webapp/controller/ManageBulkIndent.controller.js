@@ -27,6 +27,7 @@ sap.ui.define([
                 thirdPartyAgent: "",
                 delLocation: "",
                 delDate: "",
+                delFieldsLocked: false,
                 agents: [],
                 transporters: [],
                 agentAllocations: []
@@ -159,7 +160,6 @@ sap.ui.define([
                 var fUsedQty = parseFloat(oItem.actualAllocatedQty || oItem.USEDQTY) || 0;
                 return Object.assign({}, oItem, {
                     QUANTITY: "",
-                    DELIVERY_LOC: "",
                     totalAllocatedQty: 0,  // Current order's agent allocations
                     previouslyUsedQty: fUsedQty  // Already used in other orders
                 });
@@ -337,7 +337,6 @@ sap.ui.define([
                             // Return order item with allocation data if exists
                             return Object.assign({}, oOrderItem, {
                                 agentQuantity: oAllocItem ? oAllocItem.QUANTITY : "",
-                                DELIVERY_LOC: oAllocItem ? oAllocItem.DELIVERY_LOC : "",
                                 _readonly: bIsReadonly
                             });
                         });
@@ -462,9 +461,26 @@ sap.ui.define([
                     oViewModel.setProperty("/thirdPartyAgent", sPreFill);
                 }
 
-                // Reset DL-specific fields for new order creation
-                oViewModel.setProperty("/delLocation", "");
-                oViewModel.setProperty("/delDate", "");
+                // Pre-populate delivery fields from the sales order header for both
+                // DL and CL shipping conditions. Values come from SAP and are read-only.
+                if (sShippingCondition === "DL" || sShippingCondition === "CL") {
+                    oViewModel.setProperty("/delLocation", oSelectedOrder.DELIVLOC || "");
+                    // DELIVDATE arrives as YYYYMMDD string; DatePicker needs YYYY-MM-DD
+                    var sRawDate = oSelectedOrder.DELIVDATE || "";
+                    if (sRawDate.length === 8) {
+                        oViewModel.setProperty("/delDate",
+                            sRawDate.substring(0, 4) + "-" +
+                            sRawDate.substring(4, 6) + "-" +
+                            sRawDate.substring(6, 8));
+                    } else {
+                        oViewModel.setProperty("/delDate", "");
+                    }
+                    oViewModel.setProperty("/delFieldsLocked", true);
+                } else {
+                    oViewModel.setProperty("/delLocation", "");
+                    oViewModel.setProperty("/delDate", "");
+                    oViewModel.setProperty("/delFieldsLocked", false);
+                }
 
                 oViewModel.setProperty("/header", oSelectedOrder);
                 var aItems = (oSelectedOrder.ToItem && oSelectedOrder.ToItem.results) ? oSelectedOrder.ToItem.results : [];
@@ -987,7 +1003,6 @@ sap.ui.define([
                     }
                     return Object.assign({}, oItem, {
                         agentQuantity: "",
-                        DELIVERY_LOC: "",
                         _readonly: false,    // New allocation items are editable
                         availableQty: fAvailableQty
                     });
@@ -1438,8 +1453,7 @@ sap.ui.define([
                                 POSNR: fnVal(oItem.POSNR, ""),
                                 MATERIAL: fnVal(oItem.MATNR, ""),
                                 QUANTITY: isNaN(fQty) ? "0" : String(fQty),
-                                UOM: fnVal(oItem.VRKME, ""),
-                                DELIVERY_LOC: fnVal(oItem.DELIVERY_LOC, "")
+                                UOM: fnVal(oItem.VRKME, "")
                             };
                         })
                 }
@@ -1879,9 +1893,19 @@ sap.ui.define([
             var sThirdPartyAgent = oViewModel.getProperty("/thirdPartyAgent");
             var sDelLocationVal = oViewModel.getProperty("/delLocation") || "";
             var sDelDateStr = oViewModel.getProperty("/delDate") || "";
-            var oDelDateVal = sDelDateStr ? new Date(sDelDateStr) : null;
+            // SAP Edm.DateTime cannot accept JSON null — use epoch (0) as the "no date" sentinel
+            // when no delivery date is applicable (e.g. CL orders).
+            var oDelDateVal = sDelDateStr ? new Date(sDelDateStr) : new Date(0);
             var fnVal = function (v) {
                 return v === undefined || v === null ? "" : v;
+            };
+            var fnFormatAbapDate = function (s) {
+                // ABAP DATS fields sent as Edm.String must be in YYYY-MM-DD format.
+                // The SAP header stores them as YYYYMMDD — convert before posting.
+                if (s && s.length === 8 && s.indexOf("-") === -1) {
+                    return s.substring(0, 4) + "-" + s.substring(4, 6) + "-" + s.substring(6, 8);
+                }
+                return fnVal(s);
             };
             var sNavProp = "CustOrderHeadertoItem";
             var fnNormalizeThirdParty = function (v) {
@@ -1919,7 +1943,7 @@ sap.ui.define([
                 NETWR: fnVal(oHeader.NETWR),
                 WAERK: fnVal(oHeader.WAERK),
                 BSTNK: fnVal(oHeader.BSTNK),
-                BSTDK: fnVal(oHeader.BSTDK),
+                BSTDK: fnFormatAbapDate(oHeader.BSTDK),
                 THIRDPARTY: sThirdPartyBackendValue,
                 DelLocation: sDelLocationVal,
                 DelDate: oDelDateVal
@@ -1973,8 +1997,7 @@ sap.ui.define([
                         AGENT_ID: oAllocation.AGENT_ID,
                         MATERIAL: oItem.MATNR,
                         QUANTITY: isNaN(fQty) ? "" : String(fQty),
-                        UOM: oItem.VRKME,
-                        DELIVERY_LOC: oItem.DELIVERY_LOC
+                        UOM: oItem.VRKME
                     };
                 });
 
@@ -2091,7 +2114,13 @@ sap.ui.define([
                         title: "Session Expired",
                         actions: [MessageBox.Action.OK],
                         onClose: function () {
-                            window.location.reload();
+                            sessionStorage.removeItem("portal_isLoggedIn");
+                            sessionStorage.removeItem("portal_username");
+                            sessionStorage.removeItem("portal_token");
+                            // Full reload clears SAPUI5 model state (CSRF token, auth headers).
+                            // Component.js will find no portal_isLoggedIn and route guard
+                            // will redirect the user to the login screen.
+                            window.location.href = window.location.origin + window.location.pathname;
                         }
                     }
                 );

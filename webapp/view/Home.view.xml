@@ -12,22 +12,22 @@
                 alignItems="Start"
                 class="sapUiSmallMarginTop portalHomeContent">
 
-                <HBox width="100%" justifyContent="SpaceBetween" alignItems="Start" class="sapUiMediumMarginBottom portalTopBar">
-                    <HBox alignItems="Center">
-                        <Image src="img/logo.png" alt="Logo" height="5rem" class="sapUiSmallMarginEnd" />
-                        <VBox class="portalLogoText">
-                            <Title text="Customer Indent Portal" level="H1" />
-                            <Text text="Select an application to continue" />
-                        </VBox>
-                    </HBox>
-                    <VBox justifyContent="Center" alignItems="End" class="portalSignOutArea">
-                        <Text id="loggedInUser" text="" class="portalUserLabel" />
-                        <Button
-                            text="Sign Out"
-                            icon="sap-icon://log"
-                            type="Transparent"
-                            class="portalSignOutBtn"
-                            press=".onSignOut" />
+                <!-- Fixed top-right sign-out badge -->
+                <VBox justifyContent="Center" alignItems="End" class="portalSignOutArea">
+                    <Text id="loggedInUser" text="" class="portalUserLabel" />
+                    <Button
+                        text="Sign Out"
+                        icon="sap-icon://log"
+                        type="Transparent"
+                        class="portalSignOutBtn"
+                        press=".onSignOut" />
+                </VBox>
+
+                <HBox width="100%" alignItems="Center" class="sapUiMediumMarginBottom portalTopBar">
+                    <Image src="img/logo.png" alt="Logo" height="5rem" class="sapUiSmallMarginEnd" />
+                    <VBox class="portalLogoText">
+                        <Title text="Customer Indent Portal" level="H1" />
+                        <Text text="Select an application to continue" />
                     </VBox>
                 </HBox>
 

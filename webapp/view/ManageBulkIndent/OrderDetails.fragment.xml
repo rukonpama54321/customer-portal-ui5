@@ -24,7 +24,9 @@
             <VBox class="detail-group sales-order-highlight sapUiSmallMarginBottom">
                 <Label text="Sales Document(SAP):" class="detail-label sapUiTinyMarginBottom" />
                 <HBox alignItems="Baseline" justifyContent="SpaceBetween" wrap="Wrap">
-                    <Title text="{manageModel>/header/VBELN}" level="H1" class="sales-order-number" />
+                    <VBox>
+                        <Title text="{= parseInt(${manageModel>/header/VBELN}, 10) + '' }" level="H1" class="sales-order-number" />
+                    </VBox>
                     <VBox alignItems="End">
                         <Label text="Order Amount" class="detail-label sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -110,8 +112,8 @@
                 </ComboBox>
             </VBox>
 
-            <!-- DL Delivery Fields -->
-            <VBox class="detail-group" visible="{= ${manageModel>/header/VSBED} === 'DL' }">
+            <!-- Delivery Fields (DL and CL orders) -->
+            <VBox class="detail-group" visible="{= ${manageModel>/header/VSBED} === 'DL' || ${manageModel>/header/VSBED} === 'CL' }">
                 <VBox class="detail-field sapUiSmallMarginBottom">
                     <Label text="Delivery Location" class="detail-label required-label" />
                     <Input
@@ -119,7 +121,7 @@
                         value="{manageModel>/delLocation}"
                         placeholder="Enter delivery location"
                         width="100%"
-                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }" />
+                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} &amp;&amp; !${manageModel>/delFieldsLocked} }" />
                 </VBox>
                 <VBox class="detail-field">
                     <Label text="Delivery Date" class="detail-label required-label" />
@@ -130,7 +132,7 @@
                         displayFormat="dd/MM/yyyy"
                         placeholder="Select delivery date"
                         width="100%"
-                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} }" />
+                        enabled="{= !${manageModel>/viewMode} &amp;&amp; !${manageModel>/orderCreated} &amp;&amp; !${manageModel>/delFieldsLocked} }" />
                 </VBox>
             </VBox>
 

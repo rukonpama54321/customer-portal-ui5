@@ -62,11 +62,19 @@
                         </ComboBox>
                     </VBox>
                     <VBox class="sapUiSmallMarginEnd">
-                        <Label text=" " />
-                        <CheckBox
-                            text="Show Assigned Orders"
-                            selected="{viewModel>/showAssignedOrders}"
-                            select=".onToggleAssignedFilter" />
+                        <Label text="Assignment Status" />
+                        <ComboBox
+                            selectedKey="{viewModel>/filterAssignmentStatus}"
+                            placeholder="All"
+                            width="15rem"
+                            selectionChange=".onAssignmentStatusFilter">
+                            <items>
+                                <core:Item key="" text="All" />
+                                <core:Item key="unassigned" text="Unassigned" />
+                                <core:Item key="partial" text="Partially Assigned" />
+                                <core:Item key="assigned" text="Fully Assigned" />
+                            </items>
+                        </ComboBox>
                     </VBox>
                 </HBox>
             </VBox>
@@ -95,6 +103,8 @@
                                     <Text text="{= 'Customer Ref: ' + (${viewModel>BSTNK} || '-') }" class="sapUiTinyMarginTop" />
                                     <Text text="{= 'Customer Ref Date: ' + (${viewModel>BSTDK} || '-') }" class="sapUiTinyMarginTop" />
                                     <Text text="{= 'Customer Code: ' + (${viewModel>KUNNR} || '-') }" class="sapUiTinyMarginTop" />
+                                    <Text text="{= 'Delivery Location: ' + (${viewModel>DELIVLOC} || '-') }" class="sapUiTinyMarginTop" />
+                                    <Text text="{= 'Delivery Date: ' + (${viewModel>DELIVDATE} ? ${viewModel>DELIVDATE}.substring(6,8) + '.' + ${viewModel>DELIVDATE}.substring(4,6) + '.' + ${viewModel>DELIVDATE}.substring(0,4) : '-') }" class="sapUiTinyMarginTop" />
                                     <ObjectStatus text="{path: 'viewModel>VSBED', formatter: '.formatShipping'}" state="Information" class="sapUiTinyMarginTop" />
                                     <Label text="Total Amount" class="detail-label sapUiTinyMarginTop" />
                                     <ObjectNumber
@@ -110,20 +120,32 @@
                                         icon="sap-icon://complete"
                                         visible="{viewModel>__isAssigned}"
                                         class="sapUiTinyMarginBottom assigned-order-badge" />
+                                    <ObjectStatus
+                                        text="Partially Assigned"
+                                        state="Warning"
+                                        icon="sap-icon://status-in-process"
+                                        visible="{viewModel>__isPartiallyAssigned}"
+                                        class="sapUiTinyMarginBottom" />
+                                    <ObjectStatus
+                                        text="Unassigned"
+                                        state="None"
+                                        icon="sap-icon://pending"
+                                        visible="{= !${viewModel>__isAssigned} &amp;&amp; !${viewModel>__isPartiallyAssigned} }"
+                                        class="sapUiTinyMarginBottom" />
                                 </VBox>
                             </HBox>
 
                             <VBox visible="{viewModel>__expanded}" class="sapUiSmallMarginTop items-section-animated">
                                 <Title text="Items" level="H4" class="sapUiSmallMarginBottom" />
                                 <Table
-                                    items="{viewModel>ToItem/results}"
+                                    items="{path: 'viewModel>ToItem/results', templateShareable: false}"
                                     inset="false"
                                     class="order-items-table">
                                     <columns>
                                         <Column width="6rem"><Text text="ITEM" /></Column>
                                         <Column width="10rem"><Text text="MATERIAL" /></Column>
                                         <Column minScreenWidth="Tablet" demandPopin="true"><Text text="DESCRIPTION" /></Column>
-                                        <Column hAlign="End" width="9rem"><Text text="QTY (UNASSIGNED)" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="QTY" /></Column>
                                         <Column width="5rem"><Text text="UOM" /></Column>
                                         <Column hAlign="End" width="9rem"><Text text="NET PRICE" /></Column>
                                         <Column width="5rem"><Text text="CURR" /></Column>
@@ -135,7 +157,7 @@
                                                 <Text text="{viewModel>POSNR}" />
                                                 <Text text="{viewModel>MATNR}" />
                                                 <Text text="{viewModel>ARKTX}" />
-                                                <Text text="{viewModel>KWMENG}" />
+                                                <Text text="{= ${viewModel>__showZeroQty} ? '0' : ${viewModel>KWMENG} }" />
                                                 <Text text="{viewModel>VRKME}" />
                                                 <Text text="{viewModel>NETPR}" />
                                                 <Text text="{viewModel>WAERK}" />

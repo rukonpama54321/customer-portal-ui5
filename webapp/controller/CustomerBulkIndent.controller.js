@@ -21,7 +21,7 @@ sap.ui.define([
                 headers: [],
                 allHeaders: null,
                 showEmptyMessage: false,
-                showAssignedOrders: true,
+                filterAssignmentStatus: "",
                 filterShippingCondition: "",
                 createdOrders: [],
                 selectedOrdersSubTab: "allOrders"
@@ -54,9 +54,13 @@ sap.ui.define([
                 }
             }
 
-            // Always refresh assignment flags on return so partial/fully assigned
-            // lists reflect any orders created or updated since the last search.
-            this._refreshSalesOrderFlags();
+            // Re-run the search to get fresh SALESORDERHeaderSet data (updated KWMENG)
+            // and fresh CustomerOrderSet flags whenever the user returns to this view.
+            var oViewModel = this.getView().getModel("viewModel");
+            var aAllHeaders = oViewModel.getProperty("/allHeaders");
+            if (aAllHeaders && aAllHeaders.length > 0) {
+                this.onSearch();
+            }
         },
 
         onSearch: function () {
@@ -125,83 +129,72 @@ sap.ui.define([
                         success: function (oCustData) {
                             var aCustOrders = (oCustData && oCustData.results) ? oCustData.results : [];
 
-                            // Build a Set of SALESORDER values that have at least one customer order
-                            // where 3rd Party Agent is YES — exclude NO and N/A orders from Partially Assigned
+                            // Normalize a sales doc number to plain integer string for comparison
+                            // (SAP returns "0000224200" from SALESORDERHeaderSet but "224200" from CustomerOrderSet)
+                            var fnNorm = function (s) { return s ? String(parseInt(s, 10)) : ""; };
+
+                            // Build a Set of normalized SALESORDER values that have at least one customer order
                             var oSalesOrdersWithOrders = {};
-                            // Also track sales orders with NO/N/A customer orders — treat as fully assigned
+                            // Track sales orders where bulk indent was created with NO/N/A third party agent
                             var oSalesOrdersNoThirdParty = {};
                             // Track the raw THIRDPARTY value from the latest customer order per SALESORDER
                             var oSalesOrderThirdPartyRaw = {};
-                            // Build a lookup: SALESORDER → { MATNR: original KWMENG }
-                            // CustomerOrderItem.KWMENG holds the original ordered qty
+                            // Build a lookup: normSALESORDER → { MATNR: original KWMENG }
                             var oOrigQtyLookup = {};
                             aCustOrders.forEach(function (oCust) {
                                 if (oCust.SALESORDER) {
+                                    var sKey = fnNorm(oCust.SALESORDER);
                                     var sThirdParty = oCust.THIRDPARTY || "";
-                                    var bIsYes = (sThirdParty === "1" || sThirdParty === "Y" || sThirdParty === "YES");
                                     var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
                                                      sThirdParty === "3" || sThirdParty === "N/A");
-                                    if (bIsYes) {
-                                        oSalesOrdersWithOrders[oCust.SALESORDER] = true;
-                                    }
+                                    oSalesOrdersWithOrders[sKey] = true;
                                     if (bIsNoOrNA) {
-                                        oSalesOrdersNoThirdParty[oCust.SALESORDER] = true;
+                                        oSalesOrdersNoThirdParty[sKey] = true;
                                     }
-                                    // Store raw value (first one found; all orders for a SALESORDER share same value)
-                                    if (!oSalesOrderThirdPartyRaw[oCust.SALESORDER] && sThirdParty) {
-                                        oSalesOrderThirdPartyRaw[oCust.SALESORDER] = sThirdParty;
+                                    if (!oSalesOrderThirdPartyRaw[sKey] && sThirdParty) {
+                                        oSalesOrderThirdPartyRaw[sKey] = sThirdParty;
                                     }
-                                    // Build original qty lookup from CustomerOrderItem
                                     var aItems = (oCust.CustOrderHeadertoItem && oCust.CustOrderHeadertoItem.results) || [];
-                                    if (!oOrigQtyLookup[oCust.SALESORDER]) {
-                                        oOrigQtyLookup[oCust.SALESORDER] = {};
+                                    if (!oOrigQtyLookup[sKey]) {
+                                        oOrigQtyLookup[sKey] = {};
                                     }
                                     aItems.forEach(function (oItem) {
                                         var sMATNR = oItem.MATNR || "";
-                                        if (sMATNR && !oOrigQtyLookup[oCust.SALESORDER][sMATNR]) {
-                                            oOrigQtyLookup[oCust.SALESORDER][sMATNR] = oItem.KWMENG || "";
+                                        if (sMATNR && !oOrigQtyLookup[sKey][sMATNR]) {
+                                            oOrigQtyLookup[sKey][sMATNR] = oItem.KWMENG || "";
                                         }
                                     });
                                 }
                             });
 
-                            // Mark __isPartiallyAssigned: has a customer order (YES agent) AND not fully assigned
-                            // For NO/N/A orders: zero out all item quantities and mark as fully assigned
+                            // Mark __isAssigned / __isPartiallyAssigned:
+                            // - DL orders: fully assigned as soon as any bulk indent exists
+                            // - NO/N/A third-party orders: fully assigned as soon as bulk indent exists
+                            // - Other orders: fully assigned only when all SAP item quantities reach 0
                             var aFinal = aWithFlags.map(function (oHeader) {
-                                var bHasOrders = !!oSalesOrdersWithOrders[oHeader.VBELN];
-                                var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[oHeader.VBELN];
-                                var oQtyMap = oOrigQtyLookup[oHeader.VBELN] || {};
+                                var sKey = fnNorm(oHeader.VBELN);
+                                var bHasOrders = !!oSalesOrdersWithOrders[sKey];
+                                var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[sKey];
+                                var oQtyMap = oOrigQtyLookup[sKey] || {};
+                                var sThirdPartyRaw = oSalesOrderThirdPartyRaw[sKey] || "";
 
-                                var sThirdPartyRaw = oSalesOrderThirdPartyRaw[oHeader.VBELN] || "";
+                                var bIsDL = oHeader.VSBED === "DL";
+                                var bIsFullyAssigned = oHeader.__isAssigned || (bHasOrders && (bIsDL || bIsNoThirdParty));
+                                var bShowZeroQty = bHasOrders && (bIsDL || bIsNoThirdParty);
 
-                                if (bIsNoThirdParty) {
-                                    // Zero out remaining quantities for all items, but preserve the original for display
-                                    var oUpdatedHeader = Object.assign({}, oHeader);
-                                    if (oUpdatedHeader.ToItem && oUpdatedHeader.ToItem.results) {
-                                        oUpdatedHeader.ToItem = {
-                                            results: oUpdatedHeader.ToItem.results.map(function (oItem) {
-                                                var sOrig = oQtyMap[oItem.MATNR] || oItem.KWMENG;
-                                                return Object.assign({}, oItem, { __origKWMENG: sOrig, KWMENG: "0" });
-                                            })
-                                        };
-                                    }
-                                    oUpdatedHeader.__isAssigned = true;
-                                    oUpdatedHeader.__isPartiallyAssigned = false;
-                                    oUpdatedHeader.__thirdPartyRaw = sThirdPartyRaw;
-                                    return oUpdatedHeader;
-                                }
-
-                                // For agent-fully-assigned orders, stamp __origKWMENG from CustomerOrderItem
                                 var oFinalHeader = Object.assign({}, oHeader, {
-                                    __isPartiallyAssigned: bHasOrders && !oHeader.__isAssigned,
+                                    __isAssigned: bIsFullyAssigned,
+                                    __isPartiallyAssigned: bHasOrders && !bIsFullyAssigned,
                                     __thirdPartyRaw: sThirdPartyRaw
                                 });
-                                if (oFinalHeader.__isAssigned && Object.keys(oQtyMap).length > 0 &&
-                                    oFinalHeader.ToItem && oFinalHeader.ToItem.results) {
+                                if (oFinalHeader.ToItem && oFinalHeader.ToItem.results) {
                                     oFinalHeader.ToItem = {
                                         results: oFinalHeader.ToItem.results.map(function (oItem) {
-                                            var sOrig = oQtyMap[oItem.MATNR] || oItem.KWMENG;
-                                            return Object.assign({}, oItem, { __origKWMENG: sOrig });
+                                            var sOrig = (bHasOrders && oQtyMap[oItem.MATNR]) ? oQtyMap[oItem.MATNR] : oItem.KWMENG;
+                                            return Object.assign({}, oItem, {
+                                                __origKWMENG: sOrig,
+                                                __showZeroQty: bShowZeroQty
+                                            });
                                         })
                                     };
                                 }
@@ -259,11 +252,7 @@ sap.ui.define([
             oViewModel.setProperty("/headers", aUpdated);
         },
 
-        onToggleAssignedFilter: function(oEvent) {
-            var bSelected = oEvent.getParameter("selected");
-            var oViewModel = this.getView().getModel("viewModel");
-            
-            oViewModel.setProperty("/showAssignedOrders", bSelected);
+        onAssignmentStatusFilter: function(oEvent) {
             this._applyFilters();
         },
 
@@ -275,7 +264,7 @@ sap.ui.define([
         _applyFilters: function() {
             var oViewModel = this.getView().getModel("viewModel");
             var aAllHeaders = oViewModel.getProperty("/allHeaders") || [];
-            var bShowAssigned = oViewModel.getProperty("/showAssignedOrders");
+            var sAssignmentStatus = oViewModel.getProperty("/filterAssignmentStatus") || "";
             var sShippingCondition = oViewModel.getProperty("/filterShippingCondition");
             var sSelectedSubTab = oViewModel.getProperty("/selectedOrdersSubTab") || "allOrders";
             
@@ -291,8 +280,16 @@ sap.ui.define([
                 }
                 
                 // Filter by assignment status (only for "All Orders" subtab)
-                if (sSelectedSubTab === "allOrders" && !bShowAssigned && oHeader.__isAssigned) {
-                    return false;
+                if (sSelectedSubTab === "allOrders" && sAssignmentStatus) {
+                    if (sAssignmentStatus === "assigned" && !oHeader.__isAssigned) {
+                        return false;
+                    }
+                    if (sAssignmentStatus === "partial" && !oHeader.__isPartiallyAssigned) {
+                        return false;
+                    }
+                    if (sAssignmentStatus === "unassigned" && (oHeader.__isAssigned || oHeader.__isPartiallyAssigned)) {
+                        return false;
+                    }
                 }
                 
                 // Filter by shipping condition
@@ -427,8 +424,8 @@ sap.ui.define([
                     oViewModel.setProperty("/headers", []);
                     oViewModel.setProperty("/showEmptyMessage", true);
                 } else if (sKey === "partiallyAssigned" || sKey === "fullyAssigned") {
-                    // Refresh flags from backend so the list reflects latest order state
-                    this._refreshSalesOrderFlags();
+                    // Re-run search to get fresh KWMENG + assignment flags from backend
+                    this.onSearch();
                 } else {
                     // Apply filters to existing data
                     this._applyFilters();
@@ -458,32 +455,32 @@ sap.ui.define([
                 success: function (oCustData) {
                     var aCustOrders = (oCustData && oCustData.results) ? oCustData.results : [];
 
+                    var fnNorm = function (s) { return s ? String(parseInt(s, 10)) : ""; };
                     var oSalesOrdersWithOrders = {};
                     var oSalesOrdersNoThirdParty = {};
                     var oSalesOrderThirdPartyRaw = {};
 
                     aCustOrders.forEach(function (oCust) {
                         if (oCust.SALESORDER) {
+                            var sKey = fnNorm(oCust.SALESORDER);
                             var sThirdParty = oCust.THIRDPARTY || "";
-                            var bIsYes = (sThirdParty === "1" || sThirdParty === "Y" || sThirdParty === "YES");
                             var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
                                              sThirdParty === "3" || sThirdParty === "N/A");
-                            if (bIsYes) {
-                                oSalesOrdersWithOrders[oCust.SALESORDER] = true;
-                            }
+                            oSalesOrdersWithOrders[sKey] = true;
                             if (bIsNoOrNA) {
-                                oSalesOrdersNoThirdParty[oCust.SALESORDER] = true;
+                                oSalesOrdersNoThirdParty[sKey] = true;
                             }
-                            if (!oSalesOrderThirdPartyRaw[oCust.SALESORDER] && sThirdParty) {
-                                oSalesOrderThirdPartyRaw[oCust.SALESORDER] = sThirdParty;
+                            if (!oSalesOrderThirdPartyRaw[sKey] && sThirdParty) {
+                                oSalesOrderThirdPartyRaw[sKey] = sThirdParty;
                             }
                         }
                     });
 
                     var aUpdated = aAllHeaders.map(function (oHeader) {
-                        var bHasOrders    = !!oSalesOrdersWithOrders[oHeader.VBELN];
-                        var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[oHeader.VBELN];
-                        var sThirdPartyRaw  = oSalesOrderThirdPartyRaw[oHeader.VBELN] || oHeader.__thirdPartyRaw || "";
+                        var sKey = fnNorm(oHeader.VBELN);
+                        var bHasOrders    = !!oSalesOrdersWithOrders[sKey];
+                        var bIsNoThirdParty = !!oSalesOrdersNoThirdParty[sKey];
+                        var sThirdPartyRaw  = oSalesOrderThirdPartyRaw[sKey] || oHeader.__thirdPartyRaw || "";
 
                         // Re-check whether all item quantities are zero (fully consumed)
                         var bAllZero = false;
@@ -493,13 +490,24 @@ sap.ui.define([
                             });
                         }
 
-                        var bIsAssigned = bAllZero || bIsNoThirdParty;
+                        // DL orders and NO/N/A third-party orders are fully assigned as soon as bulk indent exists
+                        var bIsDL = oHeader.VSBED === "DL";
+                        var bIsAssigned = bAllZero || (bHasOrders && (bIsDL || bIsNoThirdParty));
+                        var bShowZeroQty = bHasOrders && (bIsDL || bIsNoThirdParty);
 
-                        return Object.assign({}, oHeader, {
+                        var oUpdatedHeader = Object.assign({}, oHeader, {
                             __isAssigned: bIsAssigned,
                             __isPartiallyAssigned: bHasOrders && !bIsAssigned,
                             __thirdPartyRaw: sThirdPartyRaw
                         });
+                        if (oUpdatedHeader.ToItem && oUpdatedHeader.ToItem.results) {
+                            oUpdatedHeader.ToItem = {
+                                results: oUpdatedHeader.ToItem.results.map(function (oItem) {
+                                    return Object.assign({}, oItem, { __showZeroQty: bShowZeroQty });
+                                })
+                            };
+                        }
+                        return oUpdatedHeader;
                     });
 
                     oViewModel.setProperty("/allHeaders", aUpdated);
@@ -660,8 +668,13 @@ sap.ui.define([
                         title: "Session Expired",
                         actions: [MessageBox.Action.OK],
                         onClose: function () {
-                            // Reloading causes SAP BSP to redirect to the login screen
-                            window.location.reload();
+                            sessionStorage.removeItem("portal_isLoggedIn");
+                            sessionStorage.removeItem("portal_username");
+                            sessionStorage.removeItem("portal_token");
+                            // Full reload clears SAPUI5 model state (CSRF token, auth headers).
+                            // Component.js will find no portal_isLoggedIn and route guard
+                            // will redirect the user to the login screen.
+                            window.location.href = window.location.origin + window.location.pathname;
                         }
                     }
                 );

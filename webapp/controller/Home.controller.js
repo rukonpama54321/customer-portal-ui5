@@ -22,6 +22,7 @@ sap.ui.define([
                         // Clear session state and OData auth header
                         sessionStorage.removeItem("portal_isLoggedIn");
                         sessionStorage.removeItem("portal_username");
+                        sessionStorage.removeItem("portal_token");
 
                         var oModel = this.getOwnerComponent().getModel();
                         if (oModel) {

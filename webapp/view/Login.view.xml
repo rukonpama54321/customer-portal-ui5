@@ -68,6 +68,8 @@
                         class="sapUiSmallMarginTop loginErrorStrip" />
                     </VBox>
 
+                </VBox>
+
             </VBox>
         </content>
     </Page>
