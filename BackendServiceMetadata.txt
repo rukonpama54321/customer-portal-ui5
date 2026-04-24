@@ -72,8 +72,7 @@
   <Property Name="POSNR" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Item No" sap:filterable="false" /> 
   <Property Name="MATERIAL" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Product" sap:sortable="false" /> 
   <Property Name="QUANTITY" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Allocated Quantity" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="UOM" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="UoM" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
-  <Property Name="DELIVERY_LOC" Type="Edm.String" Nullable="false" MaxLength="100" sap:unicode="false" sap:label="Delivery Address" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="UOM" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="UoM" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
   </EntityType>
 - <EntityType Name="TransporterDetails" sap:content-version="1">
 - <Key>
