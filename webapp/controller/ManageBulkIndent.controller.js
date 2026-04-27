@@ -1464,7 +1464,9 @@ sap.ui.define([
             var oView = this.getView();
             var oViewModel = oView.getModel("manageModel");
             var sOrderNo = oViewModel.getProperty("/orderNo");
-            var sSalesOrder = oViewModel.getProperty("/header/VBELN");
+            // Prefer SALESORDER (set from CustomerOrder entity, matches CustomerOrderSet filter)
+            // over VBELN (from SALESORDERHeaderSet, may be zero-padded and cause mismatch)
+            var sSalesOrder = oViewModel.getProperty("/header/SALESORDER") || oViewModel.getProperty("/header/VBELN");
 
             if (!sOrderNo) {
                 MessageToast.show("Order number not found. Cannot delete.");
@@ -1580,6 +1582,9 @@ sap.ui.define([
                     
                     MessageBox.success("Order " + sOrderNo + " and its items have been deleted successfully.", {
                         onClose: function () {
+                            // Reset orderCreated so the unsaved-agent-assignments guard in onNavBack
+                            // does not fire after a deliberate deletion.
+                            this.getView().getModel("manageModel").setProperty("/orderCreated", false);
                             this.onNavBack();
                         }.bind(this)
                     });
@@ -2133,6 +2138,36 @@ sap.ui.define([
         },
 
         onNavBack: function () {
+            var oViewModel = this.getView().getModel("manageModel");
+            var bOrderCreated = oViewModel.getProperty("/orderCreated");
+            var sShipCond = (oViewModel.getProperty("/header") || {}).VSBED;
+            var sThirdPartyAgent = oViewModel.getProperty("/thirdPartyAgent");
+            var aAllocations = oViewModel.getProperty("/agentAllocations") || [];
+            var bHasSavedAllocations = aAllocations.some(function (a) { return !!a.ALLOCATION_ID; });
+
+            if (bOrderCreated && sShipCond === "CL" && sThirdPartyAgent === "YES" && !bHasSavedAllocations) {
+                MessageBox.warning(
+                    "You have not assigned any agents to this bulk indent. Do you still want to exit?",
+                    {
+                        title: "Unsaved Agent Assignments",
+                        actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                        emphasizedAction: MessageBox.Action.NO,
+                        onClose: function (sAction) {
+                            if (sAction === MessageBox.Action.YES) {
+                                var oHistory = History.getInstance();
+                                var sPreviousHash = oHistory.getPreviousHash();
+                                if (sPreviousHash !== undefined) {
+                                    window.history.back();
+                                } else {
+                                    this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
+                                }
+                            }
+                        }.bind(this)
+                    }
+                );
+                return;
+            }
+
             var oHistory = History.getInstance();
             var sPreviousHash = oHistory.getPreviousHash();
 

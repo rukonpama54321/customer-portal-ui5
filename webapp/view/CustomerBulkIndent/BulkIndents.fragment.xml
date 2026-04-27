@@ -55,9 +55,21 @@
                                                     <Label text="Customer Reference" class="info-label" />
                                                     <Text text="{viewModel>BSTNK}" class="info-value" />
                                                 </VBox>
-                                                <VBox>
+                                                <VBox class="sapUiSmallMarginEnd">
                                                     <Label text="Reference Date" class="info-label" />
                                                     <Text text="{viewModel>BSTDK}" class="info-value" />
+                                                </VBox>
+                                                <VBox class="sapUiSmallMarginEnd">
+                                                    <Label text="Shipping Method" class="info-label" />
+                                                    <Text text="{= ${viewModel>SHIP_COND} === 'CL' ? 'Collected (CL)' : ${viewModel>SHIP_COND} === 'DL' ? 'Delivered (DL)' : (${viewModel>SHIP_COND} || '-') }" class="info-value" />
+                                                </VBox>
+                                                <VBox class="sapUiSmallMarginEnd" visible="{= !!${viewModel>DelLocation} }">
+                                                    <Label text="Delivery Location" class="info-label" />
+                                                    <Text text="{viewModel>DelLocation}" class="info-value" />
+                                                </VBox>
+                                                <VBox visible="{= !!${viewModel>DelDateDisplay} }">
+                                                    <Label text="Delivery Date" class="info-label" />
+                                                    <Text text="{viewModel>DelDateDisplay}" class="info-value" />
                                                 </VBox>
                                             </HBox>
                                         </VBox>

@@ -63,7 +63,7 @@
                                         number="{viewModel>NETWR}"
                                         unit="{viewModel>WAERK}"
                                         emphasized="true"
-                                        class="order-net-value" />
+                                        class="order-net-value-small" />
                                     <Text text="Net Value" class="sapUiTinyMarginTop order-label" />
                                 </VBox>
                             </HBox>

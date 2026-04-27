@@ -543,6 +543,18 @@ sap.ui.define([
                     }
                     
                     aResults.forEach(function(oOrder) {
+                        // Pre-format DelDate (Edm.DateTime arrives as JS Date) for display
+                        var oDelDate = oOrder.DelDate;
+                        if (oDelDate instanceof Date && !isNaN(oDelDate.getTime()) && oDelDate.getTime() !== 0) {
+                            var iY = oDelDate.getFullYear();
+                            var iM = oDelDate.getMonth() + 1;
+                            var iD = oDelDate.getDate();
+                            oOrder.DelDateDisplay = (iD < 10 ? "0" + iD : iD) + "." +
+                                                    (iM < 10 ? "0" + iM : iM) + "." + iY;
+                        } else {
+                            oOrder.DelDateDisplay = "";
+                        }
+
                         // Check if agent allocations exist for this order
                         oModel.read("/AgentOrderAllocationSet", {
                             filters: [new sap.ui.model.Filter("ORDER_NO", sap.ui.model.FilterOperator.EQ, oOrder.ORDER_NO)],
