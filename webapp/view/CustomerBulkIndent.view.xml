@@ -8,15 +8,21 @@
         busy="{viewModel>/busy}">
         <content>
             <VBox width="100%">
-                <VBox>
+                <VBox class="manage-header-section">
                     <HBox justifyContent="SpaceBetween" alignItems="Center" wrap="Wrap">
                         <HBox alignItems="Center" wrap="Wrap">
-                            <Image src="img/logo.png" alt="Logo" />
+                            <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
                             <VBox>
-                                <Title text="Bulk Indent Portal" level="H1" />
-                                <Text text="Manage bulk indents for customers" />
+                                <Title text="Bulk Indent Portal" level="H1" class="manage-page-title" />
+                                <Text text="Manage bulk indents for customers" class="manage-page-subtitle" />
                             </VBox>
                         </HBox>
+                        <Button
+                            text="Add Agent"
+                            icon="sap-icon://add-employee"
+                            type="Transparent"
+                            class="addAgentHeaderBtn"
+                            press=".onAddAgent" />
                     </HBox>
                 </VBox>
 

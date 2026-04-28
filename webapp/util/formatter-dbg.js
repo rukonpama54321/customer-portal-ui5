@@ -171,6 +171,16 @@ sap.ui.define([], function () {
             var uom = sUom || "";
             
             return agentQty + " / " + totalQty + " " + uom + " allocated";
+        },
+
+        toTitleCase: function (sValue) {
+            if (!sValue) { return ""; }
+            return sValue.toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        },
+
+        toLowerEmail: function (sValue) {
+            if (!sValue) { return ""; }
+            return sValue.toLowerCase();
         }
 
     };

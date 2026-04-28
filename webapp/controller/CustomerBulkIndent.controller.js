@@ -762,6 +762,10 @@ sap.ui.define([
             oGroupHeader.addStyleClass("sales-order-group-header-item");
 
             return oGroupHeader;
+        },
+
+        onAddAgent: function () {
+            this.getOwnerComponent().getRouter().navTo("AddAgentDetails");
         }
     });
 });

@@ -2207,6 +2207,122 @@
     color: #ffffff !important;
 }
 /* ========================================
+   Add Agent Details Form
+   ======================================== */
+
+/* Outer VBox fills the page content area exactly */
+.agent-page-outer {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Force SAP page inner wrapper to not scroll */
+.addAgentPage > .sapMPageInner,
+.addAgentPage .sapMPageContent {
+    height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.agent-layout-row {
+    padding: 1.5rem 1rem;
+    gap: 1.25rem;
+    align-items: stretch;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+/* This variant grows to fill remaining page height */
+.agent-layout-grow {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+.agent-form-card {
+    width: 560px !important;
+    min-width: 440px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    box-sizing: border-box;
+    margin: 0;
+    align-self: stretch !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+}
+
+/* Let SAP's VBox wrappers inside the form card flex properly */
+.agent-form-card > .sapMVBox,
+.agent-form-card .sapMVBox {
+    min-height: 0 !important;
+}
+
+/* The card-content area scrolls when content overflows */
+.agent-form-card .card-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+}
+
+.agent-table-card {
+    flex: 1 1 0% !important;
+    width: 0 !important;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0;
+    align-self: stretch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+}
+
+/* Table body scrolls; header is sticky */
+.agent-agents-table {
+    width: 100%;
+}
+
+/* ScrollContainer fills remaining card height (exact height set by JS in controller) */
+.agent-scroll-container {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+.agent-scroll-container .sapMScrollCont {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+.agent-scroll-container .sapMScrollContScroll {
+    overflow-y: auto !important;
+}
+
+.agent-table-card .sapMTableTH {
+    background: #fff !important;
+}
+
+@media (max-width: 900px) {
+    .agent-layout-row {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+    }
+    .agent-form-card {
+        width: 100% !important;
+        overflow-y: visible;
+    }
+}
+
+/* ========================================
    Manage Order View Styling
    ======================================== */
 
@@ -2219,6 +2335,28 @@
     padding: 1.5rem 1rem 1rem 1rem;
     background: linear-gradient(135deg, #1a3a52 0%, #0854a0 100%);
     border-bottom: 3px solid rgba(14, 165, 163, 0.3);
+}
+
+/* Add Agent button sits on the dark header */
+.addAgentHeaderBtn.sapMBtn {
+    border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    border-radius: 6px !important;
+}
+
+.addAgentHeaderBtn .sapMBtnInner {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-radius: 6px !important;
+    padding: 0 1rem !important;
+}
+
+.addAgentHeaderBtn .sapMBtnInner:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.addAgentHeaderBtn .sapMBtnIcon,
+.addAgentHeaderBtn .sapMBtnText {
+    color: #ffffff !important;
 }
 
 .manage-page-title {

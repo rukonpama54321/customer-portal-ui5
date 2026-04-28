@@ -133,6 +133,13 @@
           "target": [
             "TargetManageBulkIndent"
           ]
+        },
+        {
+          "name": "AddAgentDetails",
+          "pattern": "AddAgentDetails",
+          "target": [
+            "TargetAddAgentDetails"
+          ]
         }
       ],
       "targets": {
@@ -163,6 +170,13 @@
           "clearControlAggregation": false,
           "viewId": "ManageBulkIndent",
           "viewName": "ManageBulkIndent"
+        },
+        "TargetAddAgentDetails": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "AddAgentDetails",
+          "viewName": "AddAgentDetails"
         }
       }
     },
