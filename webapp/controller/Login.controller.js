@@ -11,7 +11,7 @@ sap.ui.define([
         onInit: function () {
             // If already logged in, skip the login page
             if (sessionStorage.getItem("portal_isLoggedIn") === "true") {
-                this.getOwnerComponent().getRouter().navTo("RouteHome", {}, true);
+                this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
             }
 
             // Reset form state every time the login page is navigated to,
@@ -139,7 +139,7 @@ sap.ui.define([
             // occurs when the model is created before login.
             this.getOwnerComponent().initODataModel(sToken, sUsername);
 
-            this.getOwnerComponent().getRouter().navTo("RouteHome", {}, true);
+            this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
         },
 
         _showError: function (sMessage) {

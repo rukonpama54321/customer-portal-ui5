@@ -257,6 +257,46 @@ sap.ui.define([
          */
         _getText: function (sKey, aArgs) {
             return this.getOwnerComponent().getModel("i18n").getResourceBundle().getText(sKey, aArgs);
+        },
+
+        onDeleteAgent: function (oEvent) {
+            var oItem = oEvent.getSource().getParent(); // Button → ColumnListItem
+            var oCtx  = oItem.getBindingContext("addAgentModel");
+            var sId   = oCtx.getProperty("AGENT_ID");
+            var sName = oCtx.getProperty("AGENT_NAME");
+
+            MessageBox.confirm(
+                "Delete agent \"" + sName + "\" (ID: " + sId + ")?\nThis cannot be undone.",
+                {
+                    title: "Confirm Delete",
+                    actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                    emphasizedAction: MessageBox.Action.CANCEL,
+                    onClose: function (sAction) {
+                        if (sAction !== MessageBox.Action.OK) { return; }
+                        var oODataModel = this.getView().getModel();
+                        var oViewModel  = this.getView().getModel("addAgentModel");
+                        oViewModel.setProperty("/busy", true);
+                        oODataModel.remove("/AgentDetailsSet('" + sId + "')", {
+                            success: function () {
+                                oViewModel.setProperty("/busy", false);
+                                MessageToast.show("Agent " + sId + " deleted.");
+                                this._loadAgents();
+                            }.bind(this),
+                            error: function (oError) {
+                                oViewModel.setProperty("/busy", false);
+                                var sMsg = "Failed to delete agent.";
+                                try {
+                                    var oResp = JSON.parse(oError.responseText);
+                                    if (oResp.error && oResp.error.message && oResp.error.message.value) {
+                                        sMsg = oResp.error.message.value;
+                                    }
+                                } catch (e) { /* use default */ }
+                                MessageBox.error(sMsg);
+                            }.bind(this)
+                        });
+                    }.bind(this)
+                }
+            );
         }
 
     });

@@ -1,6 +1,7 @@
 <mvc:View
     controllerName="customerindent.controller.AddAgentDetails"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
     xmlns="sap.m">
     <Page
         title="{i18n>addAgent.pageTitle}"
@@ -26,147 +27,12 @@
 
                 <!-- Side-by-side: Form + Table -->
                 <HBox alignItems="Stretch" class="agent-layout-row agent-layout-grow">
-
-                    <!-- Form Card -->
-                    <VBox class="manage-detail-card agent-form-card" id="addAgentFormCard">
-
-                        <VBox class="card-header">
-                            <Title text="{i18n>addAgent.formTitle}" class="card-title" />
-                        </VBox>
-
-                        <VBox class="card-content">
-
-                            <!-- Agent ID (auto-generated) -->
-                            <VBox class="detail-group">
-                                <Label text="{i18n>addAgent.agentId}" class="detail-label" />
-                                <Input
-                                    id="agentIdInput"
-                                    value="{addAgentModel>/AGENT_ID}"
-                                    maxLength="10"
-                                    width="100%"
-                                    editable="false"
-                                    class="sapUiReadOnlyField" />
-                            </VBox>
-
-                            <!-- Agent Name -->
-                            <VBox class="detail-group">
-                                <Label text="{i18n>addAgent.agentName}" class="detail-label required-label" />
-                                <Input
-                                    id="agentNameInput"
-                                    value="{addAgentModel>/AGENT_NAME}"
-                                    maxLength="35"
-                                    width="100%"
-                                    placeholder="{i18n>addAgent.agentNamePlaceholder}" />
-                            </VBox>
-
-                            <!-- Email -->
-                            <VBox class="detail-group">
-                                <Label text="{i18n>addAgent.agentMail}" class="detail-label required-label" />
-                                <Input
-                                    id="agentMailInput"
-                                    value="{addAgentModel>/AGENT_MAIL}"
-                                    maxLength="80"
-                                    width="100%"
-                                    type="Email"
-                                    placeholder="{i18n>addAgent.agentMailPlaceholder}" />
-                            </VBox>
-
-                            <!-- Phone -->
-                            <VBox class="detail-group">
-                                <Label text="{i18n>addAgent.agentPh}" class="detail-label required-label" />
-                                <Input
-                                    id="agentPhInput"
-                                    value="{addAgentModel>/AGENT_PH}"
-                                    maxLength="10"
-                                    width="100%"
-                                    type="Tel"
-                                    placeholder="{i18n>addAgent.agentPhPlaceholder}" />
-                            </VBox>
-
-                            <!-- Address -->
-                            <VBox class="detail-group">
-                                <Label text="{i18n>addAgent.agentAddr}" class="detail-label required-label" />
-                                <TextArea
-                                    id="agentAddrInput"
-                                    value="{addAgentModel>/AGENT_ADDR}"
-                                    maxLength="225"
-                                    rows="4"
-                                    growing="true"
-                                    width="100%"
-                                    placeholder="{i18n>addAgent.agentAddrPlaceholder}" />
-                            </VBox>
-
-                            <!-- Save Button -->
-                            <VBox class="detail-group" alignItems="End">
-                                <Button
-                                    text="{i18n>addAgent.btnSave}"
-                                    type="Emphasized"
-                                    icon="sap-icon://save"
-                                    width="100%"
-                                    press=".onSave" />
-                            </VBox>
-
-                        </VBox>
-                    </VBox>
-
-                    <!-- Existing Agents Table -->
-                    <VBox class="manage-detail-card agent-table-card">
-
-                        <VBox class="card-header">
-                            <HBox justifyContent="SpaceBetween" alignItems="Center">
-                                <Title text="{i18n>addAgent.listTitle}" class="card-title" />
-                                <SearchField
-                                    id="agentSearch"
-                                    width="14rem"
-                                    placeholder="{i18n>addAgent.listSearch}"
-                                    liveChange=".onAgentSearch" />
-                            </HBox>
-                        </VBox>
-
-                        <ScrollContainer
-                            id="agentsScrollContainer"
-                            vertical="true"
-                            horizontal="false"
-                            class="agent-scroll-container">
-
-                        <Table
-                            id="agentsTable"
-                            items="{addAgentModel>/agents}"
-                            noDataText="{i18n>addAgent.listNoData}"
-                            busyIndicatorDelay="0"
-                            class="overview-items-table agent-agents-table">
-                            <columns>
-                                <Column width="7rem"><Text text="{i18n>addAgent.agentId}" /></Column>
-                                <Column width="12rem"><Text text="{i18n>addAgent.agentName}" /></Column>
-                                <Column width="16rem"><Text text="{i18n>addAgent.agentMail}" /></Column>
-                                <Column width="8rem"><Text text="{i18n>addAgent.agentPh}" /></Column>
-                                <Column width="22rem"><Text text="{i18n>addAgent.agentAddr}" /></Column>
-                                <Column width="7rem" hAlign="Center"><Text text="{i18n>addAgent.listCreatedOn}" /></Column>
-                            </columns>
-                            <items>
-                                <ColumnListItem class="overview-table-row" type="Inactive">
-                                    <cells>
-                                        <Text text="{addAgentModel>AGENT_ID}" />
-                                        <Text text="{path: 'addAgentModel>AGENT_NAME', formatter: '.formatter.toTitleCase'}" />
-                                        <Text text="{path: 'addAgentModel>AGENT_MAIL', formatter: '.formatter.toLowerEmail'}" />
-                                        <Text text="{addAgentModel>AGENT_PH}" />
-                                        <Text text="{path: 'addAgentModel>AGENT_ADDR', formatter: '.formatter.toTitleCase'}" />
-                                        <Text text="{addAgentModel>CREATED_ON}" />
-                                    </cells>
-                                </ColumnListItem>
-                            </items>
-                        </Table>
-
-                        </ScrollContainer>
-
-                    </VBox>
-
+                    <core:Fragment fragmentName="customerindent.view.AddAgentDetails.AgentForm" type="XML" />
+                    <core:Fragment fragmentName="customerindent.view.AddAgentDetails.AgentsTable" type="XML" />
                 </HBox>
 
             </VBox>
         </content>
-
-
 
     </Page>
 </mvc:View>

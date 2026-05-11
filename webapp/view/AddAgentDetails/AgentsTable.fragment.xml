@@ -1,0 +1,58 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m">
+
+    <VBox class="manage-detail-card agent-table-card">
+
+        <VBox class="card-header">
+            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                <Title text="{i18n>addAgent.listTitle}" class="card-title" />
+                <SearchField
+                    id="agentSearch"
+                    width="14rem"
+                    placeholder="{i18n>addAgent.listSearch}"
+                    liveChange=".onAgentSearch" />
+            </HBox>
+        </VBox>
+
+        <ScrollContainer
+            id="agentsScrollContainer"
+            vertical="true"
+            horizontal="false"
+            class="agent-scroll-container">
+
+            <Table
+                id="agentsTable"
+                items="{addAgentModel>/agents}"
+                noDataText="{i18n>addAgent.listNoData}"
+                busyIndicatorDelay="0"
+                class="overview-items-table agent-agents-table">
+                <columns>
+                    <Column width="7rem"><Text text="{i18n>addAgent.agentId}" /></Column>
+                    <Column width="12rem"><Text text="{i18n>addAgent.agentName}" /></Column>
+                    <Column width="16rem"><Text text="{i18n>addAgent.agentMail}" /></Column>
+                    <Column width="8rem"><Text text="{i18n>addAgent.agentPh}" /></Column>
+                    <Column width="22rem"><Text text="{i18n>addAgent.agentAddr}" /></Column>
+                    <Column width="7rem" hAlign="Center"><Text text="{i18n>addAgent.listCreatedOn}" /></Column>
+                    <Column width="4rem" hAlign="Center" />
+                </columns>
+                <items>
+                    <ColumnListItem class="overview-table-row" type="Inactive">
+                        <cells>
+                            <Text text="{addAgentModel>AGENT_ID}" />
+                            <Text text="{path: 'addAgentModel>AGENT_NAME', formatter: '.formatter.toTitleCase'}" />
+                            <Text text="{path: 'addAgentModel>AGENT_MAIL', formatter: '.formatter.toLowerEmail'}" />
+                            <Text text="{addAgentModel>AGENT_PH}" />
+                            <Text text="{path: 'addAgentModel>AGENT_ADDR', formatter: '.formatter.toTitleCase'}" />
+                            <Text text="{addAgentModel>CREATED_ON}" />
+                            <Button icon="sap-icon://delete" type="Transparent" tooltip="Delete Agent" press=".onDeleteAgent" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+
+        </ScrollContainer>
+
+    </VBox>
+
+</core:FragmentDefinition>
