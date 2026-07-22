@@ -14,16 +14,13 @@
     "start": "fiori run --open \"index.html?sap-ui-xx-viewCache=false\"",
     "start-local": "fiori run --config ./ui5-local.yaml --open \"index.html?sap-ui-xx-viewCache=false\"",
     "build": "ui5 build -a --clean-dest --include-task=generateCachebusterInfo",
-    "deploy": "npm run build",
+    "deploy": "npm run build && cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_OPTIONS=--use-system-ca fiori deploy --config ui5-deploy.yaml --yes",
     "deploy-config": "fiori add deploy-config"
   },
   "devDependencies": {
-    "@sap-ux/ui5-middleware-fe-mockserver": "^2.4.0",
     "@sap/ux-ui5-tooling": "1",
     "@ui5/cli": "^4.0.0",
     "cross-env": "^7.0.3",
-    "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6",
     "rimraf": "6.0.1"
   },
   "dependencies": {

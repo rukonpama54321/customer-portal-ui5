@@ -1,5 +1,6 @@
 sap.ui.define([], function () {
     "use strict";
+    /* v2 */
     return {
         formatDate: function (sValue) {
             if (!sValue) {
@@ -181,6 +182,17 @@ sap.ui.define([], function () {
         toLowerEmail: function (sValue) {
             if (!sValue) { return ""; }
             return sValue.toLowerCase();
+        },
+
+        /**
+         * Returns true when the agent row's KUNNR matches the logged-in user's KUNNR.
+         * Used to control delete button visibility in AgentsTable.
+         * @param {string} sRowKunnr  - KUNNR from the agent record (row context)
+         * @param {string} sUserKunnr - KUNNR of the logged-in user (/KUNNR on addAgentModel)
+         */
+        isSameKunnr: function (sRowKunnr, sUserKunnr) {
+            if (!sRowKunnr || !sUserKunnr) { return false; }
+            return sRowKunnr.trim() === sUserKunnr.trim();
         }
 
     };

@@ -92,7 +92,7 @@
 
                                                 <!-- Carrier Selection -->
                                                 <VBox class="detail-field" width="25%">
-                                                    <Label text="Carrier" class="detail-label required-label" />
+                                                    <Label text="Carrier" class="detail-label" />
                                                     <Text
                                                         text="{manageModel>TRANS_NAME}"
                                                         visible="{= !!${manageModel>_readonly} }"

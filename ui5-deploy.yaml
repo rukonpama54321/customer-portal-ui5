@@ -8,14 +8,12 @@ builder:
       afterTask: generateCachebusterInfo
       configuration:
         target:
-          url: https://eccdev.nrl.com:8001
+          url: http://eccdev.nrl.com:8000
           client: '300'
           auth: basic
-        credentials:
-          username: '100620'
-          password: 'Mar567#$'
+          ignoreCertErrors: true
         app:
-          name: ZCUSTINDENT
-          description: Customer Indent Portal
-          package: ZCUST_PORTAL
-          transport: ''
+          name: ZBULKINDENT
+          description: Customer Bulk Indent Portal
+          package: ZSD
+          transport: 'D01K949806'

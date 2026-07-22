@@ -13,47 +13,76 @@ sap.ui.define([
 
         init: function () {
             UIComponent.prototype.init.apply(this, arguments);
-            this.getRouter().initialize();
-            this.getRouter().attachRouteMatched(this.onRouteMatched, this);
             this.setModel(models.createDeviceModel(), "device");
 
-            var sToken = sessionStorage.getItem("portal_token");
-            var sUsername = sessionStorage.getItem("portal_username");
-
-            // Create the OData model only when credentials are available.
-            // If created without credentials the framework immediately fetches
-            // $metadata unauthenticated, gets 401, and marks the model as failed.
-            if (sToken) {
-                this._initODataModel(sToken, sUsername);
-            }
+            // Initialise the OData model before the router fires any routes,
+            // so that every controller's onInit / onRouteMatched already has a
+            // model available via this.getOwnerComponent().getModel().
+            this._initODataModel();
 
             // Load CSS asynchronously
             this._loadStyleSheet();
+
+            // Router is initialised last — standard SAP Fiori pattern — so that
+            // all models are ready before the first route match fires.
+            this.getRouter().attachRouteMatched(this.onRouteMatched, this);
+            this.getRouter().initialize();
         },
 
         /**
-         * Creates and attaches the default OData model with the given credentials.
-         * Called from init() (page reload with session) and from the Login controller
-         * after a successful login.
+         * Creates and attaches the default OData model.
+         * On BSP: session cookie provides auth — no headers needed.
+         * On localhost: fiori-tools-proxy is not credential-aware by default,
+         * so the Login screen collects credentials and passes them here as
+         * a Basic Auth token to inject into OData requests.
          */
         initODataModel: function (sToken, sUsername) {
             this._initODataModel(sToken, sUsername);
         },
 
         _initODataModel: function (sToken, sUsername) {
-            var oModel = new ODataModel("/sap/opu/odata/sap/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/", {
+            var oConfig = {
                 defaultBindingMode: "TwoWay",
                 useBatch: true,
-                refreshAfterChange: false,
-                headers: {
+                refreshAfterChange: false
+            };
+            var bIsLocal = window.location.hostname === "localhost" ||
+                           window.location.hostname === "127.0.0.1";
+            if (bIsLocal && sToken) {
+                oConfig.headers = {
                     "sap-client": "300",
                     "Authorization": "Basic " + sToken,
                     "X-Portal-User": sUsername || ""
-                }
-            });
+                };
+            }
+            var oModel = new ODataModel("/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/", oConfig);
             this.setModel(oModel);
-            // Fetch a valid CSRF token now that credentials are set.
             oModel.refreshSecurityToken();
+            this._startSessionKeepAlive();
+        },
+
+        /**
+         * Periodically refreshes the CSRF token to keep the SAP session alive.
+         * Fires a HEAD request to the OData service root every 10 minutes.
+         * Clears any previous interval so calling this after re-login is safe.
+         */
+        _startSessionKeepAlive: function () {
+            var INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
+            if (this._keepAliveTimer) {
+                clearInterval(this._keepAliveTimer);
+            }
+
+            this._keepAliveTimer = setInterval(function () {
+                var oModel = this.getModel();
+                if (oModel && typeof oModel.refreshSecurityToken === "function") {
+                    oModel.refreshSecurityToken(
+                        null,   // success — silent
+                        null,   // error — silent; next real request will show the session-expired dialog
+                        true    // force refresh
+                    );
+                }
+            }.bind(this), INTERVAL_MS);
         },
 
         _loadStyleSheet: function() {
@@ -67,11 +96,7 @@ sap.ui.define([
         onRouteMatched: function (oEvent) {
             var sRouteName = oEvent.getParameter("name");
 
-            // Session guard: redirect unauthenticated users to the login page
-            if (sRouteName !== "RouteLogin" && sessionStorage.getItem("portal_isLoggedIn") !== "true") {
-                this.getRouter().navTo("RouteLogin", {}, true);
-                return;
-            }
+
 
             var sTitle = "Customer Indent App";
 

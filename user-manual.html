@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Bulk Indent Portal – User Manual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a2e;
+    line-height: 1.65;
+    background: #fff;
+  }
+
+  /* ─── COVER PAGE ─── */
+  .cover {
+    page-break-after: always;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a3d62 0%, #1e5f74 50%, #0854a0 100%);
+    color: white;
+    text-align: center;
+    padding: 60px 40px;
+  }
+
+  .cover-logo-ring {
+    width: 100px; height: 100px;
+    border: 4px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 32px;
+    font-size: 40px;
+  }
+
+  .cover h1 {
+    font-size: 36pt;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+
+  .cover h2 {
+    font-size: 16pt;
+    font-weight: 300;
+    opacity: 0.85;
+    margin-bottom: 48px;
+  }
+
+  .cover-divider {
+    width: 80px; height: 3px;
+    background: rgba(255,255,255,0.5);
+    margin: 0 auto 40px;
+    border-radius: 2px;
+  }
+
+  .cover-meta {
+    font-size: 10pt;
+    opacity: 0.7;
+    line-height: 2;
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 10pt;
+    margin-top: 32px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ─── TOC ─── */
+  .toc-page {
+    page-break-after: always;
+    padding: 60px 72px;
+  }
+
+  .toc-page h2 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0854a0;
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #0854a0;
+  }
+
+  .toc-section {
+    margin-bottom: 6px;
+  }
+
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px dotted #d0d7de;
+    color: #1a1a2e;
+    text-decoration: none;
+  }
+
+  .toc-item.main {
+    font-weight: 600;
+    font-size: 11pt;
+    color: #0854a0;
+    margin-top: 10px;
+  }
+
+  .toc-item.sub {
+    font-weight: 400;
+    font-size: 10pt;
+    padding-left: 20px;
+    color: #444;
+  }
+
+  .toc-num { font-size: 9pt; color: #888; }
+
+  /* ─── CONTENT PAGES ─── */
+  .page {
+    padding: 56px 72px;
+    page-break-after: always;
+  }
+
+  .page:last-child { page-break-after: auto; }
+
+  /* ─── SECTION HEADERS ─── */
+  .chapter-header {
+    background: linear-gradient(135deg, #0854a0, #1e5f74);
+    color: white;
+    padding: 28px 36px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+
+  .chapter-header .ch-num {
+    font-size: 9pt;
+    font-weight: 500;
+    opacity: 0.75;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .chapter-header h1 {
+    font-size: 22pt;
+    font-weight: 700;
+  }
+
+  .chapter-header p {
+    font-size: 10.5pt;
+    opacity: 0.85;
+    margin-top: 6px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #0854a0;
+    margin: 28px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e8f0fe;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 10px; }
+
+  /* ─── CALLOUT BOXES ─── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 10.5pt;
+  }
+
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout.info { background: #e8f0fe; border-left: 4px solid #0854a0; }
+  .callout.tip { background: #e6f4ea; border-left: 4px solid #1e8e3e; }
+  .callout.warn { background: #fef7e0; border-left: 4px solid #f9a825; }
+  .callout.note { background: #f3e8fd; border-left: 4px solid #9c27b0; }
+
+  .callout strong { color: #0854a0; }
+  .callout.tip strong { color: #1e8e3e; }
+  .callout.warn strong { color: #b45309; }
+  .callout.note strong { color: #7b1fa2; }
+
+  /* ─── STEPS ─── */
+  .steps { margin: 16px 0; }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    background: #0854a0;
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  .step-body { flex: 1; padding-top: 3px; }
+  .step-body strong { display: block; margin-bottom: 2px; color: #1a1a2e; }
+
+  /* ─── FIELD TABLES ─── */
+  .field-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px;
+    font-size: 10pt;
+  }
+
+  .field-table th {
+    background: #0854a0;
+    color: white;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9.5pt;
+    letter-spacing: 0.3px;
+  }
+
+  .field-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e8edf2;
+    vertical-align: top;
+  }
+
+  .field-table tr:nth-child(even) td { background: #f8fafc; }
+  .field-table tr:last-child td { border-bottom: none; }
+
+  .field-table .req {
+    color: #c0392b;
+    font-weight: 600;
+    font-size: 8pt;
+    display: inline-block;
+    background: #fde8e8;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .field-table .opt {
+    color: #555;
+    font-size: 8pt;
+    display: inline-block;
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .field-table .auto {
+    color: #1e8e3e;
+    font-size: 8pt;
+    display: inline-block;
+    background: #e6f4ea;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ─── STATUS BADGES ─── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+
+  .badge.green { background: #e6f4ea; color: #1e8e3e; }
+  .badge.orange { background: #fef3cd; color: #b45309; }
+  .badge.gray { background: #f0f0f0; color: #5f6368; }
+  .badge.blue { background: #e8f0fe; color: #0854a0; }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .flow-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    flex-shrink: 0;
+  }
+
+  .flow-dot {
+    width: 14px; height: 14px;
+    border: 3px solid #0854a0;
+    border-radius: 50%;
+    background: white;
+    flex-shrink: 0;
+    margin-top: 16px;
+  }
+
+  .flow-line {
+    width: 2px;
+    background: #b8cce8;
+    flex: 1;
+    min-height: 16px;
+  }
+
+  .flow-box {
+    background: #f4f8ff;
+    border: 1px solid #c7daf7;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin: 8px 0;
+    flex: 1;
+    font-size: 10.5pt;
+  }
+
+  .flow-box strong { color: #0854a0; }
+
+  /* ─── SCREEN SECTION CARD ─── */
+  .screen-card {
+    border: 1px solid #d8e3ef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .screen-card-header {
+    background: #f0f5ff;
+    border-bottom: 1px solid #d8e3ef;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .screen-card-header .screen-icon { font-size: 18px; }
+
+  .screen-card-header h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0854a0;
+    margin: 0;
+  }
+
+  .screen-card-body { padding: 16px 20px; }
+
+  /* ─── TWO COLUMN ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  .col-card {
+    border: 1px solid #e0e7ef;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .col-card h4 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #0854a0;
+    margin-bottom: 10px;
+  }
+
+  ul { padding-left: 18px; margin-bottom: 10px; }
+  li { margin-bottom: 5px; font-size: 10.5pt; }
+
+  /* ─── PRINT ─── */
+  @media print {
+    body { font-size: 10.5pt; }
+    .page { padding: 48px 64px; }
+    a { color: inherit; text-decoration: none; }
+    .cover { min-height: 297mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     COVER PAGE
+════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo-ring">📦</div>
+  <h1>Customer Bulk Indent Portal</h1>
+  <h2>User Manual</h2>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    NRL Customer Portal &nbsp;·&nbsp; Version 1.0<br>
+    June 2026
+  </div>
+  <div class="cover-badge">End User Guide</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TABLE OF CONTENTS
+════════════════════════════════════════ -->
+<div class="toc-page">
+  <h2>Table of Contents</h2>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>1 &nbsp; Introduction</span><span class="toc-num">3</span></div>
+    <div class="toc-item sub"><span>1.1 &nbsp; What is the Bulk Indent Portal?</span><span class="toc-num">3</span></div>
+    <div class="toc-item sub"><span>1.2 &nbsp; Key concepts</span><span class="toc-num">3</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>2 &nbsp; Logging In</span><span class="toc-num">4</span></div>
+    <div class="toc-item sub"><span>2.1 &nbsp; Login screen overview</span><span class="toc-num">4</span></div>
+    <div class="toc-item sub"><span>2.2 &nbsp; How to sign in</span><span class="toc-num">4</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>3 &nbsp; Main Dashboard – Sales Documents</span><span class="toc-num">5</span></div>
+    <div class="toc-item sub"><span>3.1 &nbsp; Searching for sales orders</span><span class="toc-num">5</span></div>
+    <div class="toc-item sub"><span>3.2 &nbsp; Understanding assignment status</span><span class="toc-num">5</span></div>
+    <div class="toc-item sub"><span>3.3 &nbsp; Filtering orders</span><span class="toc-num">6</span></div>
+    <div class="toc-item sub"><span>3.4 &nbsp; Tabs: All / Partially Assigned / Fully Assigned</span><span class="toc-num">6</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>4 &nbsp; Bulk Indents Tab</span><span class="toc-num">7</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>5 &nbsp; Creating a Bulk Indent</span><span class="toc-num">8</span></div>
+    <div class="toc-item sub"><span>5.1 &nbsp; Opening the Manage Bulk Indent screen</span><span class="toc-num">8</span></div>
+    <div class="toc-item sub"><span>5.2 &nbsp; Filling in order details</span><span class="toc-num">8</span></div>
+    <div class="toc-item sub"><span>5.3 &nbsp; Creating the bulk indent</span><span class="toc-num">9</span></div>
+    <div class="toc-item sub"><span>5.4 &nbsp; Deleting a bulk indent</span><span class="toc-num">9</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>6 &nbsp; Agent Allocations</span><span class="toc-num">10</span></div>
+    <div class="toc-item sub"><span>6.1 &nbsp; Adding an agent allocation</span><span class="toc-num">10</span></div>
+    <div class="toc-item sub"><span>6.2 &nbsp; Entering item quantities</span><span class="toc-num">10</span></div>
+    <div class="toc-item sub"><span>6.3 &nbsp; Saving allocations</span><span class="toc-num">11</span></div>
+    <div class="toc-item sub"><span>6.4 &nbsp; Deleting an agent allocation</span><span class="toc-num">11</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>7 &nbsp; Managing Agents</span><span class="toc-num">12</span></div>
+    <div class="toc-item sub"><span>7.1 &nbsp; Adding a new agent</span><span class="toc-num">12</span></div>
+    <div class="toc-item sub"><span>7.2 &nbsp; Searching agents</span><span class="toc-num">12</span></div>
+    <div class="toc-item sub"><span>7.3 &nbsp; Deleting an agent</span><span class="toc-num">12</span></div>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-item main"><span>8 &nbsp; Common Messages &amp; Troubleshooting</span><span class="toc-num">13</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 1 – INTRODUCTION
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 1</div>
+    <h1>Introduction</h1>
+    <p>What the portal does and the key terms you need to know</p>
+  </div>
+
+  <h2>1.1 What is the Bulk Indent Portal?</h2>
+  <p>The <strong>Customer Bulk Indent Portal</strong> is a web application that lets authorised NRL customers create and manage <em>bulk indents</em> against their open SAP sales orders. A bulk indent is an internal record that captures how a customer's ordered goods will be delivered — specifically, which third-party agents or transporters are responsible for each quantity of goods.</p>
+
+  <p>The portal connects directly to the SAP system, so every indent and allocation you create here is immediately visible to the NRL logistics team.</p>
+
+  <div class="two-col">
+    <div class="col-card">
+      <h4>🎯 What you can do</h4>
+      <ul>
+        <li>Search and view your open sales orders</li>
+        <li>Create bulk indents against sales orders</li>
+        <li>Assign agents and carriers to each indent</li>
+        <li>Allocate specific quantities per agent</li>
+        <li>Track assignment progress in real time</li>
+        <li>Add and manage your agent master records</li>
+      </ul>
+    </div>
+    <div class="col-card">
+      <h4>👥 Who uses this portal?</h4>
+      <ul>
+        <li>Customer representatives who place bulk orders</li>
+        <li>Logistics coordinators assigning agents</li>
+        <li>Any staff authorised to manage agent allocations on behalf of the customer</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>1.2 Key Concepts</h2>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Term</th><th>What it means</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Sales Order</strong></td>
+        <td>An order created in the SAP system. It contains one or more items (products, quantities, prices). You cannot edit the sales order here — only view it.</td>
+      </tr>
+      <tr>
+        <td><strong>Bulk Indent</strong></td>
+        <td>A record you create in this portal against a sales order. It captures delivery details (location, date, shipping mode) and the agent/carrier assignments.</td>
+      </tr>
+      <tr>
+        <td><strong>Agent</strong></td>
+        <td>A third-party representative who physically handles and delivers goods on behalf of the customer.</td>
+      </tr>
+      <tr>
+        <td><strong>Agent Allocation</strong></td>
+        <td>The act of assigning a specific agent to handle a portion (or all) of the ordered quantity.</td>
+      </tr>
+      <tr>
+        <td><strong>Shipping Condition</strong></td>
+        <td><strong>CL (Collected)</strong> – goods are collected by the agent from NRL's location.<br><strong>DL (Delivered)</strong> – goods are delivered by NRL to the destination.</td>
+      </tr>
+      <tr>
+        <td><strong>Assignment Status</strong></td>
+        <td>Shows how much of a sales order has been covered by bulk indents: <span class="badge gray">Unassigned</span> <span class="badge orange">Partially Assigned</span> <span class="badge green">Fully Assigned</span></td>
+      </tr>
+      <tr>
+        <td><strong>Transporter / Carrier</strong></td>
+        <td>The logistics company or vehicle operator who physically transports the goods. Each carrier has a GSTN number registered in the system.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 2 – LOGGING IN
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 2</div>
+    <h1>Logging In</h1>
+    <p>How to access the portal and authenticate with your SAP credentials</p>
+  </div>
+
+  <h2>2.1 Login Screen Overview</h2>
+  <p>When you open the portal for the first time, you will see the <strong>Login</strong> screen. This screen asks for the same SAP username and password you use to log in to other SAP systems at NRL.</p>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div><strong>Note:</strong> If you are accessing the portal through the SAP Business Server Pages (BSP) link provided by your administrator, the system may log you in automatically using your existing SAP session — you will be taken directly to the main dashboard without seeing the login page.</div>
+  </div>
+
+  <h2>2.2 How to Sign In</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Enter your SAP Username</strong>
+        Type your SAP user ID in the <em>Username</em> field (e.g., <code>JSMITH</code>).
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Enter your Password</strong>
+        Type your SAP password. The characters will be hidden for security.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Click "Sign In"</strong>
+        The system will verify your credentials with the SAP backend. This usually takes 2–5 seconds.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>You are taken to the main dashboard</strong>
+        On success, the portal opens the <em>Bulk Indent Portal</em> main screen automatically.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div><strong>Wrong credentials?</strong> A red error message will appear below the Sign In button. Double-check that Caps Lock is off and that you are using your SAP credentials, then try again. If you have forgotten your password, contact your SAP system administrator.</div>
+  </div>
+
+  <h2>Session Behaviour</h2>
+  <p>Once signed in, your session is kept active for the duration of your browser session. If you close and reopen the browser tab, you may be asked to log in again. The portal automatically refreshes its security token every 10 minutes in the background to keep your session alive while the page is open.</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 3 – MAIN DASHBOARD
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 3</div>
+    <h1>Main Dashboard – Sales Documents</h1>
+    <p>Searching for and reviewing your open sales orders</p>
+  </div>
+
+  <p>After login you land on the <strong>Bulk Indent Portal</strong> dashboard. The page is split into two main areas via tabs at the top:</p>
+  <ul>
+    <li><strong>Sales Documents</strong> — view and manage your SAP sales orders (three sub-tabs).</li>
+    <li><strong>Bulk Indents</strong> — view all bulk indents you have already created.</li>
+  </ul>
+
+  <h2>3.1 Searching for Sales Orders</h2>
+  <p>Sales orders are not loaded automatically. You must specify a date range first.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Open the "Sales Documents" tab</strong> and ensure you are on the <em>All Orders</em> sub-tab.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Set the date range.</strong> By default, the <em>From Date</em> is two days before today and <em>To Date</em> is today. You can click either date field to pick a different date from the calendar.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Click "Search".</strong> The portal fetches all sales orders created within that date range and displays them as cards.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div><strong>Tip:</strong> If you do not see an order, try widening the date range. Sales orders appear based on their creation date in SAP.</div>
+  </div>
+
+  <h2>3.2 Understanding Each Order Card</h2>
+  <p>Each search result appears as a card. The card header always shows:</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Information</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Order Number</strong></td><td>The SAP sales order number (e.g., 224200).</td></tr>
+      <tr><td><strong>Customer Reference</strong></td><td>Your internal purchase order or reference number.</td></tr>
+      <tr><td><strong>Customer Ref. Date</strong></td><td>Date on the customer's purchase order.</td></tr>
+      <tr><td><strong>Customer Code</strong></td><td>Your SAP customer number.</td></tr>
+      <tr><td><strong>Delivery Location</strong></td><td>Where the goods are to be delivered.</td></tr>
+      <tr><td><strong>Delivery Date</strong></td><td>Requested delivery date from the sales order.</td></tr>
+      <tr><td><strong>Shipping Condition</strong></td><td><span class="badge blue">Collected (CL)</span> or <span class="badge blue">Delivered (DL)</span></td></tr>
+      <tr><td><strong>Total Amount</strong></td><td>Net value of the order with currency.</td></tr>
+      <tr><td><strong>Assignment Status</strong></td><td>How much of this order has been covered by bulk indents (see below).</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Click on a card</strong> to expand it and see the list of items (materials, quantities, unit prices, plants) within that order. Click again to collapse it.</p>
+
+  <h2>3.3 Understanding Assignment Status</h2>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Status</th><th>What it means</th><th>Action available</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge gray">Unassigned</span></td>
+        <td>No bulk indent has been created for this sales order yet.</td>
+        <td>Click <strong>Manage</strong> to create one.</td>
+      </tr>
+      <tr>
+        <td><span class="badge orange">Partially Assigned</span></td>
+        <td>A bulk indent exists but some item quantities are still unallocated to agents.</td>
+        <td>Click <strong>Manage</strong> to add more agent allocations.</td>
+      </tr>
+      <tr>
+        <td><span class="badge green">Fully Assigned</span></td>
+        <td>All quantities have been allocated. No further action needed.</td>
+        <td>The <em>Manage</em> button is disabled. View only.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 3 CONT – TABS
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 3 (continued)</div>
+    <h1>Filtering &amp; Sub-Tabs</h1>
+    <p>Narrowing down the orders you see</p>
+  </div>
+
+  <h2>3.4 Filtering Orders</h2>
+  <p>After a search returns results, a <strong>Filters</strong> panel appears above the order cards. You can narrow the list using:</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Filter</th><th>Options</th><th>Effect</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Shipping Condition</strong></td>
+        <td>All / Collected (CL) / Delivered (DL)</td>
+        <td>Shows only orders with the chosen shipping mode.</td>
+      </tr>
+      <tr>
+        <td><strong>Assignment Status</strong></td>
+        <td>All / Unassigned / Partially Assigned / Fully Assigned</td>
+        <td>Shows only orders matching the chosen assignment state. Available on the <em>All Orders</em> sub-tab only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div>Filters are applied instantly — no need to click Search again.</div>
+  </div>
+
+  <h2>3.5 The Three Sub-Tabs Explained</h2>
+
+  <div class="screen-card">
+    <div class="screen-card-header">
+      <span class="screen-icon">📋</span>
+      <h3>All Orders</h3>
+    </div>
+    <div class="screen-card-body">
+      Shows <em>every</em> sales order in the date range, regardless of assignment status. Use this tab as your starting point. Both filters (Shipping Condition and Assignment Status) are available here. Expandable order cards show individual line items with full quantity and price details.
+    </div>
+  </div>
+
+  <div class="screen-card">
+    <div class="screen-card-header">
+      <span class="screen-icon">🔶</span>
+      <h3>Partially Assigned</h3>
+    </div>
+    <div class="screen-card-body">
+      Shows only orders that have a bulk indent but still have unallocated quantity remaining. When you expand a card, the <em>Remaining Quantities</em> table shows what is still outstanding for each item. Quantities highlighted in <span style="color:#b45309;font-weight:600">orange</span> have some remaining; those in <span style="color:#c0392b;font-weight:600">red</span> show zero (fully allocated for that line).
+    </div>
+  </div>
+
+  <div class="screen-card">
+    <div class="screen-card-header">
+      <span class="screen-icon">✅</span>
+      <h3>Fully Assigned</h3>
+    </div>
+    <div class="screen-card-body">
+      Shows only orders where every item quantity has been allocated. This is a read-only view — no Manage button is shown. The expanded card shows two quantity columns: <em>QTY (Unassigned)</em> and <em>Total QTY</em>, confirming full coverage.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 4 – BULK INDENTS TAB
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 4</div>
+    <h1>Bulk Indents Tab</h1>
+    <p>Viewing all bulk indents you have already created</p>
+  </div>
+
+  <p>Click the <strong>Bulk Indents</strong> tab at the top of the main dashboard to see a list of all bulk indents your account has created. This view is available without doing a search — it loads automatically.</p>
+
+  <h2>What You See</h2>
+  <p>Orders are displayed as cards and <strong>grouped by their parent sales document</strong>. The group header shows the sales document number, shipping condition, and net value so you can quickly identify which sales order each indent belongs to.</p>
+
+  <p>Each bulk indent card shows:</p>
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Bulk Indent No.</strong></td><td>Unique number assigned by the system when the indent was created.</td></tr>
+      <tr><td><strong>Status badge</strong></td><td><span class="badge green">Created</span> – indent exists but no agents assigned yet.<br><span class="badge blue">Agents Allocated</span> – at least one agent allocation has been saved.</td></tr>
+      <tr><td><strong>Customer Code</strong></td><td>Your SAP customer number.</td></tr>
+      <tr><td><strong>Customer Reference</strong></td><td>Your purchase order reference.</td></tr>
+      <tr><td><strong>Reference Date</strong></td><td>Date from your purchase order.</td></tr>
+      <tr><td><strong>Shipping Method</strong></td><td>Collected (CL) or Delivered (DL).</td></tr>
+      <tr><td><strong>Delivery Location</strong></td><td>Delivery destination (shown if applicable).</td></tr>
+      <tr><td><strong>Delivery Date</strong></td><td>Requested delivery date (shown if applicable).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Opening an Existing Bulk Indent</h2>
+  <p>Click anywhere on a bulk indent card (or the <strong>View Details</strong> button) to open it in the <em>Manage Bulk Indent</em> screen. From there you can view all details, add or remove agent allocations, or delete the indent if needed.</p>
+
+  <h2>Refreshing the List</h2>
+  <p>Click the <strong>Refresh</strong> button at the top of the Bulk Indents panel to reload the list from SAP. This is useful if another team member has just created an indent on the same account.</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div><strong>Tip:</strong> If you just created a new bulk indent and do not see it here, click <strong>Refresh</strong>.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 5 – CREATING A BULK INDENT
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 5</div>
+    <h1>Creating a Bulk Indent</h1>
+    <p>Step-by-step guide to converting a sales order into a bulk indent</p>
+  </div>
+
+  <h2>5.1 Opening the Manage Screen</h2>
+  <p>From the <em>All Orders</em> or <em>Partially Assigned</em> sub-tab, find the sales order you want to work on and click the <strong>Manage</strong> button (shown inside the expanded card). You will be taken to the <strong>Manage Bulk Indent</strong> screen.</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div>The <strong>Manage</strong> button is disabled (greyed out) if the order is already <span class="badge green">Fully Assigned</span>. No further indents can be created against a fully assigned order.</div>
+  </div>
+
+  <h2>5.2 Filling In Order Details</h2>
+  <p>The Manage Bulk Indent screen has two columns. The <strong>left column</strong> shows order details and action fields. The <strong>right column</strong> shows the items in the order as a scrollable carousel.</p>
+
+  <h3>Left Column – Fields to Complete</h3>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Required?</th><th>What to enter</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>3rd Party Agent</strong></td>
+        <td><span class="req">Required</span></td>
+        <td>
+          Select whether a third-party agent will be involved in the delivery.<br>
+          For <strong>CL orders</strong>: Choose <em>Yes</em> or <em>No</em>.<br>
+          For <strong>DL orders</strong>: The field is automatically set to <em>N/A</em> (not applicable) because DL deliveries are handled by NRL directly. You cannot change this.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Delivery Location</strong></td>
+        <td><span class="req">Required</span></td>
+        <td>
+          For <strong>DL and CL orders</strong>: This is pre-filled from the sales order and <em>locked</em> (read-only).<br>
+          For orders without a location in SAP: Type the delivery destination manually.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Delivery Date</strong></td>
+        <td><span class="req">Required</span></td>
+        <td>
+          For <strong>DL and CL orders</strong>: Pre-filled from the sales order and locked.<br>
+          For other orders: Pick the date from the calendar.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Right Column – Order Items Carousel</h3>
+  <p>Use the navigation arrows (or swipe on touch screens) to scroll through each item in the order. For each item you can see the material code, description, quantity, unit price, and plant. For CL orders, a <strong>progress bar</strong> shows how much of the quantity has already been allocated to agents.</p>
+
+  <h2>5.3 Creating the Bulk Indent</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Complete all required fields</strong> (3rd Party Agent, Delivery Location, Delivery Date).
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Click "Create Bulk Indent".</strong> The button is located at the bottom of the left column.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>The system creates the indent</strong> and assigns it a <em>Bulk Indent No.</em> A green success badge appears confirming the creation.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>If you selected "Yes" for 3rd Party Agent</strong>, the <em>Agent Allocations</em> section appears below. Proceed to Chapter 6 to assign agents.
+      </div>
+    </div>
+  </div>
+
+  <h2>5.4 Deleting a Bulk Indent</h2>
+  <p>If you need to remove a bulk indent (for example, due to a mistake), click the <strong>Delete Order</strong> button (red) visible in the left column when the indent is open. The system will show a confirmation dialog before deleting.</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div>
+      <strong>Deletion rules:</strong><br>
+      • You can only delete the <em>most recent</em> bulk indent for a given sales order. If a newer indent exists, delete that one first.<br>
+      • You cannot delete an indent that already has agent allocations. Delete all agent allocations first (see Section 6.4), then delete the order.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 6 – AGENT ALLOCATIONS
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 6</div>
+    <h1>Agent Allocations</h1>
+    <p>Assigning agents and quantities to your bulk indent</p>
+  </div>
+
+  <p>Agent allocations appear at the <strong>bottom of the Manage Bulk Indent screen</strong> after a bulk indent has been created with <em>3rd Party Agent = Yes</em>. Each allocation assigns one agent and one transporter to handle a portion of the ordered goods.</p>
+
+  <h2>6.1 Adding an Agent Allocation</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Click "Add Agent"</strong> (blue button in the Agent Allocations header). A new blank allocation panel expands below.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Select an Agent</strong> from the <em>Agent</em> dropdown. The dropdown lists all agents registered for your customer. If you need to add a new agent, go to <em>Add Agent</em> first (see Chapter 7), then come back.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Select a Loading Date</strong>. This is the date on which the goods will be loaded onto the transporter's vehicle. It must be today or a future date.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Select a Carrier</strong> from the <em>Carrier</em> dropdown. Once selected, the carrier's <strong>GSTN number</strong> is automatically filled in (read-only).
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div>You can add <strong>multiple agent allocations</strong> to a single bulk indent by clicking "Add Agent" again for each additional agent.</div>
+  </div>
+
+  <h2>6.2 Entering Item Quantities</h2>
+  <p>Below the agent and carrier details is an <strong>Item Allocations</strong> table listing all line items in the order. For each item:</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Column</th><th>What it shows</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Item</strong></td><td>SAP item position number.</td></tr>
+      <tr><td><strong>Material</strong></td><td>Material/product code.</td></tr>
+      <tr><td><strong>Description</strong></td><td>Product name or description.</td></tr>
+      <tr><td><strong>Order Qty</strong></td><td>Total quantity on the sales order for this item.</td></tr>
+      <tr><td><strong>Allocate Qty</strong></td><td><strong>You enter this value.</strong> Type the quantity you want this agent to handle for this item.</td></tr>
+      <tr><td><strong>UoM</strong></td><td>Unit of measure (e.g., PCS, MT, KG).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div><strong>Quantity validation:</strong> The quantity you enter for an agent cannot exceed the remaining available quantity for that item. If you exceed the limit, the field turns red and an error message appears — reduce the value before saving.</div>
+  </div>
+
+  <p>For <strong>CL orders</strong>, a progress bar on each item in the right-hand carousel updates as you enter quantities, showing you how much of the total is now allocated.</p>
+
+  <h2>6.3 Saving Agent Allocations</h2>
+  <p>Once you have filled in all agent details and quantities, click <strong>"Save Agent Details"</strong> (green button in the Agent Allocations header). The system saves all allocations in one go. A success message confirms the save.</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div><strong>Tip:</strong> You can save partial allocations and come back later to add more agents. The indent remains <span class="badge orange">Partially Assigned</span> until all quantities are covered.</div>
+  </div>
+
+  <h2>6.4 Deleting an Agent Allocation</h2>
+  <p>To remove an agent allocation, click the <strong>trash icon</strong> (red delete button) inside the allocation panel header. A confirmation dialog will appear. Click <em>Delete</em> to confirm. The system removes the allocation and restores the previously allocated quantity back to the available pool.</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 7 – MANAGING AGENTS
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 7</div>
+    <h1>Managing Agents</h1>
+    <p>Adding new agents and maintaining your agent master list</p>
+  </div>
+
+  <p>Agents are the third-party representatives you assign to bulk indents. Before you can allocate an agent to an indent, the agent must exist in the system. To manage agents, click the <strong>"Add Agent"</strong> button in the top-right corner of the main dashboard header.</p>
+
+  <h2>7.1 Adding a New Agent</h2>
+  <p>The <strong>Add Agent Details</strong> screen has two sections: a form on the left to create a new agent, and a table on the right listing all existing agents for your account.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Agent ID is pre-filled automatically.</strong> The system generates the next available ID — you do not need to type it.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Enter Agent Name</strong> — full name of the agent (max 35 characters).
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Enter Email Address</strong> — must be a valid email format (e.g., agent@example.com).
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Enter Mobile Number</strong> — exactly 10 digits, no spaces or special characters.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>Enter Address</strong> — the agent's full address (max 225 characters). The text box expands as you type.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <strong>Click "Save".</strong> A confirmation dialog appears. Review the details and click <em>OK</em> to create the agent record.
+      </div>
+    </div>
+  </div>
+
+  <p>On success, a toast notification confirms "Agent saved successfully." The form clears automatically so you can add another agent if needed. The table on the right refreshes to include the new agent.</p>
+
+  <h2>7.2 Searching Existing Agents</h2>
+  <p>The <strong>Existing Agents</strong> table on the right lists all agents associated with your customer account. Use the <strong>search bar</strong> above the table to filter by any combination of Agent ID, Name, Email, or Mobile Number. The list filters as you type.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Column</th><th>What it shows</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Agent ID</strong></td><td>System-generated unique ID.</td></tr>
+      <tr><td><strong>Agent Name</strong></td><td>Full name in title case.</td></tr>
+      <tr><td><strong>Email Address</strong></td><td>Agent's email (in lowercase).</td></tr>
+      <tr><td><strong>Mobile Number</strong></td><td>10-digit phone number.</td></tr>
+      <tr><td><strong>Address</strong></td><td>Agent's address in title case.</td></tr>
+      <tr><td><strong>Customer</strong></td><td>The customer code this agent belongs to.</td></tr>
+      <tr><td><strong>Created On</strong></td><td>Date the agent record was created.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7.3 Deleting an Agent</h2>
+  <p>Click the <strong>trash icon</strong> in the Actions column of the agent you want to remove. A confirmation dialog will appear asking you to confirm. Click <em>Delete</em> to permanently remove the agent.</p>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div>You can only delete agents that <strong>belong to your customer account</strong>. The delete icon will not appear for agents belonging to other customers (even if they are visible in the table).</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠️</span>
+    <div>Deleting an agent does not automatically remove existing allocations where that agent has been used. Coordinate with the logistics team before deleting an agent that has active allocations.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHAPTER 8 – MESSAGES & TROUBLESHOOTING
+════════════════════════════════════════ -->
+<div class="page">
+  <div class="chapter-header">
+    <div class="ch-num">Chapter 8</div>
+    <h1>Common Messages &amp; Troubleshooting</h1>
+    <p>What error and success messages mean, and what to do about them</p>
+  </div>
+
+  <h2>Success Messages</h2>
+  <table class="field-table">
+    <thead>
+      <tr><th>Message</th><th>What happened</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>"Agent saved successfully."</td><td>Your new agent record was created in SAP.</td></tr>
+      <tr><td>"Agent [ID] deleted."</td><td>The agent record was permanently removed.</td></tr>
+      <tr><td>"Agent allocations saved successfully."</td><td>All agent allocations for this indent were saved to SAP.</td></tr>
+      <tr><td>"Agent allocation deleted and quantities updated successfully."</td><td>The allocation was removed and quantities are now available again.</td></tr>
+      <tr><td>"Order [No.] and its items have been deleted successfully."</td><td>The bulk indent was permanently deleted.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Error Messages and What To Do</h2>
+  <table class="field-table">
+    <thead>
+      <tr><th>Message</th><th>Cause</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Invalid username or password."</td>
+        <td>Wrong credentials at login.</td>
+        <td>Check Caps Lock, retype credentials. Contact SAP admin if forgotten.</td>
+      </tr>
+      <tr>
+        <td>"Your session has expired. Please log in again."</td>
+        <td>The SAP session timed out.</td>
+        <td>Refresh the page and log in again.</td>
+      </tr>
+      <tr>
+        <td>"Quantity (X) exceeds available limit (Y)."</td>
+        <td>You entered more than the remaining available quantity for an item.</td>
+        <td>Reduce the value to Y or less.</td>
+      </tr>
+      <tr>
+        <td>"Loading Date cannot be a past date."</td>
+        <td>The loading date you entered is before today.</td>
+        <td>Select today or a future date.</td>
+      </tr>
+      <tr>
+        <td>"Cannot delete order with existing agent allocations. Please delete all agent allocations first."</td>
+        <td>You tried to delete a bulk indent that has agents assigned to it.</td>
+        <td>Delete all agent allocations (Section 6.4) first, then delete the order.</td>
+      </tr>
+      <tr>
+        <td>"Only the latest order can be deleted. Latest Order: X. Current Order: Y."</td>
+        <td>You tried to delete an older indent when a newer one exists for the same sales order.</td>
+        <td>Open and delete Order X first, then return to delete Order Y.</td>
+      </tr>
+      <tr>
+        <td>"This order is read-only because a newer order exists..."</td>
+        <td>A yellow warning bar at the top of the Manage screen. The indent you opened is not the latest for this sales order.</td>
+        <td>Navigate back and open the newest indent (shown in the warning message) to make changes.</td>
+      </tr>
+      <tr>
+        <td>"No sales documents found for the selected date range."</td>
+        <td>No orders exist in SAP for the dates you searched.</td>
+        <td>Widen the date range and search again.</td>
+      </tr>
+      <tr>
+        <td>"Could not load orders..." / "Something went wrong..."</td>
+        <td>Network or SAP connectivity issue.</td>
+        <td>Wait a moment and try again. If the problem persists, contact your system administrator.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Quick Reference: End-to-End Workflow</h2>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 1 — Log In</strong><br>Enter SAP username and password on the Login screen.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 2 — Search for a Sales Order</strong><br>Set a date range and click Search on the All Orders tab.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 3 — Open the Manage Screen</strong><br>Find an Unassigned or Partially Assigned order and click Manage.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 4 — Fill in Order Details</strong><br>Select 3rd Party Agent, confirm Delivery Location and Date.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 5 — Create Bulk Indent</strong><br>Click Create Bulk Indent. A Bulk Indent No. is assigned.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-box"><strong>Step 6 — Add Agent Allocations</strong> (if 3rd Party = Yes)<br>Click Add Agent, select agent, loading date, carrier, enter quantities per item.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-left"><div class="flow-dot"></div></div>
+      <div class="flow-box"><strong>Step 7 — Save Agent Details</strong><br>Click Save Agent Details. The order moves to Partially or Fully Assigned status.</div>
+    </div>
+  </div>
+
+  <div class="callout tip" style="margin-top:24px">
+    <span class="callout-icon">💡</span>
+    <div><strong>Need further help?</strong> Contact your system administrator or the NRL IT helpdesk for assistance with login issues, missing SAP data, or system errors.</div>
+  </div>
+</div>
+
+</body>
+</html>

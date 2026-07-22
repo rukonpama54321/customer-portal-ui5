@@ -777,6 +777,24 @@ sap.ui.define([
 
             if (oSelectedAgent) {
                 var sPath = oBindingContext.getPath();
+
+                // Prevent allocating the same agent more than once in this bulk indent
+                var aAllAllocations = oViewModel.getProperty("/agentAllocations") || [];
+                var iCurrentIndex = parseInt(sPath.split("/").pop(), 10);
+                var bDuplicate = aAllAllocations.some(function (oAlloc, iIdx) {
+                    return iIdx !== iCurrentIndex && oAlloc.AGENT_ID === sSelectedKey;
+                });
+                if (bDuplicate) {
+                    MessageBox.error(
+                        "Agent \"" + (oSelectedAgent.AGENT_NAME || sSelectedKey) + "\" is already allocated in this bulk indent. Each agent can only be added once.",
+                        { title: "Duplicate Agent" }
+                    );
+                    // Revert the selection (selectedKey is bound to AGENT_ID)
+                    oViewModel.setProperty(sPath + "/AGENT_ID", "");
+                    oViewModel.setProperty(sPath + "/AGENT_NAME", "");
+                    return;
+                }
+
                 oViewModel.setProperty(sPath + "/AGENT_NAME", oSelectedAgent.AGENT_NAME);
                 oViewModel.setProperty(sPath + "/AGENT_ID", oSelectedAgent.AGENT_ID);
                 oViewModel.setProperty(sPath + "/AGENT_MAIL", oSelectedAgent.AGENT_MAIL || "");
@@ -1405,12 +1423,7 @@ sap.ui.define([
             if (!fnVal(oAllocation.LOADING_DATE, "")) {
                 aValidationErrors.push("Loading Date is required");
             }
-            if (!oTransporterData.TRANSPORTER) {
-                aValidationErrors.push("Transporter is required");
-            }
-            if (!oTransporterData.TRANS_NAME) {
-                aValidationErrors.push("Transporter Name is required");
-            }
+            // Transporter/Carrier and its GSTN are optional during agent allocation.
 
             if (aValidationErrors.length > 0) {
                 console.error("🚫 Allocation validation failed:", aValidationErrors.join(", "));
@@ -1618,11 +1631,14 @@ sap.ui.define([
                 };
             }
 
+            // Track agents already seen to reject duplicate allocations
+            var oSeenAgents = {};
+
             // Validate each allocation
             for (var i = 0; i < aAgentAllocations.length; i++) {
                 var oAllocation = aAgentAllocations[i];
                 console.log("Validating allocation " + (i + 1) + ":", oAllocation);
-                
+
                 // Check if AGENT_ID is filled and valid
                 var sAgentId = String(oAllocation.AGENT_ID).trim();
                 if (!sAgentId || sAgentId === "") {
@@ -1631,6 +1647,15 @@ sap.ui.define([
                         error: "Allocation " + (i + 1) + ": Agent is required"
                     };
                 }
+
+                // Reject the same agent being allocated more than once
+                if (oSeenAgents[sAgentId]) {
+                    return {
+                        isValid: false,
+                        error: "Agent \"" + (oAllocation.AGENT_NAME || sAgentId) + "\" is allocated more than once. Each agent can only be added once per bulk indent."
+                    };
+                }
+                oSeenAgents[sAgentId] = true;
 
                 // Check if AGENT_NAME is populated (should be set when agent is selected)
                 var sAgentName = String(oAllocation.AGENT_NAME || "").trim();
@@ -1669,23 +1694,7 @@ sap.ui.define([
                     };
                 }
 
-                // Check if Transporter/Carrier is selected
-                var sTransporter = String(oAllocation.TRANSPORTER || "").trim();
-                if (!sTransporter || sTransporter === "") {
-                    return {
-                        isValid: false,
-                        error: "Allocation " + (i + 1) + ": Carrier is required"
-                    };
-                }
-
-                // Check if TRANS_NAME is populated (should be set when transporter is selected)
-                var sTransName = String(oAllocation.TRANS_NAME || "").trim();
-                if (!sTransName || sTransName === "") {
-                    return {
-                        isValid: false,
-                        error: "Allocation " + (i + 1) + ": Carrier Name is missing. Please reselect the carrier."
-                    };
-                }
+                // Transporter/Carrier and Carrier GSTN are optional — no validation required.
 
                 // Check if at least one item has quantity allocated
                 var bHasAllocatedQty = false;
@@ -1764,7 +1773,27 @@ sap.ui.define([
                 MessageToast.show("No order items found to create the order");
                 return;
             }
-            
+
+            // Block creation when third party is YES but no agents have been created
+            var sThirdPartyCheck = oViewModel.getProperty("/thirdPartyAgent");
+            var aAgentsCheck = oViewModel.getProperty("/agents") || [];
+            if (sThirdPartyCheck === "YES" && aAgentsCheck.length === 0) {
+                MessageBox.error(
+                    "No agents are available. Please create at least one agent before creating a Bulk Indent with a 3rd Party Agent.",
+                    {
+                        title: "Agents Required",
+                        actions: [MessageBox.Action.OK, "Create Agent"],
+                        onClose: function (sAction) {
+                            if (sAction === "Create Agent") {
+                                var oRouter = this.getOwnerComponent().getRouter();
+                                oRouter.navTo("AddAgentDetails");
+                            }
+                        }.bind(this)
+                    }
+                );
+                return;
+            }
+
             // Validate agent allocations quantities
             var oAllocValidation = this._validateAgentAllocations();
             if (!oAllocValidation.isValid) {
@@ -2122,6 +2151,7 @@ sap.ui.define([
                             sessionStorage.removeItem("portal_isLoggedIn");
                             sessionStorage.removeItem("portal_username");
                             sessionStorage.removeItem("portal_token");
+                            sessionStorage.removeItem("portal_userfullname");
                             // Full reload clears SAPUI5 model state (CSRF token, auth headers).
                             // Component.js will find no portal_isLoggedIn and route guard
                             // will redirect the user to the login screen.

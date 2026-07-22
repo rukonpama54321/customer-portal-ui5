@@ -18,7 +18,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/sap/opu/odata/sap/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/",
+        "uri": "/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -108,14 +108,14 @@
       "routes": [
         {
           "name": "RouteLogin",
-          "pattern": "",
+          "pattern": "login",
           "target": [
             "TargetLogin"
           ]
         },
         {
           "name": "RouteCustomerIndent",
-          "pattern": "CustomerBulkIndent",
+          "pattern": "",
           "target": [
             "TargetCustomerIndent"
           ]

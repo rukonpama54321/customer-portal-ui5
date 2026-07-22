@@ -12,14 +12,25 @@
                     <HBox justifyContent="SpaceBetween" alignItems="Center" wrap="Wrap">
                         <HBox alignItems="Center" wrap="Wrap">
                             <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
-                            <VBox>
+                            <VBox class="sapUiMediumMarginEnd">
                                 <Title text="Bulk Indent Portal" level="H1" class="manage-page-title" />
                                 <Text text="Manage bulk indents for customers" class="manage-page-subtitle" />
                             </VBox>
+                            <HBox alignItems="Center" class="userInfoCard">
+                                <Avatar
+                                    initials="{viewModel>/currentUserInitials}"
+                                    displaySize="S"
+                                    backgroundColor="Accent6"
+                                    class="userInfoAvatar sapUiTinyMarginEnd" />
+                                <VBox justifyContent="Center">
+                                    <Text text="Signed in as" class="userInfoLabel" />
+                                    <Text text="{viewModel>/currentUser}" class="userInfoName" />
+                                </VBox>
+                            </HBox>
                         </HBox>
                         <Button
-                            text="Add Agent"
-                            icon="sap-icon://add-employee"
+                            text="Manage Agents"
+                            icon="sap-icon://employee"
                             type="Transparent"
                             class="addAgentHeaderBtn"
                             press=".onAddAgent" />

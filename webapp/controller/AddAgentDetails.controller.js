@@ -6,8 +6,9 @@ sap.ui.define([
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "../util/formatter-dbg"
-], function (Controller, History, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, formatter) {
+    "../util/formatter-dbg",
+    "../util/UserInfo"
+], function (Controller, History, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, formatter, UserInfo) {
     "use strict";
 
     return Controller.extend("customerindent.controller.AddAgentDetails", {
@@ -22,6 +23,7 @@ sap.ui.define([
                 AGENT_MAIL: "",
                 AGENT_PH: "",
                 AGENT_ADDR: "",
+                KUNNR: "",
                 agents: []
             });
             this.getView().setModel(oViewModel, "addAgentModel");
@@ -33,6 +35,18 @@ sap.ui.define([
         _onRouteMatched: function () {
             this._resetForm();
             this._loadAgents();
+
+            // Resolve KUNNR: sessionStorage is set for local dev;
+            // fall back to UserInfo async (BSP production uses session cookie).
+            var sKunnr = sessionStorage.getItem("portal_username") || "";
+            if (sKunnr) {
+                this.getView().getModel("addAgentModel").setProperty("/KUNNR", sKunnr);
+            } else {
+                var oViewModel = this.getView().getModel("addAgentModel");
+                UserInfo.getLoginInfoAsync().then(function (oInfo) {
+                    oViewModel.setProperty("/KUNNR", oInfo.userId || "");
+                });
+            }
         },
 
         onAfterRendering: function () {
@@ -132,6 +146,7 @@ sap.ui.define([
         _resetForm: function () {
             var oViewModel = this.getView().getModel("addAgentModel");
             var aAgents = oViewModel.getProperty("/agents") || [];
+            var sKunnr = oViewModel.getProperty("/KUNNR") || "";
             oViewModel.setData({
                 busy: false,
                 AGENT_ID: "",
@@ -139,6 +154,7 @@ sap.ui.define([
                 AGENT_MAIL: "",
                 AGENT_PH: "",
                 AGENT_ADDR: "",
+                KUNNR: sKunnr,
                 agents: aAgents
             });
 
@@ -193,7 +209,8 @@ sap.ui.define([
                 AGENT_NAME: oViewModel.getProperty("/AGENT_NAME").trim(),
                 AGENT_MAIL: oViewModel.getProperty("/AGENT_MAIL").trim(),
                 AGENT_PH:   oViewModel.getProperty("/AGENT_PH").trim(),
-                AGENT_ADDR: oViewModel.getProperty("/AGENT_ADDR").trim()
+                AGENT_ADDR: oViewModel.getProperty("/AGENT_ADDR").trim(),
+                KUNNR:      (oViewModel.getProperty("/KUNNR") || "").trim()
             };
 
             oViewModel.setProperty("/busy", true);
@@ -260,10 +277,11 @@ sap.ui.define([
         },
 
         onDeleteAgent: function (oEvent) {
-            var oItem = oEvent.getSource().getParent(); // Button → ColumnListItem
-            var oCtx  = oItem.getBindingContext("addAgentModel");
-            var sId   = oCtx.getProperty("AGENT_ID");
-            var sName = oCtx.getProperty("AGENT_NAME");
+            var oItem  = oEvent.getSource().getParent(); // Button → ColumnListItem
+            var oCtx   = oItem.getBindingContext("addAgentModel");
+            var sId    = oCtx.getProperty("AGENT_ID");
+            var sName  = oCtx.getProperty("AGENT_NAME");
+            var sKunnr = oCtx.getProperty("KUNNR");
 
             MessageBox.confirm(
                 "Delete agent \"" + sName + "\" (ID: " + sId + ")?\nThis cannot be undone.",
@@ -276,7 +294,13 @@ sap.ui.define([
                         var oODataModel = this.getView().getModel();
                         var oViewModel  = this.getView().getModel("addAgentModel");
                         oViewModel.setProperty("/busy", true);
-                        oODataModel.remove("/AgentDetailsSet('" + sId + "')", {
+                        // AgentDetails has a composite key (AGENT_ID + KUNNR);
+                        // let createKey build the predicate from the metadata.
+                        var sPath = "/" + oODataModel.createKey("AgentDetailsSet", {
+                            AGENT_ID: sId,
+                            KUNNR: sKunnr
+                        });
+                        oODataModel.remove(sPath, {
                             success: function () {
                                 oViewModel.setProperty("/busy", false);
                                 MessageToast.show("Agent " + sId + " deleted.");

@@ -18,8 +18,19 @@ framework:
     - name: themelib_sap_fiori_3
 server:
   customMiddleware:
-    - name: custom-proxy-middleware
+    - name: fiori-tools-proxy
       afterMiddleware: compression
+      configuration:
+        ignoreCertErrors: true
+        backend:
+          - path: /sap
+            url: http://s4hmock2.nrl.com:8001
+            client: "300"
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
@@ -31,12 +42,3 @@ server:
       configuration:
         component: customerindent
         ui5Theme: sap_fiori_3
-
----
-specVersion: "4.0"
-kind: extension
-type: server-middleware
-metadata:
-  name: custom-proxy-middleware
-middleware:
-  path: ./custom-proxy-middleware.js

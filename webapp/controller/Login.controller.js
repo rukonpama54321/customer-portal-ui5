@@ -4,12 +4,22 @@ sap.ui.define([
     "use strict";
 
     // OData service used as a credential-validation ping in production
-    var SAP_PING_URL = "/sap/opu/odata/sap/ZSD_CUSTIND_WITHOUTVEHNEW_SRV/?sap-client=300";
+    var SAP_PING_URL = "/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/?sap-client=300";
 
     return Controller.extend("customerindent.controller.Login", {
 
         onInit: function () {
-            // If already logged in, skip the login page
+            var bIsLocal = window.location.hostname === "localhost" ||
+                           window.location.hostname === "127.0.0.1";
+
+            // On BSP, the user is already authenticated by SAP Logon.
+            // Skip the login screen entirely.
+            if (!bIsLocal) {
+                this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
+                return;
+            }
+
+            // If already logged in locally, skip the login page
             if (sessionStorage.getItem("portal_isLoggedIn") === "true") {
                 this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
             }

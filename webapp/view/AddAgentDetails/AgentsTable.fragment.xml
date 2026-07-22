@@ -1,6 +1,6 @@
 <core:FragmentDefinition
     xmlns:core="sap.ui.core"
-    xmlns="sap.m">
+    xmlns="sap.m" >
 
     <VBox class="manage-detail-card agent-table-card">
 
@@ -33,6 +33,7 @@
                     <Column width="16rem"><Text text="{i18n>addAgent.agentMail}" /></Column>
                     <Column width="8rem"><Text text="{i18n>addAgent.agentPh}" /></Column>
                     <Column width="22rem"><Text text="{i18n>addAgent.agentAddr}" /></Column>
+                    <Column width="8rem"><Text text="Customer" /></Column>
                     <Column width="7rem" hAlign="Center"><Text text="{i18n>addAgent.listCreatedOn}" /></Column>
                     <Column width="4rem" hAlign="Center" />
                 </columns>
@@ -44,8 +45,10 @@
                             <Text text="{path: 'addAgentModel>AGENT_MAIL', formatter: '.formatter.toLowerEmail'}" />
                             <Text text="{addAgentModel>AGENT_PH}" />
                             <Text text="{path: 'addAgentModel>AGENT_ADDR', formatter: '.formatter.toTitleCase'}" />
+                            <Text text="{addAgentModel>KUNNR}" />
                             <Text text="{addAgentModel>CREATED_ON}" />
-                            <Button icon="sap-icon://delete" type="Transparent" tooltip="Delete Agent" press=".onDeleteAgent" />
+                            <Button icon="sap-icon://delete" type="Transparent" tooltip="Delete Agent" press=".onDeleteAgent"
+                                visible="{parts: [{path: 'addAgentModel>KUNNR'}, {path: 'addAgentModel>/KUNNR'}], formatter: '.formatter.isSameKunnr'}" />
                         </cells>
                     </ColumnListItem>
                 </items>
