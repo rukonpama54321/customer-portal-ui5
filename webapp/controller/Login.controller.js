@@ -4,7 +4,7 @@ sap.ui.define([
     "use strict";
 
     // OData service used as a credential-validation ping in production
-    var SAP_PING_URL = "/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/?sap-client=300";
+    var SAP_PING_URL = "/sap/opu/odata/sap/ZSD_BULK_INDPORTAL_SRV/?sap-client=300";
 
     return Controller.extend("customerindent.controller.Login", {
 

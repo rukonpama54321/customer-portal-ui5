@@ -16,7 +16,7 @@
                         <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
                         <VBox>
                             <Title text="Manage Bulk Indent" level="H1" class="manage-page-title" />
-                            <Text text="Create bulk indent from selected sales document" class="manage-page-subtitle" />
+                            <Text text="Create bulk indent from selected contract" class="manage-page-subtitle" />
                         </VBox>
                     </HBox>
                 </VBox>

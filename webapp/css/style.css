@@ -2337,6 +2337,21 @@
     border-bottom: 3px solid rgba(14, 165, 163, 0.3);
 }
 
+/* Back button sitting on the dark masthead */
+.mastBackBtn .sapMBtnInner {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border-radius: 6px !important;
+}
+
+.mastBackBtn .sapMBtnInner:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.mastBackBtn .sapMBtnIcon {
+    color: #ffffff !important;
+}
+
 /* User login details card in the header */
 .userInfoCard {
     background: rgba(255, 255, 255, 0.1);

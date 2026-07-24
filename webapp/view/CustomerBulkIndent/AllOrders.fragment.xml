@@ -108,13 +108,13 @@
     </Panel>
 
     <MessageStrip
-        text="No sales documents found for the selected date range."
+        text="No contracts found for the selected date range."
         type="Information"
         showIcon="true"
         visible="{viewModel>/showEmptyMessage}" />
 
     <VBox visible="{= ${viewModel>/headers}.length > 0 }">
-        <Title text="Sales Documents" />
+        <Title text="Contracts" />
         <List
             id="salesOrderList"
             items="{viewModel>/headers}"
@@ -177,7 +177,8 @@
                                         <Column width="6rem"><Text text="ITEM" /></Column>
                                         <Column width="10rem"><Text text="MATERIAL" /></Column>
                                         <Column minScreenWidth="Tablet" demandPopin="true"><Text text="DESCRIPTION" /></Column>
-                                        <Column hAlign="End" width="9rem"><Text text="QTY" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="AVAILABLE QTY" /></Column>
+                                        <Column hAlign="End" width="9rem"><Text text="TOTAL CONTRACT QTY" /></Column>
                                         <Column width="5rem"><Text text="UOM" /></Column>
                                         <Column hAlign="End" width="9rem"><Text text="NET PRICE" /></Column>
                                         <Column width="5rem"><Text text="CURR" /></Column>
@@ -190,6 +191,7 @@
                                                 <Text text="{viewModel>MATNR}" />
                                                 <Text text="{viewModel>ARKTX}" />
                                                 <Text text="{= ${viewModel>__showZeroQty} ? '0' : ${viewModel>KWMENG} }" />
+                                                <Text text="{viewModel>ZMENG}" />
                                                 <Text text="{viewModel>VRKME}" />
                                                 <Text text="{viewModel>NETPR}" />
                                                 <Text text="{viewModel>WAERK}" />

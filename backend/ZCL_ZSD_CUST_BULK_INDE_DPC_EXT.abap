@@ -41,13 +41,13 @@ protected section.
     redefinition .
   methods CUSTOMERORDERSET_GET_ENTITYSET
     redefinition .
-  methods SALESORDERHEADER_GET_ENTITY
+  methods CONTRACTHEADER_GET_ENTITY
     redefinition .
-  methods SALESORDERHEADER_GET_ENTITYSET
+  methods CONTRACTHEADER_GET_ENTITYSET
     redefinition .
-  methods SALESORDERITEMSE_GET_ENTITY
+  methods CONTRACTITEMSE_GET_ENTITY
     redefinition .
-  methods SALESORDERITEMSE_GET_ENTITYSET
+  methods CONTRACTITEMSE_GET_ENTITYSET
     redefinition .
   methods TRANSPORTERDETAI_GET_ENTITYSET
     redefinition .
@@ -65,6 +65,46 @@ private section.
       !IV_DEPOT  type WERKS_D
     returning
       value(RV_AVAIL) type VBAP-ZMENG .
+
+  " Remaining balance of ONE specific contract for one material, matching the
+  " open qty shown on the contract card (CONTRACTITEMSE_GET_ENTITYSET) 1:1.
+  " Used by the create/save enforcement so screen and save agree by construction.
+  methods GET_AVAILABLE_FOR_CONTRACT
+    importing
+      !IV_VBELN type VBELN_VA
+      !IV_MATNR type MATNR
+    returning
+      value(RV_AVAIL) type VBAP-ZMENG .
+
+  " Effective quantity ONE open indent commits against the contract for one
+  " material. For a 3rd-party indent the customer only lifts what has been
+  " allocated to agents, so the commitment is the SUM of agent allocations
+  " (zsd_agnt_ordritm-QUANTITY) for this order + material. A self-lift indent
+  " (No/N/A third party) has no agent rows, so it falls back to the full item
+  " line (zsd_cstmr_orditm-KWMENG). Returned in the SAME unit as IV_LINE_QTY -
+  " agent QUANTITY and item KWMENG are both stored on the item's own scale, so
+  " every caller applies its existing KG/MT bridge unchanged.
+  methods GET_COMMITTED_QTY
+    importing
+      !IV_ORDER_NO type ZSD_CSTMR_ORDITM-ORDER_NO
+      !IV_MATNR    type MATNR
+      !IV_LINE_QTY type ZSD_CSTMR_ORDITM-KWMENG
+    returning
+      value(RV_QTY) type ZSD_CSTMR_ORDITM-KWMENG .
+
+  " Quantity of a bulk order + material that has ALREADY been shipped out. Reads
+  " the Automate-TT staging tables (ZSAUTOMATETT_TBL volume / ZSAUTOMATETT_LPG
+  " weight), summing the QUAN columns for rows that carry a shipment number
+  " (SHNUMBER <> space; SHNUMBER is a shipment no., NOT a sales-order VBELN).
+  " Subtracted from the open bulk commitment so the shipped portion is not double-
+  " counted against the contract-side VBFA releases. See the body for the reversal
+  " caveat inherent to the data model.
+  methods GET_RELEASED_QTY
+    importing
+      !IV_ORDER_NO type ZSD_CSTMR_ORDITM-ORDER_NO
+      !IV_MATNR    type MATNR
+    returning
+      value(RV_QTY) type ZSD_CSTMR_ORDITM-KWMENG .
 ENDCLASS.
 
 
@@ -195,447 +235,117 @@ CLASS ZCL_ZSD_CUST_BULK_INDE_DPC_EXT IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->SALESORDERITEMSE_GET_ENTITYSET
+* | Instance Private Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->GET_AVAILABLE_FOR_MATERIAL
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_ENTITY_NAME                 TYPE        STRING
-* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
-* | [--->] IV_SOURCE_NAME                 TYPE        STRING
-* | [--->] IT_FILTER_SELECT_OPTIONS       TYPE        /IWBEP/T_MGW_SELECT_OPTION
-* | [--->] IS_PAGING                      TYPE        /IWBEP/S_MGW_PAGING
-* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
-* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
-* | [--->] IT_ORDER                       TYPE        /IWBEP/T_MGW_SORTING_ORDER
-* | [--->] IV_FILTER_STRING               TYPE        STRING
-* | [--->] IV_SEARCH_STRING               TYPE        STRING
-* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITYSET(optional)
-* | [<---] ET_ENTITYSET                   TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TT_SALESORDERITEM
-* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
-* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
-* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
+* | [--->] IV_SHIPTO                      TYPE        KUNNR
+* | [--->] IV_MATNR                       TYPE        MATNR
+* | [--->] IV_DEPOT                       TYPE        WERKS_D
+* | [<-()] RV_AVAIL                       TYPE        VBAP-ZMENG
 * +--------------------------------------------------------------------------------------</SIGNATURE>
-  method SALESORDERITEMSE_GET_ENTITYSET.
+  method GET_AVAILABLE_FOR_MATERIAL.
+    " Remaining contract balance available to a customer for one material,
+    " aggregated across every currently-valid contract (the bulk portal has
+    " no per-contract picker, unlike the retired Without-Vehicle tab):
+    "
+    "   available = SUM over valid contracts ( VBAP-ZMENG - delivered VBFA )
+    "             - open commitments already booked via the bulk portal
+    "
+    " Returns -1 when the customer has NO valid contract for the material
+    " (distinct from a genuine zero balance).
+    "
+    " UOM: the result is returned in the contract's native UOM. No MT/KG
+    " bridge is applied - the contract balance and the open commitments
+    " (zsd_cstmr_orditm-KWMENG) are used and subtracted as stored.
+    "
+    " Contracts are matched on the ship-to partner (PARVW = 'WE'), replicating
+    " the Without-Vehicle tab. IV_SHIPTO is the sales order's own WE partner,
+    " resolved by the caller from VBPA (see the CustomerOrderSet create branch).
+    DATA: lv_deliv  TYPE vbfa-rfmng_flo,
+          lv_native TYPE vbap-zmeng,
+          lv_commit TYPE vbap-zmeng.
 
-  types: begin of ty_usedqty,
-             salesord type vbak-vbeln,
-             posnr type vbap-posnr,
-             matnr type mara-matnr,
-             kwmeng type vbap-kwmeng,
-          end of ty_usedqty.
+    " candidate contracts (Without-Vehicle SELECT_CONTRACT_NVEH parity:
+    " valid today / ship-to = customer / exact material / OWN-BOND valuation /
+    " user's depot / real item category / not rejected)
+    SELECT v~vbeln, a~posnr, a~zmeng, a~zieme
+      FROM vbak AS v
+      INNER JOIN vbpa AS p ON p~vbeln = v~vbeln
+      INNER JOIN vbap AS a ON a~vbeln = v~vbeln
+      INTO TABLE @DATA(lt_con)
+      WHERE v~guebg <= @sy-datum AND v~gueen >= @sy-datum
+        AND v~auart = 'ZCQ'
+        AND p~kunnr = @iv_shipto AND p~parvw = 'WE'
+        AND a~matnr = @iv_matnr
+        AND a~bwtar = 'OWN-BOND'
+        AND a~werks = @iv_depot
+        AND a~pstyv <> 'ZTAE'
+        AND a~abgru = @space.                                       "#EC CI_BUFFJOIN
 
-  data:   lt_used type table of ty_usedqty,
-          ls_used type ty_usedqty.
-
-  DATA:   lt_items         TYPE TABLE OF zcl_zsd_custind_withou_mpc_ext=>ts_salesorderitem,
-          lt_items2         TYPE TABLE OF zcl_zsd_custind_withou_mpc_ext=>ts_salesorderitem,
-          lt_filter_so     TYPE /iwbep/t_mgw_select_option,
-          ls_filter_so     TYPE /iwbep/s_mgw_select_option,
-          lt_vbeln_range   TYPE RANGE OF vbap-vbeln,
-          ls_vbeln_range   LIKE LINE OF lt_vbeln_range,
-          lv_vbeln         TYPE vbap-vbeln,
-          lt_nav_path      TYPE /iwbep/t_mgw_navigation_path,   " <-- FIXED: use this type!
-          ls_nav_path      TYPE /iwbep/s_mgw_navigation_path,   " <-- also change to matching line type
-          lo_filter        TYPE REF TO /iwbep/if_mgw_req_filter.
-
-
-  data: lt_custord type table of zsd_customer_ord.
-  data: lt_cstmr_orditms type table of zsd_cstmr_orditm.
-
-  data lv_calc type vbap-kwmeng.
-
-  " 1. Check for navigation from header (e.g., .../ToSALESORDERItem)
-  lt_nav_path = it_navigation_path.
-  READ TABLE lt_nav_path INTO ls_nav_path WITH KEY nav_prop = 'ToItem'.  " adjust case/name if your navigation property is different (check SEGW)
-  IF sy-subrc = 0.
-    " Navigation context → get VBELN from the source entity (header) key
-    READ TABLE it_key_tab INTO DATA(ls_key) WITH KEY name = 'VBELN'.
-    IF sy-subrc = 0.
-      lv_vbeln = ls_key-value.
-
-      CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-      EXPORTING
-        input  = lv_vbeln
-      IMPORTING
-        output = lv_vbeln.
-
-
-      lt_vbeln_range = VALUE #( ( sign = 'I' option = 'EQ' low = lv_vbeln ) ).
-    ELSE.
-      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-        EXPORTING
-          http_status_code = '400'
-          message     = 'Navigation requested but VBELN key missing'.
+    IF lt_con IS INITIAL.
+      rv_avail = -1.            " no valid contract for this customer + material
+      RETURN.
     ENDIF.
-  ELSE.
-    " Standalone query → use $filter
-    lo_filter = io_tech_request_context->get_filter( ).
-    lt_filter_so = lo_filter->get_filter_select_options( ).
 
-    " Extract VBELN filter if present
-    READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'VBELN'.
-    IF sy-subrc = 0.
-      lt_vbeln_range = VALUE #( FOR ls_opt IN ls_filter_so-select_options
-                                ( sign   = ls_opt-sign
-                                  option = ls_opt-option
-                                  low    = ls_opt-low
-                                  high   = ls_opt-high ) ).
-    ENDIF.
-  ENDIF.
+    " ordered - delivered, summed over the contract lines (contract native UOM)
+    LOOP AT lt_con INTO DATA(ls_con).
+      CLEAR lv_deliv.
+      SELECT SUM( rfmng_flo ) FROM vbfa INTO @lv_deliv
+        WHERE vbelv = @ls_con-vbeln AND vbtyp_n = 'C' AND posnv = @ls_con-posnr.
+      lv_native = lv_native + ( ls_con-zmeng - lv_deliv ).
+    ENDLOOP.
 
-  " If no filter and no navigation → optional: return empty or raise error
-  IF lt_vbeln_range IS INITIAL.
-    " You can decide policy: allow empty result, or restrict to filtered queries only
-    " For safety (avoid dumping entire VBAP), raise exception or return empty
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '400'
-        message     = 'Please provide VBELN filter or navigate from a sales order header'.
-  ENDIF.
+    " contract balance in its native UOM (no MT/KG bridge applied).
+    rv_avail = lv_native.
 
-  " 4. Fetch items from VBAP
-  SELECT *
-    FROM vbap
-    INTO CORRESPONDING FIELDS OF TABLE @lt_items
-    WHERE vbeln IN @lt_vbeln_range.
+    " open commitments already booked via the BULK portal for this
+    " ship-to + material. zsd_cstmr_orditm carries no contract column,
+    " so the commitment is counted at the (ship-to, material) grain - the same
+    " grain the contract discovery above uses. Only OPEN indents count: once
+    " the external processor sets STATUS = 'C', the indent stops consuming
+    " balance (blank status = legacy/open, still counts - safe default).
+    SELECT i~order_no, i~kwmeng
+      FROM zsd_cstmr_orditm AS i
+      INNER JOIN zsd_customer_ord AS h ON h~order_no = i~order_no
+      INTO TABLE @DATA(lt_pc)
+      WHERE h~shipto = @iv_shipto
+        AND i~matnr  = @iv_matnr
+        AND h~status <> 'C'.
 
-  refresh lt_custord.
-  select  * from zsd_customer_ord into corresponding fields of table lt_custord where salesorder IN lt_vbeln_range.
+    " collapse to one row per order for this material: get_committed_qty and
+    " get_released_qty already aggregate at the (order, material) grain, so
+    " calling them once per item line would count an order that carries the same
+    " material on more than one line twice. COLLECT sums KWMENG per order.
+    TYPES: BEGIN OF ty_ord,
+             order_no TYPE zsd_cstmr_orditm-order_no,
+             kwmeng   TYPE zsd_cstmr_orditm-kwmeng,
+           END OF ty_ord.
+    DATA lt_ord TYPE STANDARD TABLE OF ty_ord.
+    DATA ls_ord TYPE ty_ord.
 
-  clear ls_used.
-  refresh lt_used.
+    CLEAR lt_ord.
+    LOOP AT lt_pc INTO DATA(ls_pc).
+      ls_ord-order_no = ls_pc-order_no.
+      ls_ord-kwmeng   = ls_pc-kwmeng.
+      COLLECT ls_ord INTO lt_ord.
+    ENDLOOP.
 
-  loop at lt_custord into data(ls_custord).
-    refresh lt_cstmr_orditms.
-    select * from zsd_cstmr_orditm into table lt_cstmr_orditms where order_no eq ls_custord-order_no.
-
-    loop at lt_cstmr_orditms into data(ls_cstmr_orditms).
-      read table lt_used into data(ls_used2) with key salesord = ls_custord-salesorder posnr = ls_cstmr_orditms-posnr.
-
-      if ls_used2 is initial.
-         ls_used-salesord = ls_custord-salesorder.
-         ls_used-posnr = ls_cstmr_orditms-posnr.
-         ls_used-matnr = ls_cstmr_orditms-matnr.
-         ls_used-kwmeng = ls_cstmr_orditms-usedqty.
-
-         append ls_used to lt_used.
-      else.
-         ls_used-salesord = ls_custord-salesorder.
-         ls_used-posnr = ls_cstmr_orditms-posnr.
-         ls_used-matnr = ls_cstmr_orditms-matnr.
-         add ls_cstmr_orditms-usedqty to ls_used2-kwmeng.
-
-         ls_used-kwmeng = ls_used2-kwmeng.
-
-         delete lt_used where salesord eq ls_used-salesord and posnr eq ls_used-posnr.
-         append ls_used to lt_used.
-      endif.
-
-      clear ls_used2.
-
-    endloop.
-  endloop.
-
-  loop at lt_items into data(wa_items).
-    read table lt_used into ls_used with key salesord = ls_custord-salesorder posnr = wa_items-posnr.
-    wa_items-kwmeng = wa_items-kwmeng - ls_used-kwmeng.
-
-    append wa_items to lt_items2.
-  endloop.
-
-  IF sy-subrc <> 0 OR lt_items IS INITIAL.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '404'
-        message     = 'No items found for the specified sales order(s)'.
-  ENDIF.
-
-  " Optional: sort, page, etc. (Gateway handles $top/$skip/$orderby if not overridden)
-  et_entityset = lt_items2.
-  endmethod.
-
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->SALESORDERITEMSE_GET_ENTITY
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_ENTITY_NAME                 TYPE        STRING
-* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
-* | [--->] IV_SOURCE_NAME                 TYPE        STRING
-* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
-* | [--->] IO_REQUEST_OBJECT              TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
-* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
-* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
-* | [<---] ER_ENTITY                      TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TS_SALESORDERITEM
-* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
-* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
-* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  method SALESORDERITEMSE_GET_ENTITY.
-DATA: ls_key_vbeln  TYPE /iwbep/s_mgw_name_value_pair,
-        ls_key_posnr  TYPE /iwbep/s_mgw_name_value_pair,
-        lv_vbeln      TYPE vbap-vbeln,
-        lv_posnr      TYPE vbap-posnr,
-        ls_item       TYPE zcl_zsd_custind_withou_mpc_ext=>ts_salesorderitem.
-
-  " Get VBELN key
-  READ TABLE it_key_tab INTO ls_key_vbeln WITH KEY name = 'Vbeln'.
-  IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '400'
-        message     = 'Missing mandatory key field: VBELN'.
-  ENDIF.
-
-  lv_vbeln = ls_key_vbeln-value.
-
-  " Get POSNR key
-  READ TABLE it_key_tab INTO ls_key_posnr WITH KEY name = 'Posnr'.
-  IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '400'
-        message     = 'Missing mandatory key field: POSNR'.
-  ENDIF.
-
-  lv_posnr = ls_key_posnr-value.
-
-  " Fetch single item
-  SELECT SINGLE vbeln,posnr,matnr,arktx,kwmeng,vrkme,werks
-    FROM vbap
-    INTO CORRESPONDING FIELDS OF @ls_item
-    WHERE vbeln = @lv_vbeln
-      AND posnr = @lv_posnr.
-
-  IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '404'
-        message     = |Item { lv_posnr } for Sales Order { lv_vbeln } not found|.
-  ENDIF.
-
-  er_entity = ls_item.
-  endmethod.
-
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->SALESORDERHEADER_GET_ENTITYSET
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_ENTITY_NAME                 TYPE        STRING
-* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
-* | [--->] IV_SOURCE_NAME                 TYPE        STRING
-* | [--->] IT_FILTER_SELECT_OPTIONS       TYPE        /IWBEP/T_MGW_SELECT_OPTION
-* | [--->] IS_PAGING                      TYPE        /IWBEP/S_MGW_PAGING
-* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
-* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
-* | [--->] IT_ORDER                       TYPE        /IWBEP/T_MGW_SORTING_ORDER
-* | [--->] IV_FILTER_STRING               TYPE        STRING
-* | [--->] IV_SEARCH_STRING               TYPE        STRING
-* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITYSET(optional)
-* | [<---] ET_ENTITYSET                   TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TT_SALESORDERHEADER
-* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
-* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
-* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  method SALESORDERHEADER_GET_ENTITYSET.
-        data: lt_salesorder_headers type table of zcl_zsd_custind_withou_mpc_ext=>ts_salesorderheader,
-              wa_salesorder_hdr like line of lt_salesorder_headers.
-
-        data: lt_salesdoc type table of vbak.
-
-        DATA: lt_bstdk_range TYPE RANGE OF vbak-bstdk,
-              lt_vbeln_range TYPE RANGE OF vbak-vbeln,
-              lt_filter_so   TYPE TABLE OF /iwbep/s_mgw_select_option,
-              ls_filter_so   TYPE /iwbep/s_mgw_select_option,
-              lo_filter      TYPE REF TO /iwbep/if_mgw_req_filter.
-
-        " 1. Try select-options first (for simple filters)
-        lo_filter = io_tech_request_context->get_filter( ).
-        lt_filter_so = lo_filter->get_filter_select_options( ).
-
-        READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'BSTDK'.
-        IF sy-subrc = 0.
-
-          LOOP AT ls_filter_so-select_options ASSIGNING FIELD-SYMBOL(<fs_opt>).
-            DATA(lv_low)  = <fs_opt>-low.
-            DATA(lv_high) = <fs_opt>-high.
-
-            " Remove '-' if present and length matches ISO date
-            REPLACE ALL OCCURRENCES OF '-' IN lv_low  WITH ''.
-            REPLACE ALL OCCURRENCES OF '-' IN lv_high WITH ''.
-
-            IF strlen( lv_low ) = 8 AND lv_low CO '0123456789'.
-              APPEND VALUE #( sign = <fs_opt>-sign option = <fs_opt>-option
-                              low = lv_low high = lv_high ) TO lt_bstdk_range.
-            ELSEIF lv_low IS NOT INITIAL.
-              " Optional: raise error or ignore invalid date
-              " RAISE EXCEPTION ... 'Invalid date format in filter BSTDK'.
-            ENDIF.
-          ENDLOOP.
-
-        ENDIF.
-
-        READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'VBELN'.
-
-        IF sy-subrc = 0.
-          lt_vbeln_range = VALUE #( FOR ls_opt IN ls_filter_so-select_options
-                                    ( sign   = ls_opt-sign
-                                      option = ls_opt-option
-                                      low    = ls_opt-low
-                                      high   = ls_opt-high ) ).
-        ENDIF.
-
-
-     " Read all request headers then find the one we need
-      DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
-
-      DATA(lv_portal_user) = VALUE string( ).
-      READ TABLE lt_headers INTO DATA(ls_header1)
-          WITH KEY name = 'x-portal-user'.
-      IF sy-subrc = 0.
-          lv_portal_user = ls_header1-value.
+    CLEAR lv_commit.
+    LOOP AT lt_ord INTO ls_ord.
+      " agent-allocated qty for 3rd-party indents, full item line otherwise,
+      " MINUS what has already become a sales order. The released part is already
+      " netted out via the VBFA 'C' releases above, so leaving it in the
+      " commitment would double-subtract it.
+      DATA(lv_line) = get_committed_qty( iv_order_no = ls_ord-order_no
+                                         iv_matnr    = iv_matnr
+                                         iv_line_qty = ls_ord-kwmeng ).
+      lv_line = lv_line - get_released_qty( iv_order_no = ls_ord-order_no
+                                            iv_matnr    = iv_matnr ).
+      IF lv_line > 0.
+        lv_commit = lv_commit + lv_line.
       ENDIF.
+    ENDLOOP.
 
-      IF lv_portal_user IS INITIAL.
-          lv_portal_user = sy-uname.  " fallback
-      ENDIF.
-
-        select single *
-        from zsd_cust_usr_map into @data(ls_customer) where cust_user_id eq @lv_portal_user.
-
-        " 4. Fetch data from VBAK (add more fields or WHERE clauses as needed)
-        if lt_vbeln_range[] is initial.
-          SELECT *
-              FROM vbak
-              into corresponding fields of table @lt_salesdoc
-                   WHERE bstdk IN @lt_bstdk_range and kunnr eq @ls_customer-kunnr.
-        elseif lt_bstdk_range is initial.
-          SELECT *
-              FROM vbak
-              INTO CORRESPONDING FIELDS OF TABLE @lt_salesdoc
-                   WHERE vbeln IN @lt_vbeln_range and kunnr eq @ls_customer-kunnr.
-        else.
-          SELECT *
-              FROM vbak
-              INTO CORRESPONDING FIELDS OF TABLE @lt_salesdoc
-                   WHERE vbeln IN @lt_vbeln_range
-                   AND bstdk IN @lt_bstdk_range and kunnr eq @ls_customer-kunnr.
-        endif.
-
-
-        if lt_salesdoc is not initial.
-          loop at lt_salesdoc into data(wa_salesdoc).
-            move-corresponding wa_salesdoc to wa_salesorder_hdr.
-
-            concatenate 'C' lv_portal_user into data(lv_customerno).
-
-            select single * from but000 into @data(wa_addr) where partner eq @lv_customerno.
-
-            concatenate wa_addr-name_org1 wa_addr-name_org2 wa_addr-name_org3 into data(lv_addr) separated by space.
-            shift lv_addr right deleting trailing space.
-
-            wa_salesorder_hdr-delivloc = lv_addr.
-            wa_salesorder_hdr-delivdate = wa_salesdoc-vdatu.
-
-            append wa_salesorder_hdr to lt_salesorder_headers.
-
-            clear lv_addr.
-
-          endloop.
-        endif.
-
-
-
-        IF sy-subrc <> 0 OR  lt_salesorder_headers[] IS INITIAL.
-          RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-            EXPORTING
-              http_status_code = '404'
-              message     = 'No sales orders found matching the filter'.
-        ENDIF.
-
-        et_entityset = lt_salesorder_headers.
-
-ENDMETHOD.
-
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->SALESORDERHEADER_GET_ENTITY
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_ENTITY_NAME                 TYPE        STRING
-* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
-* | [--->] IV_SOURCE_NAME                 TYPE        STRING
-* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
-* | [--->] IO_REQUEST_OBJECT              TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
-* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
-* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
-* | [<---] ER_ENTITY                      TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TS_SALESORDERHEADER
-* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
-* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
-* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  method SALESORDERHEADER_GET_ENTITY.
-  DATA: ls_key        TYPE /iwbep/s_mgw_name_value_pair,
-        lv_vbeln      TYPE vbak-vbeln,
-        ls_salesdoc   TYPE vbak,
-        ls_header     TYPE zcl_zsd_custind_withou_mpc_ext=>ts_salesorderheader.
-
-  DATA: lv_customerno type string.
-
-  " Get the key value for VBELN
-  READ TABLE it_key_tab INTO ls_key WITH KEY name = 'VBELN'.
-  IF sy-subrc = 0.
-    lv_vbeln = ls_key-value.
-  ELSE.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '400'
-        message     = 'Missing mandatory key field: VBELN'.
-  ENDIF.
-
-  " Read all request headers then find the one we need
-  DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
-
-  DATA(lv_portal_user) = VALUE string( ).
-  READ TABLE lt_headers INTO DATA(ls_header1)
-      WITH KEY name = 'x-portal-user'.
-  IF sy-subrc = 0.
-      lv_portal_user = ls_header1-value.
-  ENDIF.
-
-  IF lv_portal_user IS INITIAL.
-      lv_portal_user = sy-uname.  " fallback
-  ENDIF.
-
-
-  select single *
-        from zsd_cust_usr_map into @data(ls_customer) where cust_user_id eq @lv_portal_user.
-
-  " Fetch single sales order header
-  SELECT SINGLE *
-    FROM vbak
-    INTO CORRESPONDING FIELDS OF @ls_salesdoc
-    WHERE vbeln = @lv_vbeln and kunnr eq @ls_customer-kunnr.
-
-  concatenate 'C' lv_portal_user into lv_customerno.
-
-  select single * from but000 into @data(ls_delivaddr) where partner eq @lv_customerno.
-
-  concatenate ls_delivaddr-name_org1 ls_delivaddr-name_org2 ls_delivaddr-name_org3 ls_delivaddr-name_org3
-              into data(lv_address) separated by space.
-
-  shift lv_address right deleting trailing space.
-  move-corresponding ls_salesdoc to ls_header.
-
-
-  ls_header-delivloc = lv_address.
-  ls_header-delivdate = ls_salesdoc-vdatu.
-
-  IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        http_status_code = '404'
-        message     = |Sales Order { lv_vbeln } not found|.
-  ENDIF.
-
-
-  er_entity = ls_header.
+    rv_avail = rv_avail - lv_commit.
   endmethod.
 
 
@@ -659,9 +369,9 @@ ENDMETHOD.
 * | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method CUSTOMERORDERSET_GET_ENTITYSET.
-DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder,
+    DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder,
         lr_order_no     TYPE RANGE OF zsd_customer_ord-order_no,
-        lr_salesorder   TYPE RANGE OF zsd_customer_ord-salesorder,
+        lr_CONTRACT   TYPE RANGE OF zsd_customer_ord-CONTRACT,
         lv_top          TYPE i,
         lv_skip         TYPE i,
         lv_orderby      TYPE string.               " ← we will build the ORDER BY clause here
@@ -684,9 +394,9 @@ DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder
                                  high   = opt-high ) ).
     ENDIF.
 
-    READ TABLE it_filter_select_options INTO ls_filter WITH KEY property = 'SALESORDER'.
+    READ TABLE it_filter_select_options INTO ls_filter WITH KEY property = 'CONTRACT'.
     IF sy-subrc = 0.
-      lr_salesorder = VALUE #( FOR opt IN ls_filter-select_options
+      lr_CONTRACT = VALUE #( FOR opt IN ls_filter-select_options
                                  ( sign   = opt-sign
                                    option = opt-option
                                    low    = opt-low
@@ -744,7 +454,7 @@ DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder
       FROM zsd_customer_ord
       WHERE kunnr eq @ls_customer-kunnr
         AND order_no   IN @lr_order_no
-        AND salesorder IN @lr_salesorder
+        AND CONTRACT IN @lr_CONTRACT
       ORDER BY (lv_orderby)               " ← string variable → correct syntax
       INTO CORRESPONDING FIELDS OF TABLE @lt_header
       UP TO @lv_top ROWS OFFSET @lv_skip.
@@ -757,7 +467,7 @@ DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder
         INTO @data(lv_count)
         WHERE kunnr eq @ls_customer-kunnr
           AND order_no   IN @lr_order_no
-          AND salesorder IN @lr_salesorder.
+          AND CONTRACT IN @lr_CONTRACT.
 
       es_response_context-inlinecount = lv_count.
     ENDIF.
@@ -861,11 +571,27 @@ DATA: lt_header       TYPE TABLE OF zcl_zsd_custind_withou_mpc=>ts_customerorder
 
   lv_order_no = ls_key-value.
 
-  " 2. Optional: existence check + business rules
+  " Resolve the portal user -> owning customer so a delete is scoped to the
+  " caller's own indents (the ORDER_NO key alone is guessable).
+  DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+  DATA(lv_portal_user) = VALUE string( ).
+  READ TABLE lt_headers INTO DATA(ls_header1) WITH KEY name = 'x-portal-user'.
+  IF sy-subrc = 0.
+    lv_portal_user = ls_header1-value.
+  ENDIF.
+  IF lv_portal_user IS INITIAL.
+    lv_portal_user = sy-uname.  " fallback
+  ENDIF.
+
+  SELECT SINGLE * FROM zsd_cust_usr_map
+    INTO @DATA(ls_customer) WHERE cust_user_id eq @lv_portal_user.
+
+  " 2. Existence check + ownership: the order must belong to THIS customer
   SELECT SINGLE *
     FROM zsd_customer_ord
-    INTO ls_cust_ord
-    WHERE order_no = lv_order_no.
+    INTO @ls_cust_ord
+    WHERE order_no = @lv_order_no
+      AND kunnr    = @ls_customer-kunnr.
 
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
@@ -941,6 +667,32 @@ method CUSTOMERORDERITE_UPDATE_ENTITY.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING message_unlimited = 'Key field POSNR missing'.
+  ENDIF.
+
+  " -------------------------------------------------------------------------
+  " 1b. Ownership: resolve portal user -> customer and confirm the parent
+  "     order belongs to the caller before touching the item (the item table
+  "     carries no customer column, so scope via the header's KUNNR).
+  " -------------------------------------------------------------------------
+  DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+  DATA(lv_portal_user) = VALUE string( ).
+  READ TABLE lt_headers INTO DATA(ls_header1) WITH KEY name = 'x-portal-user'.
+  IF sy-subrc = 0.
+    lv_portal_user = ls_header1-value.
+  ENDIF.
+  IF lv_portal_user IS INITIAL.
+    lv_portal_user = sy-uname.  " fallback
+  ENDIF.
+
+  SELECT SINGLE * FROM zsd_cust_usr_map
+    INTO @DATA(ls_customer) WHERE cust_user_id eq @lv_portal_user.
+
+  SELECT SINGLE kunnr FROM zsd_customer_ord
+    INTO @DATA(lv_owner)
+    WHERE order_no = @lv_order_no.
+  IF sy-subrc <> 0 OR lv_owner <> ls_customer-kunnr.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING message_unlimited = 'Customer Order Item not found'.
   ENDIF.
 
   " -------------------------------------------------------------------------
@@ -1087,32 +839,52 @@ endmethod.
                           ( sign = opt-sign option = opt-option low = opt-low high = opt-high ) ).
   ENDIF.
 
-  " Fetch items
+  " Resolve the portal user -> owning customer so only the caller's own order
+  " items are returned. The item table carries no customer column, so scope
+  " via the parent header's KUNNR (inner join to zsd_customer_ord).
+  DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+  DATA(lv_portal_user) = VALUE string( ).
+  READ TABLE lt_headers INTO DATA(ls_header1) WITH KEY name = 'x-portal-user'.
+  IF sy-subrc = 0.
+    lv_portal_user = ls_header1-value.
+  ENDIF.
+  IF lv_portal_user IS INITIAL.
+    lv_portal_user = sy-uname.  " fallback
+  ENDIF.
+
+  SELECT SINGLE * FROM zsd_cust_usr_map
+    INTO @DATA(ls_customer) WHERE cust_user_id eq @lv_portal_user.
+
+  " Fetch items (scoped to the caller's own orders via the header KUNNR)
   SELECT
-    order_no,
-    posnr,
-    matnr,
-    arktx,
-    kwmeng,
-    vrkme,
-    netpr,
-    waerk,
-    werks,   " duplicate? adjust if typo
-    usedqty   " BALANCE ?
-  FROM zsd_cstmr_orditm
-  WHERE order_no IN @lr_order_no
-    AND posnr    IN @lr_posnr
-  ORDER BY order_no,posnr
+    i~order_no,
+    i~posnr,
+    i~matnr,
+    i~arktx,
+    i~kwmeng,
+    i~vrkme,
+    i~netpr,
+    i~waerk,
+    i~werks,
+    i~usedqty
+  FROM zsd_cstmr_orditm AS i
+  INNER JOIN zsd_customer_ord AS h ON h~order_no = i~order_no
+  WHERE i~order_no IN @lr_order_no
+    AND i~posnr    IN @lr_posnr
+    AND h~kunnr     = @ls_customer-kunnr
+  ORDER BY i~order_no, i~posnr
   INTO CORRESPONDING FIELDS OF TABLE @lt_items
-  UP TO @lv_top ROWS OFFSET @lv_skip    .
+  UP TO @lv_top ROWS OFFSET @lv_skip.
 
   " Inline count (optional)
   IF io_tech_request_context->has_inlinecount( ) = abap_true.
     SELECT COUNT(*)
-      FROM zsd_cstmr_orditm
+      FROM zsd_cstmr_orditm AS i
+      INNER JOIN zsd_customer_ord AS h ON h~order_no = i~order_no
       INTO @data(lv_count)
-      WHERE order_no IN @lr_order_no
-        AND posnr    IN @lr_posnr.
+      WHERE i~order_no IN @lr_order_no
+        AND i~posnr    IN @lr_posnr
+        AND h~kunnr     = @ls_customer-kunnr.
 
       es_response_context-inlinecount = lv_count.
   ENDIF.
@@ -1165,6 +937,33 @@ endmethod.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             message_unlimited = 'Key field POSNR is missing'.
+      ENDIF.
+
+      " -------------------------------------------------------------------------
+      " 1b. Ownership: resolve portal user -> customer, confirm the parent order
+      "     belongs to the caller before returning the item.
+      " -------------------------------------------------------------------------
+      DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+      DATA(lv_portal_user) = VALUE string( ).
+      READ TABLE lt_headers INTO DATA(ls_header1) WITH KEY name = 'x-portal-user'.
+      IF sy-subrc = 0.
+        lv_portal_user = ls_header1-value.
+      ENDIF.
+      IF lv_portal_user IS INITIAL.
+        lv_portal_user = sy-uname.  " fallback
+      ENDIF.
+
+      SELECT SINGLE * FROM zsd_cust_usr_map
+        INTO @DATA(ls_customer) WHERE cust_user_id eq @lv_portal_user.
+
+      SELECT SINGLE kunnr FROM zsd_customer_ord
+        INTO @DATA(lv_owner)
+        WHERE order_no = @lv_order_no.
+      IF sy-subrc <> 0 OR lv_owner <> ls_customer-kunnr.
+        RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+          EXPORTING
+            message_unlimited = 'Customer Order Item not found'
+            http_status_code  = 404.
       ENDIF.
 
       " -------------------------------------------------------------------------
@@ -2180,7 +1979,7 @@ endmethod.
             " partners. Stored on the indent so the commitment sum can be keyed
             " on the SAME ship-to grain as the contract discovery.
             DATA lv_salesord_key TYPE vbeln.
-            lv_salesord_key = ls_custheader_db-salesorder.
+            lv_salesord_key = ls_custheader_db-CONTRACT.
             CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
               EXPORTING input  = lv_salesord_key
               IMPORTING output = lv_salesord_key.
@@ -2235,23 +2034,21 @@ endmethod.
             ENDIF.
             " ────────────────────────────────────────────────────────────────
             " 3b. Contract-balance enforcement
-            "     These sales docs are VBTYP 'C' orders, so the governing
-            "     contract is discovered from (KUNNR + MATNR). Requested
-            "     quantities are aggregated per material and checked against
-            "     the available balance (get_available_for_material). On an
-            "     UPDATE the old items were already deleted above, so they are
-            "     correctly excluded from the commitment sum below.
+            "     Enforced against the SPECIFIC contract the indent is booked
+            "     against (ls_custheader_db-CONTRACT), so it matches the open
+            "     balance shown on the contract card 1:1 - get_available_for_
+            "     contract uses the same ZMENG - VBFA releases - open indents
+            "     math as CONTRACTITEMSE_GET_ENTITYSET. Requested quantities
+            "     are aggregated per material and checked in MT. On an UPDATE the
+            "     old items were already deleted above, so they are correctly
+            "     excluded from the commitment sum.
             " ────────────────────────────────────────────────────────────────
-            DATA: lv_depot_chk TYPE werks_d,
-                  lv_avail_chk TYPE vbap-zmeng.
+            DATA: lv_avail_chk TYPE vbap-zmeng.
             DATA: BEGIN OF ls_reqmat,
                     matnr TYPE matnr,
                     qty   TYPE vbap-zmeng,
                   END OF ls_reqmat,
                   lt_reqmat LIKE STANDARD TABLE OF ls_reqmat.
-
-            SELECT SINGLE depot FROM zsd_cust_usr_map INTO @lv_depot_chk
-              WHERE cust_user_id = @lv_portal_user.
 
             " aggregate the requested quantity per material for this order
             CLEAR lt_reqmat.
@@ -2269,11 +2066,11 @@ endmethod.
               ENDIF.
             ENDLOOP.
 
+            " lv_salesord_key = the picked contract, ALPHA-padded above
             LOOP AT lt_reqmat INTO ls_reqmat.
-              lv_avail_chk = get_available_for_material(
-                               iv_shipto = ls_custheader_db-shipto
-                               iv_matnr  = ls_reqmat-matnr
-                               iv_depot  = lv_depot_chk ).
+              lv_avail_chk = get_available_for_contract(
+                               iv_vbeln = lv_salesord_key
+                               iv_matnr = ls_reqmat-matnr ).
               IF lv_avail_chk < 0.
                 RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
                   EXPORTING message =
@@ -2326,87 +2123,797 @@ endmethod.
   endmethod.
 
 
-  method GET_AVAILABLE_FOR_MATERIAL.
-    " Remaining contract balance available to a customer for one material,
-    " aggregated across every currently-valid contract (the bulk portal has
-    " no per-contract picker, unlike the retired Without-Vehicle tab):
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->GET_RELEASED_QTY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ORDER_NO                    TYPE        ZSD_CSTMR_ORDITM-ORDER_NO
+* | [--->] IV_MATNR                       TYPE        MATNR
+* | [<-()] RV_QTY                         TYPE        ZSD_CSTMR_ORDITM-KWMENG
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method GET_RELEASED_QTY.
+    " Qty of this bulk order + material that has already been SHIPPED OUT. STP's
+    " SUBMIT_INDENT writes every processed indent into the Automate-TT staging
+    " tables - ZSAUTOMATETT_TBL (volume/liquid tankers) and ZSAUTOMATETT_LPG
+    " (SOLID products: WAX / SUL / RPC) - stamping ORDER_NO with the bulk order
+    " and spreading up to 8 products across PROD_CMPn (material) with qty in
+    " QUAN_COMPn (_TBL) / PROD_QUANn (_LPG). A material is either liquid or solid,
+    " so a given order populates exactly ONE of the two tables.
     "
-    "   available = SUM over valid contracts ( VBAP-ZMENG - delivered VBFA )
-    "             - open commitments already booked via the bulk portal
+    " "Released" is gated on SHNUMBER <> space. Confirmed from ZAUTOTTLOAD:
+    " SHNUMBER is the SHIPMENT number (ZLPG_HDR-SHNUM = NXTMBR, the generated
+    " shipment no.; that value is ALPHA-formatted and MODIFY'd onto the staging
+    " row in the same COMMIT that stamps SHNUM on the gate-pass headers). It is
+    " NOT a sales-order VBELN, so it cannot be cross-checked against VBFA - we use
+    " it purely as the flag "this row has been shipped" and take the quantity from
+    " the staging QUAN columns. Un-shipped rows (SHNUMBER = space) are the still-
+    " open part and are excluded; ZAUTOTTLOAD itself deletes blank rows for the day.
     "
-    " Returns -1 when the customer has NO valid contract for the material
-    " (distinct from a genuine zero balance).
+    " REBRANDING: STP can ship a bulk order under a rebranded material number, so
+    " the staging PROD_CMPn may not equal the indent's IV_MATNR. Matching on the
+    " material number alone would then miss the shipped line and wrongly return 0,
+    " over-stating availability. We resolve this by the SHAPE of the shipped data
+    " rather than a ZREBRAND mapping table: a bulk order is usually SINGLE-product,
+    " so when only one distinct product was shipped for the order we attribute the
+    " whole shipped qty to IV_MATNR, brand-agnostic (the shipped product IS the
+    " rebranded form of the indent material). Only when 2+ distinct products were
+    " shipped (rare) do we fall back to an exact ALPHA match on PROD_CMPn - without
+    " a mapping we cannot safely re-attribute a rebranded line across products, so
+    " that case keeps the prior behaviour (a rebranded multi-product line still
+    " returns 0 -> availability over-stated; documented residual).
     "
-    " UOM: the result is returned in MT (customers enter quantities in MT).
-    " Contracts are maintained in their native UOM (KG for the wax/sulphur
-    " products), so a KG contract is bridged to MT as 1 MT = 1000 KG - the same
-    " x1000 bridge the Without-Vehicle SAVE check used. Open commitments
-    " (zsd_cstmr_orditm-KWMENG) are also stored in MT, so they subtract
-    " directly. A non-KG contract is assumed to already be in MT and is not
-    " scaled - revisit if that assumption is ever false.
+    " CAVEAT (data-model, not this filter): there is no SO/VBELN handle on these
+    " tables, so a shipment later reversed WITHOUT SHNUMBER being cleared keeps
+    " counting here -> released over-stated -> availability over-stated. A VBFA-
+    " direct fix is not possible while SHNUMBER holds a shipment number; it would
+    " need a shipment->delivery->SO walk (SHNUMBER -> VTTP -> LIPS -> VBFA), which
+    " also loses the clean 'subset of the contract-side VBFA sum' property.
     "
-    " Contracts are matched on the ship-to partner (PARVW = 'WE'), replicating
-    " the Without-Vehicle tab. IV_SHIPTO is the sales order's own WE partner,
-    " resolved by the caller from VBPA (see the CustomerOrderSet create branch).
+    " Stored in the material's own UOM (KG for solids) - same scale as KWMENG, no
+    " bridge. ORDER_NO is indexed on both tables. MATNR is ALPHA-normalised on both
+    " sides so a numeric material (zero-padded in VBAP, raw on the staging row)
+    " still matches.
+    DATA lv_rel   TYPE zsd_cstmr_orditm-kwmeng.
+    DATA lv_matnr TYPE matnr.
+    DATA lv_cmp   TYPE matnr.
+
+    TYPES: BEGIN OF ty_ship,
+             matnr TYPE matnr,
+             qty   TYPE zsd_cstmr_orditm-kwmeng,
+           END OF ty_ship.
+    DATA lt_ship TYPE STANDARD TABLE OF ty_ship.
+    DATA ls_ship TYPE ty_ship.
+
+    lv_matnr = iv_matnr.
+    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+      EXPORTING input  = lv_matnr
+      IMPORTING output = lv_matnr.
+
+    " gather every SHIPPED product line for this order (liquid table).
+    " qty column is QUAN_COMPn.
+    SELECT * FROM zsautomatett_tbl INTO @DATA(ls_t)
+      WHERE order_no = @iv_order_no AND shnumber <> @space.
+      DO 8 TIMES.
+        ASSIGN COMPONENT |PROD_CMP{ sy-index }| OF STRUCTURE ls_t TO FIELD-SYMBOL(<ct>).
+        IF sy-subrc = 0 AND <ct> IS NOT INITIAL.
+          lv_cmp = <ct>.
+          CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+            EXPORTING input  = lv_cmp
+            IMPORTING output = lv_cmp.
+          ASSIGN COMPONENT |QUAN_COMP{ sy-index }| OF STRUCTURE ls_t TO FIELD-SYMBOL(<qt>).
+          IF sy-subrc = 0.
+            CLEAR ls_ship.
+            ls_ship-matnr = lv_cmp.
+            ls_ship-qty   = <qt>.
+            APPEND ls_ship TO lt_ship.
+          ENDIF.
+        ENDIF.
+      ENDDO.
+    ENDSELECT.
+
+    " ... and the solid table (WAX / SUL / RPC). qty column is PROD_QUANn.
+    SELECT * FROM zsautomatett_lpg INTO @DATA(ls_l)
+      WHERE order_no = @iv_order_no AND shnumber <> @space.
+      DO 8 TIMES.
+        ASSIGN COMPONENT |PROD_CMP{ sy-index }| OF STRUCTURE ls_l TO FIELD-SYMBOL(<cl>).
+        IF sy-subrc = 0 AND <cl> IS NOT INITIAL.
+          lv_cmp = <cl>.
+          CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+            EXPORTING input  = lv_cmp
+            IMPORTING output = lv_cmp.
+          ASSIGN COMPONENT |PROD_QUAN{ sy-index }| OF STRUCTURE ls_l TO FIELD-SYMBOL(<ql>).
+          IF sy-subrc = 0.
+            CLEAR ls_ship.
+            ls_ship-matnr = lv_cmp.
+            ls_ship-qty   = <ql>.
+            APPEND ls_ship TO lt_ship.
+          ENDIF.
+        ENDIF.
+      ENDDO.
+    ENDSELECT.
+
+    " distinct products actually shipped on this order
+    DATA lt_prod LIKE lt_ship.
+    lt_prod = lt_ship.
+    SORT lt_prod BY matnr.
+    DELETE ADJACENT DUPLICATES FROM lt_prod COMPARING matnr.
+
+    IF lines( lt_prod ) = 1.
+      " single-product order (the usual case): attribute ALL shipped qty to the
+      " indent material, regardless of any rebranded material number on the row.
+      LOOP AT lt_ship INTO ls_ship.
+        lv_rel = lv_rel + ls_ship-qty.
+      ENDLOOP.
+    ELSE.
+      " multi-product order (rare): no ZREBRAND mapping to re-attribute a
+      " rebranded line, so keep the exact ALPHA match (prior behaviour).
+      LOOP AT lt_ship INTO ls_ship WHERE matnr = lv_matnr.
+        lv_rel = lv_rel + ls_ship-qty.
+      ENDLOOP.
+    ENDIF.
+
+    rv_qty = lv_rel.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->GET_COMMITTED_QTY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ORDER_NO                    TYPE        ZSD_CSTMR_ORDITM-ORDER_NO
+* | [--->] IV_MATNR                       TYPE        MATNR
+* | [--->] IV_LINE_QTY                    TYPE        ZSD_CSTMR_ORDITM-KWMENG
+* | [<-()] RV_QTY                         TYPE        ZSD_CSTMR_ORDITM-KWMENG
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method GET_COMMITTED_QTY.
+    " Total quantity allocated to agents for this indent + material.
+    DATA lv_alloc TYPE zsd_agnt_ordritm-quantity.
+
+    SELECT SUM( quantity ) FROM zsd_agnt_ordritm
+      INTO @lv_alloc
+      WHERE order_no = @iv_order_no
+        AND material = @iv_matnr.
+
+    IF sy-subrc = 0 AND lv_alloc IS NOT INITIAL AND lv_alloc > 0.
+      rv_qty = lv_alloc.        " 3rd-party indent: commit only what is lifted
+    ELSE.
+      rv_qty = iv_line_qty.     " self-lift / not yet allocated: commit full line
+    ENDIF.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->GET_AVAILABLE_FOR_CONTRACT
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_VBELN                       TYPE        VBELN_VA
+* | [--->] IV_MATNR                       TYPE        MATNR
+* | [<-()] RV_AVAIL                       TYPE        VBAP-ZMENG
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method GET_AVAILABLE_FOR_CONTRACT.
+    " Remaining balance of ONE contract for one material, matching the figure
+    " shown on the contract card (CONTRACTITEMSE_GET_ENTITYSET) 1:1:
+    "
+    "   available = SUM over this contract's lines for the material
+    "                 ( VBAP-ZMENG - released VBFA, VBTYP_N 'C' )
+    "             - open bulk-portal indents for this contract (STATUS <> 'C')
+    "
+    " Returns -1 when IV_VBELN is not a ZCQ contract line for the material
+    " (distinct from a genuine zero balance) - same sentinel as the discovery
+    " variant. Result is in the contract's native UOM: no MT/KG bridge is
+    " applied; open indents subtract as stored. IV_VBELN must be ALPHA-padded.
     DATA: lv_deliv  TYPE vbfa-rfmng_flo,
           lv_native TYPE vbap-zmeng,
           lv_commit TYPE vbap-zmeng,
-          lv_uom    TYPE vbap-zieme.
+          lv_sokey  TYPE vbeln.
 
-    " candidate contracts (Without-Vehicle SELECT_CONTRACT_NVEH parity:
-    " valid today / ship-to = customer / exact material / OWN-BOND valuation /
-    " user's depot / real item category / not rejected)
-    SELECT v~vbeln, a~posnr, a~zmeng, a~zieme
+    " the picked contract's lines for this material (must be a ZCQ contract)
+    SELECT a~posnr, a~zmeng, a~vrkme
       FROM vbak AS v
-      INNER JOIN vbpa AS p ON p~vbeln = v~vbeln
       INNER JOIN vbap AS a ON a~vbeln = v~vbeln
       INTO TABLE @DATA(lt_con)
-      WHERE v~guebg <= @sy-datum AND v~gueen >= @sy-datum
-        AND p~kunnr = @iv_shipto AND p~parvw = 'WE'
-        AND a~matnr = @iv_matnr
-        AND a~bwtar = 'OWN-BOND'
-        AND a~werks = @iv_depot
-        AND a~pstyv <> 'ZTAE'
-        AND a~abgru = @space.                                       "#EC CI_BUFFJOIN
+      WHERE v~vbeln = @iv_vbeln
+        AND v~auart = 'ZCQ'
+        AND a~matnr = @iv_matnr.
 
     IF lt_con IS INITIAL.
-      rv_avail = -1.            " no valid contract for this customer + material
+      rv_avail = -1.           " picked doc is not a ZCQ contract for this material
       RETURN.
     ENDIF.
 
     " ordered - delivered, summed over the contract lines (contract native UOM)
     LOOP AT lt_con INTO DATA(ls_con).
-      IF lv_uom IS INITIAL.
-        lv_uom = ls_con-zieme.          " representative contract UOM
-      ENDIF.
       CLEAR lv_deliv.
       SELECT SUM( rfmng_flo ) FROM vbfa INTO @lv_deliv
-        WHERE vbelv = @ls_con-vbeln AND vbtyp_n = 'C' AND posnv = @ls_con-posnr.
+        WHERE vbelv = @iv_vbeln AND vbtyp_n = 'C' AND posnv = @ls_con-posnr.
       lv_native = lv_native + ( ls_con-zmeng - lv_deliv ).
     ENDLOOP.
 
-    " bridge the contract balance to MT (customers enter MT). KG contract:
-    " 1 MT = 1000 KG. Any other UOM is assumed already MT and left unscaled.
-    IF lv_uom = 'KG'.
-      rv_avail = lv_native / 1000.
-    ELSE.
-      rv_avail = lv_native.
-    ENDIF.
+    " contract balance in its native UOM (no MT/KG bridge applied).
+    rv_avail = lv_native.
 
-    " open commitments already booked via the BULK portal for this
-    " ship-to + material, in MT. zsd_cstmr_orditm carries no contract column,
-    " so the commitment is counted at the (ship-to, material) grain - the same
-    " grain the contract discovery above uses. Only OPEN indents count: once
-    " the external processor sets STATUS = 'C', the indent stops consuming
-    " balance (blank status = legacy/open, still counts - safe default).
-    SELECT SUM( i~kwmeng )
-      FROM zsd_cstmr_orditm AS i
-      INNER JOIN zsd_customer_ord AS h ON h~order_no = i~order_no
-      INTO @lv_commit
-      WHERE h~shipto = @iv_shipto
-        AND i~matnr  = @iv_matnr
+    " open portal commitments for THIS contract + material (STATUS <> 'C').
+    " CONTRACT is stored unpadded, so normalise before matching - mirrors the
+    " display path in CONTRACTITEMSE_GET_ENTITYSET.
+    SELECT h~CONTRACT, h~order_no, i~kwmeng
+      FROM zsd_customer_ord AS h
+      INNER JOIN zsd_cstmr_orditm AS i ON i~order_no = h~order_no
+      INTO TABLE @DATA(lt_pc)
+      WHERE i~matnr = @iv_matnr
         AND h~status <> 'C'.
 
+    " keep only commitments booked against THIS contract, then collapse to one
+    " row per order: get_committed_qty / get_released_qty aggregate at the
+    " (order, material) grain, so calling them per item line would count an
+    " order carrying the material on more than one line twice. COLLECT sums
+    " KWMENG per order (contract is fixed = iv_vbeln for every kept row).
+    TYPES: BEGIN OF ty_ord,
+             order_no TYPE zsd_cstmr_orditm-order_no,
+             kwmeng   TYPE zsd_cstmr_orditm-kwmeng,
+           END OF ty_ord.
+    DATA lt_ord TYPE STANDARD TABLE OF ty_ord.
+    DATA ls_ord TYPE ty_ord.
+
+    CLEAR lt_ord.
+    LOOP AT lt_pc INTO DATA(ls_pc).
+      lv_sokey = ls_pc-CONTRACT.
+      CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+        EXPORTING input  = lv_sokey
+        IMPORTING output = lv_sokey.
+      IF lv_sokey = iv_vbeln.
+        ls_ord-order_no = ls_pc-order_no.
+        ls_ord-kwmeng   = ls_pc-kwmeng.
+        COLLECT ls_ord INTO lt_ord.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_ord INTO ls_ord.
+      " agent-allocated qty for 3rd-party indents, full line otherwise, MINUS
+      " what has already become a sales order: the released part is already
+      " counted via the VBFA 'C' releases above.
+      DATA(lv_line) = get_committed_qty( iv_order_no = ls_ord-order_no
+                                         iv_matnr    = iv_matnr
+                                         iv_line_qty = ls_ord-kwmeng ).
+      lv_line = lv_line - get_released_qty( iv_order_no = ls_ord-order_no
+                                            iv_matnr    = iv_matnr ).
+      IF lv_line > 0.
+        lv_commit = lv_commit + lv_line.
+      ENDIF.
+    ENDLOOP.
+
     rv_avail = rv_avail - lv_commit.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->CONTRACTITEMSE_GET_ENTITYSET
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ENTITY_NAME                 TYPE        STRING
+* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
+* | [--->] IV_SOURCE_NAME                 TYPE        STRING
+* | [--->] IT_FILTER_SELECT_OPTIONS       TYPE        /IWBEP/T_MGW_SELECT_OPTION
+* | [--->] IS_PAGING                      TYPE        /IWBEP/S_MGW_PAGING
+* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
+* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
+* | [--->] IT_ORDER                       TYPE        /IWBEP/T_MGW_SORTING_ORDER
+* | [--->] IV_FILTER_STRING               TYPE        STRING
+* | [--->] IV_SEARCH_STRING               TYPE        STRING
+* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITYSET(optional)
+* | [<---] ET_ENTITYSET                   TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TT_CONTRACTITEM
+* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
+* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
+* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method CONTRACTITEMSE_GET_ENTITYSET.
+
+  " Contract items with their STILL-OPEN balance. For a contract (AUART 'ZCQ')
+  " the total quantity is VBAP-ZMENG; the entity's KWMENG is overwritten below
+  " with the open balance:
+  "    open = ZMENG
+  "         - SUM( VBFA-RFMNG_FLO where VBTYP_N = 'C' )   "released sales orders
+  "         - open bulk-portal indents (zsd_customer_ord STATUS <> 'C')
+  " Released orders link to the contract via VBFA (VBELV = contract,
+  " POSNV = contract item). Open portal indents subtract as stored - no MT/KG
+  " bridge is applied, mirroring get_available_for_material.
+
+  types: begin of ty_commit,
+             vbeln  type vbap-vbeln,               " padded contract number
+             matnr  type vbap-matnr,
+             qty_mt type zsd_cstmr_orditm-kwmeng,   " open portal commitment, MT
+          end of ty_commit.
+
+  DATA:   lt_items         TYPE TABLE OF zcl_zsd_custind_withou_mpc_ext=>ts_CONTRACTitem,
+          wa_item          TYPE zcl_zsd_custind_withou_mpc_ext=>ts_CONTRACTitem,
+          lt_filter_so     TYPE /iwbep/t_mgw_select_option,
+          ls_filter_so     TYPE /iwbep/s_mgw_select_option,
+          lt_vbeln_range   TYPE RANGE OF vbap-vbeln,
+          ls_vbeln_range   LIKE LINE OF lt_vbeln_range,
+          lv_vbeln         TYPE vbap-vbeln,
+          lt_nav_path      TYPE /iwbep/t_mgw_navigation_path,
+          ls_nav_path      TYPE /iwbep/s_mgw_navigation_path,
+          lo_filter        TYPE REF TO /iwbep/if_mgw_req_filter.
+
+  DATA:   lt_commit        TYPE TABLE OF ty_commit,
+          lv_deliv         TYPE vbfa-rfmng_flo,
+          lv_open          TYPE vbap-zmeng,
+          lv_sokey         TYPE vbeln.
+
+  " 1. Check for navigation from header (e.g., .../ToCONTRACTItem)
+  lt_nav_path = it_navigation_path.
+  READ TABLE lt_nav_path INTO ls_nav_path WITH KEY nav_prop = 'ToItem'.  " adjust case/name if your navigation property is different (check SEGW)
+  IF sy-subrc = 0.
+    " Navigation context → get VBELN from the source entity (header) key
+    READ TABLE it_key_tab INTO DATA(ls_key) WITH KEY name = 'VBELN'.
+    IF sy-subrc = 0.
+      lv_vbeln = ls_key-value.
+
+      CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+      EXPORTING
+        input  = lv_vbeln
+      IMPORTING
+        output = lv_vbeln.
+
+
+      lt_vbeln_range = VALUE #( ( sign = 'I' option = 'EQ' low = lv_vbeln ) ).
+    ELSE.
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          http_status_code = '400'
+          message     = 'Navigation requested but VBELN key missing'.
+    ENDIF.
+  ELSE.
+    " Standalone query → use $filter
+    lo_filter = io_tech_request_context->get_filter( ).
+    lt_filter_so = lo_filter->get_filter_select_options( ).
+
+    " Extract VBELN filter if present
+    READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'VBELN'.
+    IF sy-subrc = 0.
+      lt_vbeln_range = VALUE #( FOR ls_opt IN ls_filter_so-select_options
+                                ( sign   = ls_opt-sign
+                                  option = ls_opt-option
+                                  low    = ls_opt-low
+                                  high   = ls_opt-high ) ).
+      " Alpha-pad the filter values so they match VBAP-VBELN and the
+      " alpha-padded lv_sokey used in the commitment scope check below
+      " (the navigation path already pads; the $filter path did not).
+      LOOP AT lt_vbeln_range ASSIGNING FIELD-SYMBOL(<fs_rng>).
+        CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+          EXPORTING input  = <fs_rng>-low
+          IMPORTING output = <fs_rng>-low.
+        IF <fs_rng>-high IS NOT INITIAL.
+          CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+            EXPORTING input  = <fs_rng>-high
+            IMPORTING output = <fs_rng>-high.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+  ENDIF.
+
+  " If no filter and no navigation → optional: return empty or raise error
+  IF lt_vbeln_range IS INITIAL.
+    " You can decide policy: allow empty result, or restrict to filtered queries only
+    " For safety (avoid dumping entire VBAP), raise exception or return empty
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '400'
+        message     = 'Please provide VBELN filter or navigate from a sales order header'.
+  ENDIF.
+
+  " 4. Fetch contract items from VBAP. ZMENG (target quantity) is the contract
+  "    total; the entity's KWMENG is overwritten below with the open balance.
+  SELECT vbeln, posnr, matnr, arktx, zmeng, vrkme, netpr, waerk, werks
+    FROM vbap
+    INTO TABLE @DATA(lt_vbap)
+    WHERE vbeln IN @lt_vbeln_range.
+
+  IF lt_vbap IS INITIAL.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '404'
+        message     = 'No items found for the specified contract(s)'.
+  ENDIF.
+
+  " Open bulk-portal commitments per (contract, material). Only OPEN indents
+  " count (header STATUS <> 'C'; blank = legacy/open). CONTRACT is stored
+  " unpadded, so normalise it to the padded VBELN before matching.
+  SELECT h~CONTRACT, h~order_no, i~matnr, i~kwmeng
+    FROM zsd_customer_ord AS h
+    INNER JOIN zsd_cstmr_orditm AS i ON i~order_no = h~order_no
+    INTO TABLE @DATA(lt_pc)
+    WHERE h~status <> 'C'.
+
+  " collapse to one row per (contract, order, material): get_committed_qty /
+  " get_released_qty aggregate at the (order, material) grain, so calling them
+  " per item line would count an order carrying the same material on more than
+  " one line twice. COLLECT sums KWMENG per group.
+  TYPES: BEGIN OF ty_pc,
+           contract TYPE zsd_customer_ord-contract,
+           order_no TYPE zsd_cstmr_orditm-order_no,
+           matnr    TYPE zsd_cstmr_orditm-matnr,
+           kwmeng   TYPE zsd_cstmr_orditm-kwmeng,
+         END OF ty_pc.
+  DATA lt_pcs TYPE STANDARD TABLE OF ty_pc.
+  DATA ls_pcs TYPE ty_pc.
+
+  LOOP AT lt_pc INTO DATA(ls_pc0).
+    CLEAR ls_pcs.
+    ls_pcs-contract = ls_pc0-contract.
+    ls_pcs-order_no = ls_pc0-order_no.
+    ls_pcs-matnr    = ls_pc0-matnr.
+    ls_pcs-kwmeng   = ls_pc0-kwmeng.
+    COLLECT ls_pcs INTO lt_pcs.
+  ENDLOOP.
+
+  LOOP AT lt_pcs INTO DATA(ls_pc).
+    lv_sokey = ls_pc-CONTRACT.
+    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+      EXPORTING input  = lv_sokey
+      IMPORTING output = lv_sokey.
+
+    " keep only commitments booked against the contracts in scope
+    IF NOT line_exists( lt_vbeln_range[ low = lv_sokey ] ).
+      CONTINUE.
+    ENDIF.
+
+    " 3rd-party indents commit only the agent-allocated (lifted) quantity;
+    " self-lift indents commit the full item line. Same unit as KWMENG.
+    DATA(lv_committed) = get_committed_qty( iv_order_no = ls_pc-order_no
+                                            iv_matnr    = ls_pc-matnr
+                                            iv_line_qty = ls_pc-kwmeng ).
+
+    " subtract what has already become a sales order (STP indents at ZTT_STATUS
+    " 2/3). Those releases are already netted out below via the VBFA 'C' sum, so
+    " leaving them in the commitment double-subtracts them and the badge wrongly
+    " reads "Fully Assigned". Reserve only the un-released remainder.
+    lv_committed = lv_committed - get_released_qty( iv_order_no = ls_pc-order_no
+                                                    iv_matnr    = ls_pc-matnr ).
+    IF lv_committed < 0.
+      lv_committed = 0.
+    ENDIF.
+
+    READ TABLE lt_commit ASSIGNING FIELD-SYMBOL(<fs_cm>)
+         WITH KEY vbeln = lv_sokey matnr = ls_pc-matnr.
+    IF sy-subrc = 0.
+      <fs_cm>-qty_mt = <fs_cm>-qty_mt + lv_committed.
+    ELSE.
+      APPEND VALUE #( vbeln  = lv_sokey
+                      matnr  = ls_pc-matnr
+                      qty_mt = lv_committed ) TO lt_commit.
+    ENDIF.
+  ENDLOOP.
+
+  " 5. Build each item with its open balance:
+  "      open = ZMENG - VBFA releases (VBTYP_N 'C') - un-released bulk indents
+  "    (the bulk commitment is netted of its already-released qty above, so the
+  "     portion that became a sales order is not subtracted twice)
+  LOOP AT lt_vbap INTO DATA(ls_vbap).
+    CLEAR lv_deliv.
+    SELECT SUM( rfmng_flo ) FROM vbfa INTO @lv_deliv
+      WHERE vbelv = @ls_vbap-vbeln AND vbtyp_n = 'C' AND posnv = @ls_vbap-posnr.
+
+    lv_open = ls_vbap-zmeng - lv_deliv.
+
+    " subtract the open portal commitment for this material, ONCE per contract
+    " (material grain mirrors get_available_for_material). Consume the entry so a
+    " second contract line of the same material cannot subtract it twice.
+    READ TABLE lt_commit ASSIGNING <fs_cm>
+         WITH KEY vbeln = ls_vbap-vbeln matnr = ls_vbap-matnr.
+    IF sy-subrc = 0 AND <fs_cm>-qty_mt > 0.
+      lv_open = lv_open - <fs_cm>-qty_mt.
+      CLEAR <fs_cm>-qty_mt.
+    ENDIF.
+
+    IF lv_open < 0.
+      lv_open = 0.                 " never expose a negative open balance
+    ENDIF.
+
+    CLEAR wa_item.
+    wa_item-vbeln  = ls_vbap-vbeln.
+    wa_item-posnr  = ls_vbap-posnr.
+    wa_item-matnr  = ls_vbap-matnr.
+    wa_item-arktx  = ls_vbap-arktx.
+    wa_item-kwmeng = lv_open.
+    wa_item-zmeng  = ls_vbap-zmeng.   " contract total quantity (Total Contract Qty column)
+    wa_item-vrkme  = ls_vbap-vrkme.
+    wa_item-netpr  = ls_vbap-netpr.
+    wa_item-waerk  = ls_vbap-waerk.
+    wa_item-werks  = ls_vbap-werks.
+    APPEND wa_item TO lt_items.
+  ENDLOOP.
+
+  " Optional: sort, page, etc. (Gateway handles $top/$skip/$orderby if not overridden)
+  et_entityset = lt_items.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->CONTRACTITEMSE_GET_ENTITY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ENTITY_NAME                 TYPE        STRING
+* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
+* | [--->] IV_SOURCE_NAME                 TYPE        STRING
+* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
+* | [--->] IO_REQUEST_OBJECT              TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
+* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
+* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
+* | [<---] ER_ENTITY                      TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TS_CONTRACTITEM
+* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
+* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
+* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method CONTRACTITEMSE_GET_ENTITY.
+DATA: ls_key_vbeln  TYPE /iwbep/s_mgw_name_value_pair,
+        ls_key_posnr  TYPE /iwbep/s_mgw_name_value_pair,
+        lv_vbeln      TYPE vbap-vbeln,
+        lv_posnr      TYPE vbap-posnr,
+        ls_item       TYPE zcl_zsd_custind_withou_mpc_ext=>ts_CONTRACTitem.
+
+  " Get VBELN key
+  READ TABLE it_key_tab INTO ls_key_vbeln WITH KEY name = 'Vbeln'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '400'
+        message     = 'Missing mandatory key field: VBELN'.
+  ENDIF.
+
+  lv_vbeln = ls_key_vbeln-value.
+
+  " Get POSNR key
+  READ TABLE it_key_tab INTO ls_key_posnr WITH KEY name = 'Posnr'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '400'
+        message     = 'Missing mandatory key field: POSNR'.
+  ENDIF.
+
+  lv_posnr = ls_key_posnr-value.
+
+  " Fetch single item
+  SELECT SINGLE vbeln,posnr,matnr,arktx,kwmeng,vrkme,werks
+    FROM vbap
+    INTO CORRESPONDING FIELDS OF @ls_item
+    WHERE vbeln = @lv_vbeln
+      AND posnr = @lv_posnr.
+
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '404'
+        message     = |Item { lv_posnr } for Sales Order { lv_vbeln } not found|.
+  ENDIF.
+
+  er_entity = ls_item.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->CONTRACTHEADER_GET_ENTITYSET
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ENTITY_NAME                 TYPE        STRING
+* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
+* | [--->] IV_SOURCE_NAME                 TYPE        STRING
+* | [--->] IT_FILTER_SELECT_OPTIONS       TYPE        /IWBEP/T_MGW_SELECT_OPTION
+* | [--->] IS_PAGING                      TYPE        /IWBEP/S_MGW_PAGING
+* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
+* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
+* | [--->] IT_ORDER                       TYPE        /IWBEP/T_MGW_SORTING_ORDER
+* | [--->] IV_FILTER_STRING               TYPE        STRING
+* | [--->] IV_SEARCH_STRING               TYPE        STRING
+* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITYSET(optional)
+* | [<---] ET_ENTITYSET                   TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TT_CONTRACTHEADER
+* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
+* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
+* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method CONTRACTHEADER_GET_ENTITYSET.
+        data: lt_CONTRACT_headers type zcl_zsd_cust_bulk_inde_mpc=>tt_CONTRACTheader,
+              wa_CONTRACT_hdr like line of lt_CONTRACT_headers.
+
+        data: lt_salesdoc type table of vbak.
+
+        DATA: lt_bstdk_range TYPE RANGE OF vbak-bstdk,
+              lt_vbeln_range TYPE RANGE OF vbak-vbeln,
+              lt_filter_so   TYPE TABLE OF /iwbep/s_mgw_select_option,
+              ls_filter_so   TYPE /iwbep/s_mgw_select_option,
+              lo_filter      TYPE REF TO /iwbep/if_mgw_req_filter.
+
+        " 1. Try select-options first (for simple filters)
+        lo_filter = io_tech_request_context->get_filter( ).
+        lt_filter_so = lo_filter->get_filter_select_options( ).
+
+        READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'BSTDK'.
+        IF sy-subrc = 0.
+
+          LOOP AT ls_filter_so-select_options ASSIGNING FIELD-SYMBOL(<fs_opt>).
+            DATA(lv_low)  = <fs_opt>-low.
+            DATA(lv_high) = <fs_opt>-high.
+
+            " Remove '-' if present and length matches ISO date
+            REPLACE ALL OCCURRENCES OF '-' IN lv_low  WITH ''.
+            REPLACE ALL OCCURRENCES OF '-' IN lv_high WITH ''.
+
+            IF strlen( lv_low ) = 8 AND lv_low CO '0123456789'.
+              APPEND VALUE #( sign = <fs_opt>-sign option = <fs_opt>-option
+                              low = lv_low high = lv_high ) TO lt_bstdk_range.
+            ELSEIF lv_low IS NOT INITIAL.
+              " Optional: raise error or ignore invalid date
+              " RAISE EXCEPTION ... 'Invalid date format in filter BSTDK'.
+            ENDIF.
+          ENDLOOP.
+
+        ENDIF.
+
+        READ TABLE lt_filter_so INTO ls_filter_so WITH KEY property = 'VBELN'.
+
+        IF sy-subrc = 0.
+          lt_vbeln_range = VALUE #( FOR ls_opt IN ls_filter_so-select_options
+                                    ( sign   = ls_opt-sign
+                                      option = ls_opt-option
+                                      low    = ls_opt-low
+                                      high   = ls_opt-high ) ).
+        ENDIF.
+
+
+     " Read all request headers then find the one we need
+      DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+
+      DATA(lv_portal_user) = VALUE string( ).
+      READ TABLE lt_headers INTO DATA(ls_header1)
+          WITH KEY name = 'x-portal-user'.
+      IF sy-subrc = 0.
+          lv_portal_user = ls_header1-value.
+      ENDIF.
+
+      IF lv_portal_user IS INITIAL.
+          lv_portal_user = sy-uname.  " fallback
+      ENDIF.
+
+        select single *
+        from zsd_cust_usr_map into @data(ls_customer) where cust_user_id eq @lv_portal_user.
+
+        " 4. Fetch data from VBAK. Only CONTRACTS (AUART = 'ZCQ') are surfaced in
+        "    the bulk portal - a single contract carries the total quantity and
+        "    many sales orders are released against it. The still-open balance is
+        "    computed per contract item in CONTRACTITEMSE_GET_ENTITYSET
+        "    (VBAP-ZMENG - VBFA releases - open portal indents) and flows up here
+        "    through the ToItem expand.
+        if lt_vbeln_range[] is initial.
+          SELECT *
+              FROM vbak
+              into corresponding fields of table @lt_salesdoc
+                   WHERE bstdk IN @lt_bstdk_range and kunnr eq @ls_customer-kunnr
+                   and auart eq 'ZCQ'.
+        elseif lt_bstdk_range is initial.
+          SELECT *
+              FROM vbak
+              INTO CORRESPONDING FIELDS OF TABLE @lt_salesdoc
+                   WHERE vbeln IN @lt_vbeln_range and kunnr eq @ls_customer-kunnr
+                   and auart eq 'ZCQ'.
+        else.
+          SELECT *
+              FROM vbak
+              INTO CORRESPONDING FIELDS OF TABLE @lt_salesdoc
+                   WHERE vbeln IN @lt_vbeln_range
+                   AND bstdk IN @lt_bstdk_range and kunnr eq @ls_customer-kunnr
+                   and auart eq 'ZCQ'.
+        endif.
+
+
+        if lt_salesdoc is not initial.
+          loop at lt_salesdoc into data(wa_salesdoc).
+            move-corresponding wa_salesdoc to wa_CONTRACT_hdr.
+
+            concatenate 'C' lv_portal_user into data(lv_customerno).
+
+            select single * from but000 into @data(wa_addr) where partner eq @lv_customerno.
+
+            concatenate wa_addr-name_org1 wa_addr-name_org2 wa_addr-name_org3 into data(lv_addr) separated by space.
+            shift lv_addr right deleting trailing space.
+
+            wa_CONTRACT_hdr-delivloc = lv_addr.
+            wa_CONTRACT_hdr-delivdate = wa_salesdoc-vdatu.
+
+            append wa_CONTRACT_hdr to lt_CONTRACT_headers.
+
+            clear lv_addr.
+
+          endloop.
+        endif.
+
+
+
+        IF sy-subrc <> 0 OR  lt_CONTRACT_headers[] IS INITIAL.
+          RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+            EXPORTING
+              http_status_code = '404'
+              message     = 'No contracts found matching the filter'.
+        ENDIF.
+
+        et_entityset = lt_CONTRACT_headers.
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Protected Method ZCL_ZSD_CUST_BULK_INDE_DPC_EXT->CONTRACTHEADER_GET_ENTITY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ENTITY_NAME                 TYPE        STRING
+* | [--->] IV_ENTITY_SET_NAME             TYPE        STRING
+* | [--->] IV_SOURCE_NAME                 TYPE        STRING
+* | [--->] IT_KEY_TAB                     TYPE        /IWBEP/T_MGW_NAME_VALUE_PAIR
+* | [--->] IO_REQUEST_OBJECT              TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
+* | [--->] IO_TECH_REQUEST_CONTEXT        TYPE REF TO /IWBEP/IF_MGW_REQ_ENTITY(optional)
+* | [--->] IT_NAVIGATION_PATH             TYPE        /IWBEP/T_MGW_NAVIGATION_PATH
+* | [<---] ER_ENTITY                      TYPE        ZCL_ZSD_CUST_BULK_INDE_MPC=>TS_CONTRACTHEADER
+* | [<---] ES_RESPONSE_CONTEXT            TYPE        /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
+* | [!CX!] /IWBEP/CX_MGW_BUSI_EXCEPTION
+* | [!CX!] /IWBEP/CX_MGW_TECH_EXCEPTION
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method CONTRACTHEADER_GET_ENTITY.
+  DATA: ls_key        TYPE /iwbep/s_mgw_name_value_pair,
+        lv_vbeln      TYPE vbak-vbeln,
+        ls_salesdoc   TYPE vbak,
+        ls_header     TYPE zcl_zsd_cust_bulk_inde_mpc=>TS_CONTRACTHEADER.
+
+  DATA: lv_customerno type string.
+
+  " Get the key value for VBELN
+  READ TABLE it_key_tab INTO ls_key WITH KEY name = 'VBELN'.
+  IF sy-subrc = 0.
+    lv_vbeln = ls_key-value.
+  ELSE.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '400'
+        message     = 'Missing mandatory key field: VBELN'.
+  ENDIF.
+
+  " Read all request headers then find the one we need
+  DATA(lt_headers) = io_tech_request_context->get_request_headers( ).
+
+  DATA(lv_portal_user) = VALUE string( ).
+  READ TABLE lt_headers INTO DATA(ls_header1)
+      WITH KEY name = 'x-portal-user'.
+  IF sy-subrc = 0.
+      lv_portal_user = ls_header1-value.
+  ENDIF.
+
+  IF lv_portal_user IS INITIAL.
+      lv_portal_user = sy-uname.  " fallback
+  ENDIF.
+
+
+  select single *
+        from zsd_cust_usr_map into @data(ls_customer) where cust_user_id eq @lv_portal_user.
+
+  " Fetch single sales order header
+  SELECT SINGLE *
+    FROM vbak
+    INTO CORRESPONDING FIELDS OF @ls_salesdoc
+    WHERE vbeln = @lv_vbeln and kunnr eq @ls_customer-kunnr.
+
+  concatenate 'C' lv_portal_user into lv_customerno.
+
+  select single * from but000 into @data(ls_delivaddr) where partner eq @lv_customerno.
+
+  concatenate ls_delivaddr-name_org1 ls_delivaddr-name_org2 ls_delivaddr-name_org3 ls_delivaddr-name_org3
+              into data(lv_address) separated by space.
+
+  shift lv_address right deleting trailing space.
+  move-corresponding ls_salesdoc to ls_header.
+
+
+  ls_header-delivloc = lv_address.
+  ls_header-delivdate = ls_salesdoc-vdatu.
+
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        http_status_code = '404'
+        message     = |Contract { lv_vbeln } not found|.
+  ENDIF.
+
+
+  move-corresponding ls_header to er_entity.
   endmethod.
 ENDCLASS.

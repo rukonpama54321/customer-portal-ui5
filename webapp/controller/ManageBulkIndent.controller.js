@@ -467,7 +467,7 @@ sap.ui.define([
                     oViewModel.setProperty("/delLocation", oSelectedOrder.DELIVLOC || "");
                     // DELIVDATE arrives as YYYYMMDD string; DatePicker needs YYYY-MM-DD
                     var sRawDate = oSelectedOrder.DELIVDATE || "";
-                    if (sRawDate.length === 8) {
+                    if (sRawDate.length === 8 && sRawDate !== "00000000") {
                         oViewModel.setProperty("/delDate",
                             sRawDate.substring(0, 4) + "-" +
                             sRawDate.substring(4, 6) + "-" +
@@ -514,8 +514,9 @@ sap.ui.define([
                         oViewModel.setProperty("/orderCreated", true);
                         
                         // Map created order fields to header structure
+                        var sFullContract = oFullOrderData.CONTRACT || oFullOrderData.SALESORDER;
                         var oHeader = {
-                            VBELN: oFullOrderData.SALESORDER,
+                            VBELN: sFullContract,
                             KUNNR: oFullOrderData.KUNNR,
                             BSTNK: oFullOrderData.BSTNK,
                             BSTDK: oFullOrderData.BSTDK,
@@ -523,7 +524,7 @@ sap.ui.define([
                             NETWR: oFullOrderData.NETWR,
                             WAERK: oFullOrderData.WAERK,
                             ORDER_NO: oFullOrderData.ORDER_NO,
-                            SALESORDER: oFullOrderData.SALESORDER,
+                            SALESORDER: sFullContract,
                             SHIP_COND: oFullOrderData.SHIP_COND,
                             THIRDPARTY: oFullOrderData.THIRDPARTY
                         };
@@ -608,7 +609,7 @@ sap.ui.define([
                         }.bind(this), 500);
 
                         // Enforce view-only if a newer order exists for this sales order
-                        this._enforceLatestOrderViewMode(oFullOrderData.ORDER_NO, oFullOrderData.SALESORDER);
+                        this._enforceLatestOrderViewMode(oFullOrderData.ORDER_NO, oFullOrderData.CONTRACT || oFullOrderData.SALESORDER);
                     }.bind(this),
                     error: function (oError) {
                         oViewModel.setProperty("/busy", false);
@@ -616,10 +617,11 @@ sap.ui.define([
                         // Order was deleted - reset to initial state with empty order number
                         var bOrderNotFound = oError.statusCode === "404" || oError.statusCode === 404;
                         
-                        if (bOrderNotFound && oSelectedOrder.SALESORDER) {
+                        var sSelContract = oSelectedOrder.CONTRACT || oSelectedOrder.SALESORDER;
+                        if (bOrderNotFound && sSelContract) {
                             // Fetch the sales order to allow creating a new customer order
                             // Carry over THIRDPARTY from the deleted order so the ComboBox is pre-filled
-                            this._loadSalesOrderForNewOrder(oSelectedOrder.SALESORDER, oSelectedOrder.THIRDPARTY);
+                            this._loadSalesOrderForNewOrder(sSelContract, oSelectedOrder.THIRDPARTY);
                         } else {
                             this._handleODataError(
                                 oError,
@@ -645,7 +647,7 @@ sap.ui.define([
                 urlParameters: { "$top": "9999" },
                 success: function (oData) {
                     var aOrders = (oData.results || []).filter(function (o) {
-                        return o.SALESORDER === sSalesOrder;
+                        return (o.CONTRACT || o.SALESORDER) === sSalesOrder;
                     });
 
                     if (aOrders.length <= 1) {
@@ -666,7 +668,7 @@ sap.ui.define([
                         oViewModel.setProperty(
                             "/notLatestOrderMessage",
                             "This order (" + sOrderNo + ") is read-only because a newer order (" +
-                            sLatestOrderNo + ") exists for Sales Document " + sSalesOrder +
+                            sLatestOrderNo + ") exists for Contract " + sSalesOrder +
                             ". Delete the later order first to make changes here."
                         );
                     }
@@ -685,7 +687,7 @@ sap.ui.define([
             oViewModel.setProperty("/busy", true);
             
             // Fetch the sales order from backend
-            oModel.read("/SALESORDERHeaderSet('" + sSalesOrder + "')", {
+            oModel.read("/ContractHeaderSet('" + sSalesOrder + "')", {
                 urlParameters: {
                     "$expand": "ToItem"
                 },
@@ -731,7 +733,7 @@ sap.ui.define([
                     oViewModel.setProperty("/busy", false);
                     this._handleODataError(
                         oError,
-                        "The sales document data could not be loaded. Please go back and try again."
+                        "The contract data could not be loaded. Please go back and try again."
                     );
                     this.onNavBack();
                 }.bind(this)
@@ -1523,11 +1525,11 @@ sap.ui.define([
 
                     // Filter client-side for this sales order
                     var aOrders = (oData.results || []).filter(function (o) {
-                        return o.SALESORDER === sSalesOrder;
+                        return (o.CONTRACT || o.SALESORDER) === sSalesOrder;
                     });
 
                     if (aOrders.length === 0) {
-                        MessageToast.show("No bulk indents found for this sales document.");
+                        MessageToast.show("No bulk indents found for this contract.");
                         return;
                     }
 
@@ -1552,7 +1554,7 @@ sap.ui.define([
                     // This is the latest order – show confirmation dialog
                     MessageBox.confirm(
                         "Are you sure you want to delete order " + sOrderNo + "?\n\n" +
-                        "This will permanently delete the bulk indent and all associated items for Sales Document " + sSalesOrder + ".",
+                        "This will permanently delete the bulk indent and all associated items for Contract " + sSalesOrder + ".",
                         {
                             title: "Delete Order",
                             icon: MessageBox.Icon.WARNING,
@@ -1928,8 +1930,14 @@ sap.ui.define([
             var sDelLocationVal = oViewModel.getProperty("/delLocation") || "";
             var sDelDateStr = oViewModel.getProperty("/delDate") || "";
             // SAP Edm.DateTime cannot accept JSON null — use epoch (0) as the "no date" sentinel
-            // when no delivery date is applicable (e.g. CL orders).
-            var oDelDateVal = sDelDateStr ? new Date(sDelDateStr) : new Date(0);
+            // when no delivery date is applicable (e.g. CL orders). An unparseable string
+            // (e.g. "0000-00-00" from an all-zero DATS) yields an Invalid Date, which
+            // JSON.stringify emits as null and Gateway rejects with CX_SY_CONVERSION_NO_DATE_TIME —
+            // so fall back to the epoch sentinel in that case too.
+            var oDelDateVal = new Date(sDelDateStr);
+            if (!sDelDateStr || isNaN(oDelDateVal.getTime())) {
+                oDelDateVal = new Date(0);
+            }
             var fnVal = function (v) {
                 return v === undefined || v === null ? "" : v;
             };
@@ -1972,7 +1980,7 @@ sap.ui.define([
                 Crdate: new Date(),
                 KUNNR: fnVal(oHeader.KUNNR),
                 KUNNR_DESC: fnVal(oHeader.BSTNK),
-                SALESORDER: fnVal(oHeader.VBELN || oHeader.SALESORDER),
+                CONTRACT: fnVal(oHeader.VBELN || oHeader.SALESORDER),
                 SHIP_COND: fnVal(oHeader.VSBED || oHeader.SHIP_COND),
                 NETWR: fnVal(oHeader.NETWR),
                 WAERK: fnVal(oHeader.WAERK),
@@ -2098,7 +2106,7 @@ sap.ui.define([
             var sCustomer = fnVal(oOrderData.KUNNR, oViewModel.getProperty("/header/KUNNR"));
             var sCustomerRef = fnVal(oOrderData.BSTNK, oViewModel.getProperty("/header/BSTNK"));
             var sRefDate = fnVal(oOrderData.BSTDK, oViewModel.getProperty("/header/BSTDK"));
-            var sSalesOrder = fnVal(oOrderData.SALESORDER, oViewModel.getProperty("/header/VBELN"));
+            var sSalesOrder = fnVal(oOrderData.CONTRACT || oOrderData.SALESORDER, oViewModel.getProperty("/header/VBELN"));
             var sNet = fnVal(oOrderData.NETWR, oViewModel.getProperty("/header/NETWR"));
             var sCurr = fnVal(oOrderData.WAERK, oViewModel.getProperty("/header/WAERK"));
             var sNetValue = sNet && sCurr ? sNet + " " + sCurr : fnVal(sNet, "-");
@@ -2110,7 +2118,7 @@ sap.ui.define([
                 items: [
                     new Text({ text: "Bulk indent created successfully." }).addStyleClass("order-success-title"),
                     new Text({ text: "Order No: " + fnVal(sOrderNo, "-") }).addStyleClass("order-success-meta"),
-                    new Text({ text: "Sales Document: " + fnVal(sSalesOrder, "-") }).addStyleClass("order-success-meta"),
+                    new Text({ text: "Contract: " + fnVal(sSalesOrder, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Customer Code: " + fnVal(sCustomer, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Customer Ref: " + fnVal(sCustomerRef, "-") }).addStyleClass("order-success-meta"),
                     new Text({ text: "Reference Date: " + fnVal(sRefDate, "-") }).addStyleClass("order-success-meta"),
@@ -2176,23 +2184,16 @@ sap.ui.define([
             var bHasSavedAllocations = aAllocations.some(function (a) { return !!a.ALLOCATION_ID; });
 
             if (bOrderCreated && sShipCond === "CL" && sThirdPartyAgent === "YES" && !bHasSavedAllocations) {
-                MessageBox.warning(
-                    "You have not assigned any agents to this bulk indent. Do you still want to exit?",
+                // Hard block: a 3rd-party (YES) bulk indent must have at least one saved
+                // agent allocation before the user can leave. The committed lift quantity
+                // is driven by these allocations, so an indent with none is incomplete.
+                MessageBox.error(
+                    "You must allocate at least one agent to this bulk indent before leaving. " +
+                    "3rd Party Agent is set to Yes, so agent allocation is mandatory.",
                     {
-                        title: "Unsaved Agent Assignments",
-                        actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-                        emphasizedAction: MessageBox.Action.NO,
-                        onClose: function (sAction) {
-                            if (sAction === MessageBox.Action.YES) {
-                                var oHistory = History.getInstance();
-                                var sPreviousHash = oHistory.getPreviousHash();
-                                if (sPreviousHash !== undefined) {
-                                    window.history.back();
-                                } else {
-                                    this.getOwnerComponent().getRouter().navTo("RouteCustomerIndent", {}, true);
-                                }
-                            }
-                        }.bind(this)
+                        title: "Agent Allocation Required",
+                        actions: [MessageBox.Action.OK],
+                        emphasizedAction: MessageBox.Action.OK
                     }
                 );
                 return;

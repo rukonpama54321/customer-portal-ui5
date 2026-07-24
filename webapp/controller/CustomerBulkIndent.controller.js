@@ -10,9 +10,8 @@ sap.ui.define([
 
     return Controller.extend("customerindent.controller.CustomerBulkIndent", {
         onInit: function () {
+            // Default both ends of the range to today; the user can widen it as needed.
             var oToday = new Date();
-            var oFromDate = new Date();
-            oFromDate.setDate(oToday.getDate() - 2);
 
             var sUser = sessionStorage.getItem("portal_username") || "";
             // Prefer a previously resolved SAP display name for this session so the
@@ -22,7 +21,7 @@ sap.ui.define([
 
             var oViewModel = new JSONModel({
                 busy: false,
-                fromDate: this._formatDateToValue(oFromDate),
+                fromDate: this._formatDateToValue(oToday),
                 toDate: this._formatDateToValue(oToday),
                 headers: [],
                 allHeaders: null,
@@ -53,6 +52,16 @@ sap.ui.define([
             var oRouter = this.getOwnerComponent().getRouter();
             if (oRouter) {
                 oRouter.getRoute("RouteCustomerIndent").attachPatternMatched(this._onRouteMatched, this);
+            }
+        },
+
+        onNavBack: function () {
+            // This view runs inside an iframe hosted by the main app. The actual
+            // routing lives in the host, so ask the parent window to navigate back.
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: "bulkPortalNavBack" }, "*");
+            } else {
+                window.history.back();
             }
         },
 
@@ -175,7 +184,7 @@ sap.ui.define([
             var oModel = oView.getModel();
             var aFilters = [new Filter("BSTDK", FilterOperator.BT, sFromDate, sToDate)];
 
-            oModel.read("/SALESORDERHeaderSet", {
+            oModel.read("/ContractHeaderSet", {
                 filters: aFilters,
                 urlParameters: {
                     "$expand": "ToItem"
@@ -209,7 +218,8 @@ sap.ui.define([
                         });
                     });
 
-                    // Reset filters on new search
+                    // Reset the quick filters on new search (product/quantity are
+                    // part of the search criteria, so they are intentionally kept).
                     oViewModel.setProperty("/showAssignedOrders", true);
                     oViewModel.setProperty("/filterShippingCondition", "");
 
@@ -233,8 +243,9 @@ sap.ui.define([
                             // Build a lookup: normSALESORDER → { MATNR: original KWMENG }
                             var oOrigQtyLookup = {};
                             aCustOrders.forEach(function (oCust) {
-                                if (oCust.SALESORDER) {
-                                    var sKey = fnNorm(oCust.SALESORDER);
+                                var sCustContract = oCust.CONTRACT || oCust.SALESORDER;
+                                if (sCustContract) {
+                                    var sKey = fnNorm(sCustContract);
                                     var sThirdParty = oCust.THIRDPARTY || "";
                                     var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
                                                      sThirdParty === "3" || sThirdParty === "N/A");
@@ -359,83 +370,6 @@ sap.ui.define([
             this._applyFilters();
         },
 
-        _applyFilters: function() {
-            var oViewModel = this.getView().getModel("viewModel");
-            var aAllHeaders = oViewModel.getProperty("/allHeaders") || [];
-            var sAssignmentStatus = oViewModel.getProperty("/filterAssignmentStatus") || "";
-            var sShippingCondition = oViewModel.getProperty("/filterShippingCondition");
-            var sSelectedSubTab = oViewModel.getProperty("/selectedOrdersSubTab") || "allOrders";
-            var sFilterMaterial = oViewModel.getProperty("/filterMaterial") || "";
-            var sFilterQuantity = oViewModel.getProperty("/filterQuantity");
-            
-            // Apply filters
-            var aFiltered = aAllHeaders.filter(function(oHeader) {
-                // Filter by subtab selection
-                if (sSelectedSubTab === "fullyAssigned" && !oHeader.__isAssigned) {
-                    return false;
-                }
-
-                if (sSelectedSubTab === "partiallyAssigned" && !oHeader.__isPartiallyAssigned) {
-                    return false;
-                }
-                
-                // Filter by assignment status (only for "All Orders" subtab)
-                if (sSelectedSubTab === "allOrders" && sAssignmentStatus) {
-                    if (sAssignmentStatus === "assigned" && !oHeader.__isAssigned) {
-                        return false;
-                    }
-                    if (sAssignmentStatus === "partial" && !oHeader.__isPartiallyAssigned) {
-                        return false;
-                    }
-                    if (sAssignmentStatus === "noOpenQty" && !oHeader.__isNoOpenQty) {
-                        return false;
-                    }
-                    if (sAssignmentStatus === "unassigned" &&
-                        (oHeader.__isAssigned || oHeader.__isPartiallyAssigned || oHeader.__isNoOpenQty)) {
-                        return false;
-                    }
-                }
-                
-                // Filter by shipping condition
-                if (sShippingCondition && oHeader.VSBED !== sShippingCondition) {
-                    return false;
-                }
-
-                // Filter by product + available quantity (part of the search criteria).
-                // A document qualifies when it has at least one item of the selected
-                // product whose still-available quantity (KWMENG, treated as 0 once the
-                // order is fully assigned) meets the requested minimum. With no quantity
-                // entered, any document that still has that product available qualifies.
-                if (sFilterMaterial) {
-                    var fReqQty = parseFloat(sFilterQuantity);
-                    var bHasReqQty = !isNaN(fReqQty) && fReqQty > 0;
-                    var aItems = (oHeader.ToItem && oHeader.ToItem.results) || [];
-                    var bMatch = aItems.some(function (oItem) {
-                        if (oItem.MATNR !== sFilterMaterial) {
-                            return false;
-                        }
-                        var fAvail = oItem.__showZeroQty ? 0 : parseFloat(oItem.KWMENG || "0");
-                        // The user enters Min. Quantity in MT, but sales-document
-                        // quantities (KWMENG) are stored in the document UOM — KG for
-                        // these products. Convert the entered MT figure into the item's
-                        // unit before comparing: 1 MT = 1000 KG. A non-KG item is assumed
-                        // to already be in MT and is compared directly.
-                        var sUom = (oItem.VRKME || "").trim().toUpperCase();
-                        var fReqInItemUom = (sUom === "KG") ? (fReqQty * 1000) : fReqQty;
-                        return bHasReqQty ? (fAvail >= fReqInItemUom) : (fAvail > 0);
-                    });
-                    if (!bMatch) {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-            
-            oViewModel.setProperty("/headers", aFiltered);
-            oViewModel.setProperty("/showEmptyMessage", aFiltered.length === 0);
-        },
-
         /**
          * Loads the distinct product catalog (MATNR + description) from
          * SALESORDERItemSet so the Product search dropdown is populated up front,
@@ -448,7 +382,7 @@ sap.ui.define([
                 return;
             }
 
-            oModel.read("/SALESORDERItemSet", {
+            oModel.read("/ContractItemSet", {
                 urlParameters: {
                     "$select": "MATNR,ARKTX",
                     "$top": "5000"
@@ -523,6 +457,83 @@ sap.ui.define([
             aUoms.sort();
             oViewModel.setProperty("/uomHint", aUoms.length ? ("Quantities in " + aUoms.join(", ")) : "");
             this._mergeMaterialOptions(aItems);
+        },
+
+        _applyFilters: function() {
+            var oViewModel = this.getView().getModel("viewModel");
+            var aAllHeaders = oViewModel.getProperty("/allHeaders") || [];
+            var sAssignmentStatus = oViewModel.getProperty("/filterAssignmentStatus") || "";
+            var sShippingCondition = oViewModel.getProperty("/filterShippingCondition");
+            var sFilterMaterial = oViewModel.getProperty("/filterMaterial") || "";
+            var sFilterQuantity = oViewModel.getProperty("/filterQuantity");
+            var sSelectedSubTab = oViewModel.getProperty("/selectedOrdersSubTab") || "allOrders";
+            
+            // Apply filters
+            var aFiltered = aAllHeaders.filter(function(oHeader) {
+                // Filter by subtab selection
+                if (sSelectedSubTab === "fullyAssigned" && !oHeader.__isAssigned) {
+                    return false;
+                }
+
+                if (sSelectedSubTab === "partiallyAssigned" && !oHeader.__isPartiallyAssigned) {
+                    return false;
+                }
+                
+                // Filter by assignment status (only for "All Orders" subtab)
+                if (sSelectedSubTab === "allOrders" && sAssignmentStatus) {
+                    if (sAssignmentStatus === "assigned" && !oHeader.__isAssigned) {
+                        return false;
+                    }
+                    if (sAssignmentStatus === "partial" && !oHeader.__isPartiallyAssigned) {
+                        return false;
+                    }
+                    if (sAssignmentStatus === "noOpenQty" && !oHeader.__isNoOpenQty) {
+                        return false;
+                    }
+                    if (sAssignmentStatus === "unassigned" &&
+                        (oHeader.__isAssigned || oHeader.__isPartiallyAssigned || oHeader.__isNoOpenQty)) {
+                        return false;
+                    }
+                }
+                
+                // Filter by shipping condition
+                if (sShippingCondition && oHeader.VSBED !== sShippingCondition) {
+                    return false;
+                }
+
+                // Filter by product + available quantity (part of the search criteria).
+                // A document qualifies when it has at least one item of the selected
+                // product whose still-available quantity (KWMENG, treated as 0 once the
+                // order is fully assigned) meets the requested minimum. With no quantity
+                // entered, any document that still has that product available qualifies.
+                if (sFilterMaterial) {
+                    var fReqQty = parseFloat(sFilterQuantity);
+                    var bHasReqQty = !isNaN(fReqQty) && fReqQty > 0;
+                    var aItems = (oHeader.ToItem && oHeader.ToItem.results) || [];
+                    var bMatch = aItems.some(function (oItem) {
+                        if (oItem.MATNR !== sFilterMaterial) {
+                            return false;
+                        }
+                        var fAvail = oItem.__showZeroQty ? 0 : parseFloat(oItem.KWMENG || "0");
+                        // The user enters Min. Quantity in MT, but sales-document
+                        // quantities (KWMENG) are stored in the document UOM — KG for
+                        // these products. Convert the entered MT figure into the item's
+                        // unit before comparing: 1 MT = 1000 KG. A non-KG item is assumed
+                        // to already be in MT and is compared directly.
+                        var sUom = (oItem.VRKME || "").trim().toUpperCase();
+                        var fReqInItemUom = (sUom === "KG") ? (fReqQty * 1000) : fReqQty;
+                        return bHasReqQty ? (fAvail >= fReqInItemUom) : (fAvail > 0);
+                    });
+                    if (!bMatch) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+            
+            oViewModel.setProperty("/headers", aFiltered);
+            oViewModel.setProperty("/showEmptyMessage", aFiltered.length === 0);
         },
 
         onOrderSelection: function (oEvent) {
@@ -682,8 +693,9 @@ sap.ui.define([
                     var oSalesOrderThirdPartyRaw = {};
 
                     aCustOrders.forEach(function (oCust) {
-                        if (oCust.SALESORDER) {
-                            var sKey = fnNorm(oCust.SALESORDER);
+                        var sCustContract = oCust.CONTRACT || oCust.SALESORDER;
+                        if (sCustContract) {
+                            var sKey = fnNorm(sCustContract);
                             var sThirdParty = oCust.THIRDPARTY || "";
                             var bIsNoOrNA = (sThirdParty === "0" || sThirdParty === "N" || sThirdParty === "NO" ||
                                              sThirdParty === "3" || sThirdParty === "N/A");
@@ -943,7 +955,7 @@ sap.ui.define([
             
             // Find the first order with this sales order number to get NETWR, WAERK, and SHIP_COND
             var oFirstOrderInGroup = aCreatedOrders.find(function(oOrder) {
-                return oOrder.SALESORDER === sSalesOrder;
+                return (oOrder.CONTRACT || oOrder.SALESORDER) === sSalesOrder;
             });
             
             var sNetValue = "";
@@ -977,7 +989,7 @@ sap.ui.define([
             }
 
             // Format the title - Sales Order, Shipping, then net value
-            var sTitle = "Sales Document: " + sSalesOrder + "     •     " + sShipping + "     •     Net Value: " + sNetValue + " " + sCurrency;
+            var sTitle = "Contract: " + sSalesOrder + "     •     " + sShipping + "     •     Net Value: " + sNetValue + " " + sCurrency;
 
             // Create and return the GroupHeaderListItem
             var oGroupHeader = new GroupHeaderListItem({

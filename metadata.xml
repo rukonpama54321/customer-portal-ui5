@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="utf-8" ?> 
   <edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
 - <edmx:DataServices m:DataServiceVersion="2.0">
-- <Schema Namespace="ZSD_CUST_BULK_INDENT_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
-- <EntityType Name="SALESORDERHeader" sap:content-version="1">
+- <Schema Namespace="ZSD_BULK_INDPORTAL_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+- <EntityType Name="ContractHeader" sap:content-version="1">
 - <Key>
   <PropertyRef Name="VBELN" /> 
   </Key>
-  <Property Name="VBELN" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Sales Document" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
-  <Property Name="AUART" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Document Type" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="VSBED" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Shipping Conditions" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
-  <Property Name="KUNNR" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Sold-To-Party" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
-  <Property Name="BSTNK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Customer Reference" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="BSTDK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Customer Reference Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="NETWR" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Net Value of Sales Order" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="WAERK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Sales Document Currency" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="DELIVDATE" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Delivery Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="DELIVLOC" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="Delivery Location" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <NavigationProperty Name="ToItem" Relationship="ZSD_CUST_BULK_INDENT_SRV.SalesOrderHeaderToItem" FromRole="FromRole_SalesOrderHeaderToItem" ToRole="ToRole_SalesOrderHeaderToItem" /> 
+  <Property Name="VBELN" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="AUART" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="VSBED" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="KUNNR" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="BSTNK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="BSTDK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="NETWR" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="DELIVDATE" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="DELIVLOC" Type="Edm.String" Nullable="false" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <NavigationProperty Name="ToItem" Relationship="ZSD_BULK_INDPORTAL_SRV.ContractHeaderToItem" FromRole="FromRole_ContractHeaderToItem" ToRole="ToRole_ContractHeaderToItem" /> 
   </EntityType>
-- <EntityType Name="SALESORDERItem" sap:content-version="1">
+- <EntityType Name="ContractItem" sap:content-version="1">
 - <Key>
   <PropertyRef Name="VBELN" /> 
   <PropertyRef Name="POSNR" /> 
   </Key>
   <Property Name="VBELN" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sales Document" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
-  <Property Name="POSNR" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Sales Document Item" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
+  <Property Name="POSNR" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
   <Property Name="MATNR" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Material" sap:creatable="false" sap:updatable="false" sap:sortable="false" /> 
-  <Property Name="ARKTX" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Material Description" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="KWMENG" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:unit="VRKME" sap:label="Order Quantity" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="VRKME" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="UoM" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
+  <Property Name="ARKTX" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="KWMENG" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:unit="VRKME" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="ZMENG" Type="Edm.String" Nullable="false" MaxLength="13" sap:unicode="false" sap:label="Target Quantity" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="VRKME" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure" /> 
   <Property Name="NETPR" Type="Edm.String" Nullable="false" MaxLength="11" sap:unicode="false" sap:unit="WAERK" sap:label="Net Price" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Currency" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
+  <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
   <Property Name="WERKS" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Plant" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" /> 
   </EntityType>
 - <EntityType Name="AgentDetails" sap:label="Agent Details" sap:content-version="1">
@@ -61,7 +62,7 @@
   <Property Name="TRANSPORTER" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Carrier" sap:sortable="false" /> 
   <Property Name="TRANS_NAME" Type="Edm.String" Nullable="false" MaxLength="35" sap:unicode="false" sap:label="Carrier Name" sap:sortable="false" sap:filterable="false" /> 
   <Property Name="TRANSPORTGSTN" Type="Edm.String" Nullable="false" MaxLength="18" sap:unicode="false" sap:label="Carrier GSTN" sap:sortable="false" /> 
-  <NavigationProperty Name="AgentOrderHeadertoItem" Relationship="ZSD_CUST_BULK_INDENT_SRV.AgentHeadertoItem" FromRole="FromRole_AgentHeadertoItem" ToRole="ToRole_AgentHeadertoItem" /> 
+  <NavigationProperty Name="AgentOrderHeadertoItem" Relationship="ZSD_BULK_INDPORTAL_SRV.AgentHeadertoItem" FromRole="FromRole_AgentHeadertoItem" ToRole="ToRole_AgentHeadertoItem" /> 
   </EntityType>
 - <EntityType Name="AgentOrderAllocationItm" sap:content-version="1">
 - <Key>
@@ -99,14 +100,14 @@
   <Property Name="KUNNR" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer Code" /> 
   <Property Name="DelDate" Type="Edm.DateTime" Nullable="false" Precision="7" sap:unicode="false" sap:label="Date" /> 
   <Property Name="KUNNR_DESC" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="Customer Name" sap:sortable="false" sap:filterable="false" /> 
-  <Property Name="SALESORDER" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Sales Document" sap:sortable="false" sap:filterable="false" /> 
+  <Property Name="CONTRACT" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="" sap:sortable="false" sap:filterable="false" /> 
   <Property Name="SHIP_COND" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Shipping Conditions" sap:sortable="false" /> 
   <Property Name="NETWR" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Net Value of Order" sap:sortable="false" sap:filterable="false" /> 
   <Property Name="WAERK" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Currency" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code" /> 
   <Property Name="BSTNK" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:label="Customer Reference" sap:sortable="false" sap:filterable="false" /> 
   <Property Name="BSTDK" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Customer Reference Date" sap:sortable="false" sap:filterable="false" /> 
   <Property Name="THIRDPARTY" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:label="Third Party Required" sap:sortable="false" /> 
-  <NavigationProperty Name="CustOrderHeadertoItem" Relationship="ZSD_CUST_BULK_INDENT_SRV.CustomerOrderHeadertoItem" FromRole="FromRole_CustomerOrderHeadertoItem" ToRole="ToRole_CustomerOrderHeadertoItem" /> 
+  <NavigationProperty Name="CustOrderHeadertoItem" Relationship="ZSD_BULK_INDPORTAL_SRV.CustomerOrderHeadertoItem" FromRole="FromRole_CustomerOrderHeadertoItem" ToRole="ToRole_CustomerOrderHeadertoItem" /> 
   </EntityType>
 - <EntityType Name="CustomerOrderItem" sap:content-version="1">
 - <Key>
@@ -125,8 +126,8 @@
   <Property Name="USEDQTY" Type="Edm.String" Nullable="false" MaxLength="15" sap:unicode="false" sap:label="Allocated Qty" sap:sortable="false" sap:filterable="false" /> 
   </EntityType>
 - <Association Name="AgentHeadertoItem" sap:content-version="1">
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.AgentOrderAllocationHeader" Multiplicity="1" Role="FromRole_AgentHeadertoItem" /> 
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.AgentOrderAllocationItm" Multiplicity="*" Role="ToRole_AgentHeadertoItem" /> 
+  <End Type="ZSD_BULK_INDPORTAL_SRV.AgentOrderAllocationHeader" Multiplicity="1" Role="FromRole_AgentHeadertoItem" /> 
+  <End Type="ZSD_BULK_INDPORTAL_SRV.AgentOrderAllocationItm" Multiplicity="*" Role="ToRole_AgentHeadertoItem" /> 
 - <ReferentialConstraint>
 - <Principal Role="FromRole_AgentHeadertoItem">
   <PropertyRef Name="ALLOCATION_ID" /> 
@@ -140,21 +141,21 @@
   </Dependent>
   </ReferentialConstraint>
   </Association>
-- <Association Name="SalesOrderHeaderToItem" sap:content-version="1">
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.SALESORDERHeader" Multiplicity="1" Role="FromRole_SalesOrderHeaderToItem" /> 
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.SALESORDERItem" Multiplicity="*" Role="ToRole_SalesOrderHeaderToItem" /> 
+- <Association Name="ContractHeaderToItem" sap:content-version="1">
+  <End Type="ZSD_BULK_INDPORTAL_SRV.ContractHeader" Multiplicity="1" Role="FromRole_ContractHeaderToItem" /> 
+  <End Type="ZSD_BULK_INDPORTAL_SRV.ContractItem" Multiplicity="*" Role="ToRole_ContractHeaderToItem" /> 
 - <ReferentialConstraint>
-- <Principal Role="FromRole_SalesOrderHeaderToItem">
+- <Principal Role="FromRole_ContractHeaderToItem">
   <PropertyRef Name="VBELN" /> 
   </Principal>
-- <Dependent Role="ToRole_SalesOrderHeaderToItem">
+- <Dependent Role="ToRole_ContractHeaderToItem">
   <PropertyRef Name="VBELN" /> 
   </Dependent>
   </ReferentialConstraint>
   </Association>
 - <Association Name="CustomerOrderHeadertoItem" sap:content-version="1">
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.CustomerOrder" Multiplicity="1" Role="FromRole_CustomerOrderHeadertoItem" /> 
-  <End Type="ZSD_CUST_BULK_INDENT_SRV.CustomerOrderItem" Multiplicity="*" Role="ToRole_CustomerOrderHeadertoItem" /> 
+  <End Type="ZSD_BULK_INDPORTAL_SRV.CustomerOrder" Multiplicity="1" Role="FromRole_CustomerOrderHeadertoItem" /> 
+  <End Type="ZSD_BULK_INDPORTAL_SRV.CustomerOrderItem" Multiplicity="*" Role="ToRole_CustomerOrderHeadertoItem" /> 
 - <ReferentialConstraint>
 - <Principal Role="FromRole_CustomerOrderHeadertoItem">
   <PropertyRef Name="ORDER_NO" /> 
@@ -164,30 +165,30 @@
   </Dependent>
   </ReferentialConstraint>
   </Association>
-- <EntityContainer Name="ZSD_CUST_BULK_INDENT_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
-  <EntitySet Name="SALESORDERHeaderSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.SALESORDERHeader" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="SALESORDERItemSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.SALESORDERItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="AgentDetailsSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.AgentDetails" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="AgentOrderAllocationSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.AgentOrderAllocationHeader" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="AgentOrderAllocationItmSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.AgentOrderAllocationItm" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="TransporterDetailsSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.TransporterDetails" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="CustomerOrderSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.CustomerOrder" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-  <EntitySet Name="CustomerOrderItemSet" EntityType="ZSD_CUST_BULK_INDENT_SRV.CustomerOrderItem" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
-- <AssociationSet Name="HeaderToItemSet" Association="ZSD_CUST_BULK_INDENT_SRV.SalesOrderHeaderToItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
-  <End EntitySet="SALESORDERHeaderSet" Role="FromRole_SalesOrderHeaderToItem" /> 
-  <End EntitySet="SALESORDERItemSet" Role="ToRole_SalesOrderHeaderToItem" /> 
+- <EntityContainer Name="ZSD_BULK_INDPORTAL_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+  <EntitySet Name="ContractHeaderSet" EntityType="ZSD_BULK_INDPORTAL_SRV.ContractHeader" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="ContractItemSet" EntityType="ZSD_BULK_INDPORTAL_SRV.ContractItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentDetailsSet" EntityType="ZSD_BULK_INDPORTAL_SRV.AgentDetails" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentOrderAllocationSet" EntityType="ZSD_BULK_INDPORTAL_SRV.AgentOrderAllocationHeader" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="AgentOrderAllocationItmSet" EntityType="ZSD_BULK_INDPORTAL_SRV.AgentOrderAllocationItm" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="TransporterDetailsSet" EntityType="ZSD_BULK_INDPORTAL_SRV.TransporterDetails" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="CustomerOrderSet" EntityType="ZSD_BULK_INDPORTAL_SRV.CustomerOrder" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+  <EntitySet Name="CustomerOrderItemSet" EntityType="ZSD_BULK_INDPORTAL_SRV.CustomerOrderItem" sap:pageable="false" sap:addressable="false" sap:content-version="1" /> 
+- <AssociationSet Name="HeaderToItemSet" Association="ZSD_BULK_INDPORTAL_SRV.ContractHeaderToItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+  <End EntitySet="ContractHeaderSet" Role="FromRole_ContractHeaderToItem" /> 
+  <End EntitySet="ContractItemSet" Role="ToRole_ContractHeaderToItem" /> 
   </AssociationSet>
-- <AssociationSet Name="CustomerOrderHeadertoItemSet" Association="ZSD_CUST_BULK_INDENT_SRV.CustomerOrderHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+- <AssociationSet Name="CustomerOrderHeadertoItemSet" Association="ZSD_BULK_INDPORTAL_SRV.CustomerOrderHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
   <End EntitySet="CustomerOrderSet" Role="FromRole_CustomerOrderHeadertoItem" /> 
   <End EntitySet="CustomerOrderItemSet" Role="ToRole_CustomerOrderHeadertoItem" /> 
   </AssociationSet>
-- <AssociationSet Name="AgentHeadertoItemSet" Association="ZSD_CUST_BULK_INDENT_SRV.AgentHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+- <AssociationSet Name="AgentHeadertoItemSet" Association="ZSD_BULK_INDPORTAL_SRV.AgentHeadertoItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
   <End EntitySet="AgentOrderAllocationSet" Role="FromRole_AgentHeadertoItem" /> 
   <End EntitySet="AgentOrderAllocationItmSet" Role="ToRole_AgentHeadertoItem" /> 
   </AssociationSet>
   </EntityContainer>
-  <atom:link rel="self" href="http://eccdev.nrl.com:8000/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
-  <atom:link rel="latest-version" href="http://eccdev.nrl.com:8000/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
+  <atom:link rel="self" href="http://eccdev.nrl.com:8000/sap/opu/odata/SAP/ZSD_BULK_INDPORTAL_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
+  <atom:link rel="latest-version" href="http://eccdev.nrl.com:8000/sap/opu/odata/SAP/ZSD_BULK_INDPORTAL_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom" /> 
   </Schema>
   </edmx:DataServices>
   </edmx:Edmx>

@@ -24,7 +24,7 @@ server:
         ignoreCertErrors: true
         backend:
           - path: /sap
-            url: http://s4hmock2.nrl.com:8001
+            url: http://eccdev.nrl.com:8000
             client: "300"
         ui5:
           path:

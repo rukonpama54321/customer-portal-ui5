@@ -4,13 +4,20 @@
     xmlns:core="sap.ui.core"
     xmlns="sap.m">
     <Page
-        title="Sales Document Lookup"
+        title="Contract Lookup"
+        showHeader="false"
         busy="{viewModel>/busy}">
         <content>
             <VBox width="100%">
                 <VBox class="manage-header-section">
                     <HBox justifyContent="SpaceBetween" alignItems="Center" wrap="Wrap">
                         <HBox alignItems="Center" wrap="Wrap">
+                            <Button
+                                icon="sap-icon://nav-back"
+                                type="Transparent"
+                                tooltip="Back"
+                                class="mastBackBtn sapUiTinyMarginEnd"
+                                press=".onNavBack" />
                             <Image src="img/logo.png" alt="Logo" class="sapUiTinyMarginEnd" />
                             <VBox class="sapUiMediumMarginEnd">
                                 <Title text="Bulk Indent Portal" level="H1" class="manage-page-title" />
@@ -41,9 +48,9 @@
                     id="orderTabBar"
                     select=".onTabSelect">
                     <items>
-                        <IconTabFilter text="Sales Documents" key="salesOrders" iconColor="Positive">
+                        <IconTabFilter text="Contracts" key="salesOrders" iconColor="Positive">
                             <items>
-                                <IconTabFilter text="All Orders" key="allOrders" icon="sap-icon://list" iconColor="Default">
+                                <IconTabFilter text="All Contracts" key="allOrders" icon="sap-icon://list" iconColor="Default">
                                     <core:Fragment fragmentName="customerindent.view.CustomerBulkIndent.AllOrders" type="XML" />
                                 </IconTabFilter>
 

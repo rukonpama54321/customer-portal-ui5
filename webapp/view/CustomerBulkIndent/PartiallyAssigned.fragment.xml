@@ -31,13 +31,13 @@
     </Panel>
 
     <MessageStrip
-        text="No partially assigned sales documents found."
+        text="No partially assigned contracts found."
         type="Information"
         showIcon="true"
         visible="{viewModel>/showEmptyMessage}" />
 
     <VBox visible="{= ${viewModel>/headers}.length > 0 }">
-        <Title text="Partially Assigned Sales Documents" />
+        <Title text="Partially Assigned Contracts" />
         <List
             items="{viewModel>/headers}"
             mode="None">

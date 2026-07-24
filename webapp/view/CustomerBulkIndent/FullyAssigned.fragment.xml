@@ -31,13 +31,13 @@
     </Panel>
 
     <MessageStrip
-        text="No fully assigned sales documents found."
+        text="No fully assigned contracts found."
         type="Information"
         showIcon="true"
         visible="{viewModel>/showEmptyMessage}" />
 
     <VBox visible="{= ${viewModel>/headers}.length > 0 }">
-        <Title text="Fully Assigned Sales Documents" />
+        <Title text="Fully Assigned Contracts" />
         <List
             id="fullyAssignedOrderList"
             items="{viewModel>/headers}"

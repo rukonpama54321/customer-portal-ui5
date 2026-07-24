@@ -55,7 +55,7 @@ sap.ui.define([
                     "X-Portal-User": sUsername || ""
                 };
             }
-            var oModel = new ODataModel("/sap/opu/odata/sap/ZSD_CUST_BULK_INDENT_SRV/", oConfig);
+            var oModel = new ODataModel("/sap/opu/odata/sap/ZSD_BULK_INDPORTAL_SRV/", oConfig);
             this.setModel(oModel);
             oModel.refreshSecurityToken();
             this._startSessionKeepAlive();

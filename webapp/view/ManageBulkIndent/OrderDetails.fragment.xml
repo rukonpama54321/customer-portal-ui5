@@ -22,7 +22,7 @@
 
             <!-- Sales Order Section -->
             <VBox class="detail-group sales-order-highlight sapUiSmallMarginBottom">
-                <Label text="Sales Document(SAP):" class="detail-label sapUiTinyMarginBottom" />
+                <Label text="Contract (SAP):" class="detail-label sapUiTinyMarginBottom" />
                 <HBox alignItems="Baseline" justifyContent="SpaceBetween" wrap="Wrap">
                     <VBox>
                         <Title text="{= parseInt(${manageModel>/header/VBELN}, 10) + '' }" level="H1" class="sales-order-number" />
